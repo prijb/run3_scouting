@@ -3,6 +3,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 
+import os
 import time
 import glob
 import numpy as np
@@ -98,7 +99,7 @@ if __name__ == '__main__':
 
     plt.legend(loc=0)
 
-    plot_dir = '/home/users/dspitzba/public_html/scouting/'
+    plot_dir = os.path.expandvars('/home/users/$USER/public_html/scouting/')
     finalizePlotDir(plot_dir)
 
     fig.savefig(f'{plot_dir}/dimuon_mass.png')
@@ -164,3 +165,6 @@ if __name__ == '__main__':
         plt.legend(loc=0)
 
         fig.savefig(f'{plot_dir}/dimuon_mass_zoomed.png')
+
+        print("Seems like I found a J/Psi!")
+        output['dimuon'][:, :, 2.8j:3.5j:2j][{'dataset':sum, 'pt':sum}].show()
