@@ -89,11 +89,12 @@ if __name__ == '__main__':
     mass_hist.fill(ak.flatten(OS_dimuon.mass, axis=1))
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    hep.histplot([mass_hist.values()],
-            mass_hist.axes[0].edges,
-            histtype="step",
-            stack=False,
-            ax=ax,)
+
+    mass_hist.plot1d(
+        histtype="step",
+        stack=False,
+        ax=ax,
+    )
 
     hep.cms.label("Preliminary",data=False,lumi='X',com=14,loc=0,ax=ax,fontsize=15,)
 
@@ -139,12 +140,12 @@ if __name__ == '__main__':
         print(f"Events/s: {output['EventCount'] / elapsed:.0f}")
 
         fig, ax = plt.subplots(figsize=(8, 8))
-        hep.histplot(
-            [output['dimuon'][:,:,::100j][{'dataset':sum, 'pt':sum}].values()],
-            output['dimuon'][:,:,::100j][{'dataset':sum, 'pt':sum}].axes[0].edges,
+
+        output['dimuon'][:,:,::100j][{'dataset':sum, 'pt':sum}].plot1d(
             histtype="step",
-            stack=False,ax=ax,
-        )
+            stack=False,
+            ax=ax,
+            )
 
         hep.cms.label("Preliminary",data=False,lumi='X',com=14,loc=0,ax=ax,fontsize=15,)
 
@@ -153,12 +154,18 @@ if __name__ == '__main__':
         fig.savefig(f'{plot_dir}/dimuon_mass_all.png')
 
         fig, ax = plt.subplots(figsize=(8, 8))
-        hep.histplot(
-            [output['dimuon'][:, :, 2j:4j][{'dataset':sum, 'pt':sum}].values()],
-            output['dimuon'][:, :, 2j:4j][{'dataset':sum, 'pt':sum}].axes[0].edges,
+        output['dimuon'][:, :, 2j:4j][{'dataset':sum, 'pt':sum}].plot1d(
             histtype="errorbar",
-            stack=False,ax=ax,
+            ax=ax,
         )
+
+        # alternative way of plotting
+        #hep.histplot(
+        #    [output['dimuon'][:, :, 2j:4j][{'dataset':sum, 'pt':sum}].values()],
+        #    output['dimuon'][:, :, 2j:4j][{'dataset':sum, 'pt':sum}].axes[0].edges,
+        #    histtype="errorbar",
+        #    stack=False,ax=ax,
+        #)
 
         hep.cms.label("Preliminary",data=False,lumi='X',com=14,loc=0,ax=ax,fontsize=15,)
 
