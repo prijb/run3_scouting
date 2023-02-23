@@ -36,8 +36,8 @@ def get_muons(events):
 class MuonProcessor(processor.ProcessorABC):
     def __init__(self):
 
-        mass_axis = hist.axis.Regular(5000, 0.0, 50, name="mass", label=r"M(\mu\mu)\ (GeV)")
-        pt_axis = hist.axis.Regular(20, 0.0, 200, name="pt", label=r"p_{T}(\mu\mu)\ (GeV)")
+        mass_axis = hist.axis.Regular(5000, 0.0, 50, name="mass", label=r"$M(\mu\mu)\ (GeV)$")
+        pt_axis = hist.axis.Regular(20, 0.0, 200, name="pt", label=r"$p_{T}(\mu\mu)\ (GeV)$")
         dataset_axis = hist.axis.StrCategory([], name="dataset", label="Dataset", growth=True)
 
         self.make_output = lambda: {
@@ -74,6 +74,9 @@ class MuonProcessor(processor.ProcessorABC):
 
 if __name__ == '__main__':
 
+    plot_dir = os.path.expandvars('/home/users/$USER/public_html/scouting/')
+    finalizePlotDir(plot_dir)
+
     events = NanoEventsFactory.from_root(
         '/ceph/cms/store/user/namin/babies4mu/ScoutingCaloMuon_Run2017_2017C_RAW_4muv4/output_10.root',
         schemaclass = BaseSchema,
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     dimuon      = choose(muon, 2)
     OS_dimuon   = dimuon[((dimuon['0'].charge*dimuon['1'].charge)<0)]
 
-    mass_axis = hist.axis.Regular(20, 0.0, 50, name="mass", label=r"M(\mu\mu)\ (GeV)")
+    mass_axis = hist.axis.Regular(20, 0.0, 50, name="mass", label=r"$M(\mu\mu)\ (GeV)$")
     mass_hist = hist.Hist(mass_axis)
     mass_hist.fill(ak.flatten(OS_dimuon.mass, axis=1))
 
@@ -96,13 +99,8 @@ if __name__ == '__main__':
         ax=ax,
     )
 
-    hep.cms.label("Preliminary",data=False,lumi='X',com=14,loc=0,ax=ax,fontsize=15,)
-
-    plt.legend(loc=0)
-
-    plot_dir = os.path.expandvars('/home/users/$USER/public_html/scouting/')
-    finalizePlotDir(plot_dir)
-
+    hep.cms.label("Preliminary",data=False,lumi='X',com=13,loc=0,ax=ax,fontsize=15,)
+    #plt.legend(loc=0)
     fig.savefig(f'{plot_dir}/dimuon_mass.png')
 
     run_all = True
@@ -147,10 +145,8 @@ if __name__ == '__main__':
             ax=ax,
             )
 
-        hep.cms.label("Preliminary",data=False,lumi='X',com=14,loc=0,ax=ax,fontsize=15,)
-
-        plt.legend(loc=0)
-
+        hep.cms.label("Preliminary",data=False,lumi='X',com=13,loc=0,ax=ax,fontsize=15,)
+        #plt.legend(loc=0)
         fig.savefig(f'{plot_dir}/dimuon_mass_all.png')
 
         fig, ax = plt.subplots(figsize=(8, 8))
@@ -167,11 +163,17 @@ if __name__ == '__main__':
         #    stack=False,ax=ax,
         #)
 
-        hep.cms.label("Preliminary",data=False,lumi='X',com=14,loc=0,ax=ax,fontsize=15,)
-
-        plt.legend(loc=0)
-
+        hep.cms.label("Preliminary",data=False,lumi='X',com=13,loc=0,ax=ax,fontsize=15,)
+        #plt.legend(loc=0)
         fig.savefig(f'{plot_dir}/dimuon_mass_zoomed.png')
+
+        fig, ax = plt.subplots(figsize=(8, 8))
+        output['dimuon'][:, :, :][{'dataset':sum, 'mass':sum}].plot1d(
+            histtype="step",
+            ax=ax,
+        )
+        hep.cms.label("Preliminary",data=False,lumi='X',com=13,loc=0,ax=ax,fontsize=15,)
+        fig.savefig(f'{plot_dir}/dimuon_pt.png')
 
         print("Seems like I found a J/Psi!")
         output['dimuon'][:, :, 2.8j:3.5j:2j][{'dataset':sum, 'pt':sum}].show()
