@@ -4,6 +4,33 @@ import awkward as ak
 import numpy as np
 import os
 import shutil
+import subprocess
+
+dasgoclient = '/cvmfs/cms.cern.ch/common/dasgoclient'
+redirectors = {
+    'ucsd': 'root://redirector.t2.ucsd.edu:1095/',
+    'ucsd_xcache': 'root://xcache-redirector.t2.ucsd.edu:2042/',
+    'fnal': 'root://cmsxrootd.fnal.gov/',
+    'fnal_eos': 'root://cmseos.fnal.gov/',
+    'global': 'root://cms-xrd-global.cern.ch/',
+}
+
+def das_wrapper(DASname, query='file'):
+    sampleName = DASname.rstrip('/')
+    dbsOut = subprocess.check_output(
+        [dasgoclient, f"-query={query} dataset={sampleName}"],
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    dbsOut = dbsOut.split('\n')
+    if len(dbsOut[-1]) < 1: dbsOut = dbsOut[:-1]
+    return dbsOut
+
+def xrdfsls(path, redirector):
+    cmd = f"xrdfs {redirector} ls {path}"
+    out = os.popen(cmd).readlines()
+    out = [ l.replace('\n','') for l in out ]
+    return out
 
 def get_four_vec_fromPtEtaPhiM(cand, pt, eta, phi, M, copy=True):
     '''
