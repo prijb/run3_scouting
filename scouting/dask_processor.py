@@ -3,7 +3,6 @@ import socket
 
 from distributed import Client, LocalCluster
 from dask.distributed import progress
-from lpcjobqueue import LPCCondorCluster
 import uproot
 
 from coffea.nanoevents.methods import vector
@@ -103,6 +102,7 @@ if __name__ == '__main__':
     else:
         if host.count('ucsd'):
             raise NotImplementedError("Can't yet use a condor cluster on UAF. Please run locally.")
+        from lpcjobqueue import LPCCondorCluster
         cluster = LPCCondorCluster(
             transfer_input_files="scouting",
         )
