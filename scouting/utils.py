@@ -13,12 +13,13 @@ redirectors = {
     'fnal': 'root://cmsxrootd.fnal.gov/',
     'fnal_eos': 'root://cmseos.fnal.gov/',
     'global': 'root://cms-xrd-global.cern.ch/',
+    'europe': 'root://xrootd-cms.infn.it/'
 }
 
-def das_wrapper(DASname, query='file'):
+def das_wrapper(DASname, qualifier='dataset', query='file', mask=''):
     sampleName = DASname.rstrip('/')
     dbsOut = subprocess.check_output(
-        [dasgoclient, f"-query={query} dataset={sampleName}"],
+        [dasgoclient, f"-query={query} {qualifier}={sampleName} {mask}"],
         stderr=subprocess.PIPE,
         text=True,
     )
