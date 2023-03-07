@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import os
 import socket
+import time
 
+import dask
 from distributed import Client, LocalCluster
 from dask.distributed import progress
 import uproot
@@ -10,6 +13,9 @@ import awkward as ak
 ak.behavior.update(vector.behavior)
 
 import hist
+import matplotlib.pyplot as plt
+import mplhep as hep #matplotlib wrapper for easy plotting in HEP
+plt.style.use(hep.style.CMS)
 
 from scouting.utils import das_wrapper, redirectors, choose
 
@@ -53,12 +59,18 @@ def get_nevents(f_in):
 
 def make_simple_hist(f_in):
     #pt_axis = hist.axis.Regular(20, 0.0, 200, name="pt", label=r"$p_{T}^{miss\ (GeV)$")
+    results = {}
     mass_axis = hist.axis.Regular(500, 0.0, 50, name="mass", label=r"$M(\mu\mu)\ (GeV)$")
+    N_axis = hist.axis.Regular(15, -0.5, 14.5, name="n", label=r"$N$")
     dataset_axis = hist.axis.StrCategory([], name="dataset", label="Dataset", growth=True)
-    h = hist.Hist(
+    results['mass'] = hist.Hist(
         dataset_axis,
         #pt_axis,
         mass_axis,
+    )
+    results['nmuons'] = hist.Hist(
+        dataset_axis,
+        N_axis,
     )
     try:
         with uproot.open(f_in, timeout=300) as f:
@@ -67,16 +79,20 @@ def make_simple_hist(f_in):
             muons4 = get_muons(muons)
             dimuon = choose(muons4, 2)
             OS_dimuon   = dimuon[((dimuon['0'].charge*dimuon['1'].charge)<0)]
-            h.fill(
+            results['mass'].fill(
                 dataset=f_in,
                 mass=ak.flatten(OS_dimuon.mass, axis=1),
                 #pt=ak.flatten(OS_dimuon.pt, axis=1),
                 #pt=events["double_hltScoutingPFPacker_pfMetPt_HLT./double_hltScoutingPFPacker_pfMetPt_HLT.obj"].arrays(),
             )
+            results['nmuons'].fill(
+                dataset=f_in,
+                n=ak.num(muons4, axis=1),
+            )
     except OSError:
         print(f"Could not open file {f_in}, skipping.")
         #raise
-    return h
+    return results
 
 
     
@@ -86,6 +102,7 @@ if __name__ == '__main__':
 
     argParser = argparse.ArgumentParser(description = "Argument parser")
     argParser.add_argument('--cluster', action='store_true', default=False, help="Run on a cluster")
+    argParser.add_argument('--small', action='store_true', default=False, help="Run on a small subset")
     argParser.add_argument('--workers', action='store', default=4,  help="Set the number of workers for the DASK cluster")
     args = argParser.parse_args()
 
@@ -106,23 +123,27 @@ if __name__ == '__main__':
         cluster = LPCCondorCluster(
             transfer_input_files="scouting",
         )
+        dask.config.set({'distributed.scheduler.allowed-failures': '20'})
 
     cluster.adapt(minimum=0, maximum=workers)
     client = Client(cluster)
 
-    files = das_wrapper('/ScoutingPFRun3/Run2022C-v1/RAW', query='file', mask='site=T2_US_Caltech')  # MIT sucks, T2_US_Caltech only has the empty files copied over...
-    all_files = [redirectors["fnal"] + x for x in files][15:30]
-    #files = das_wrapper('/ScoutingPFRun3/Run2022C-v1/RAW', query='file', mask=' | grep file.name, file.nevents')  # can't filter only files on Caltech...
+    #files = das_wrapper('/ScoutingPFRun3/Run2022C-v1/RAW', query='file', mask='site=T2_US_Caltech')  # MIT sucks, T2_US_Caltech only has the empty files copied over...
+    #all_files = [redirectors["fnal"] + x for x in files][15:30]
+    files = das_wrapper('/ScoutingPFRun3/Run2022B-v1/RAW', query='file', mask=' | grep file.name, file.nevents')  # can't filter only files on Caltech...
     #new_files = []
     #for f in files:
     #    new_files += das_wrapper(f, qualifier="file", query="file", mask=" | grep file.name, file.nevents")
     # adding the redirector + weed out useless empty files
     # unfortunately,
-    #all_files = [redirectors["fnal"] + x.split()[0] for x in files if int(x.split()[1])>10][:15]  # only the first few are crappy
+    nmax = 10 if args.small else int(1e7)
+    all_files = [redirectors["fnal"] + x.split()[0] for x in files if int(x.split()[1])>10][:nmax]
+    n_events = [int(x.split()[1]) for x in files if int(x.split()[1])>10][:nmax]
 
     #all_files = test_files
 
     print("Computing the results")
+    tic = time.time()
     futures = client.map(make_simple_hist, all_files)  # .reduction does not work
     # NOTE: accumulation below is potentially memory intensive
     # This is WIP
@@ -133,7 +154,56 @@ if __name__ == '__main__':
     print(client.gather(futures))
     results = client.gather(futures)
 
+    elapsed = time.time() - tic
+    print(f"Finished in {elapsed:.1f}s")
+    print(f"Total events {round(sum(n_events)/1e6,2)}M")
+    print(f"Events/s: {sum(n_events) / elapsed:.0f}")
+
     print("Accumulating")
-    total_hist = sum(results)
+    # transpose the results list of dicts
+    results_t = {k: [dic[k] for dic in results] for k in results[0]}
+    total_hist = sum(results_t['mass'])
     #total_hist[{"dataset":sum, "pt":sum}].show(columns=100)
     total_hist[{"dataset":sum}].show(columns=100)
+
+    plot_dir = os.path.expandvars('./plots/')
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    total_hist[{"dataset":sum}].plot1d(
+        histtype="step",
+        ax=ax,
+    )
+
+    hep.cms.label(
+        "Preliminary",
+        data=True,
+        lumi='0.086',
+        com=13.6,
+        loc=0,
+        ax=ax,
+        fontsize=15,
+    )
+    fig.savefig(f'{plot_dir}/dimuon_mass.png')
+
+    total_hist = sum(results_t['nmuons'])
+    #total_hist[{"dataset":sum, "pt":sum}].show(columns=100)
+    total_hist[{"dataset":sum}].show(columns=100)
+
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    total_hist[{"dataset":sum}].plot1d(
+        histtype="step",
+        ax=ax,
+    )
+
+    hep.cms.label(
+        "Preliminary",
+        data=True,
+        lumi='0.086',
+        com=13.6,
+        loc=0,
+        ax=ax,
+        fontsize=15,
+    )
+    ax.set_yscale('log')
+    fig.savefig(f'{plot_dir}/nmuons.png')
