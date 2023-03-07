@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import mplhep as hep #matplotlib wrapper for easy plotting in HEP
 plt.style.use(hep.style.CMS)
 
-from scouting.utils import das_wrapper, redirectors, choose
+from utils import das_wrapper, redirectors, choose
 
 def get_muons(events, branch="Run3ScoutingMuons_hltScoutingMuonPacker__HLT.obj."):
     from coffea.nanoevents.methods import vector
