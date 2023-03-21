@@ -10,7 +10,7 @@ else
   export COFFEA_IMAGE=\$1
 fi
 
-SINGULARITY_SHELL=\$(which bash) singularity exec -B \${PWD}:/srv -B /cvmfs -B /home -B /ceph --pwd /srv \\
+SINGULARITY_SHELL=\$(which bash) singularity exec -B \${PWD}:/srv -B /cvmfs -B /home -B /etc -B /ceph --pwd /srv \\
   /cvmfs/unpacked.cern.ch/registry.hub.docker.com/\${COFFEA_IMAGE} \\
   /bin/bash --rcfile /srv/.bashrc
 EOF
@@ -37,6 +37,9 @@ export IPYTHONDIR=/srv/.ipython
 [[ -d .env ]] || install_env
 source .env/bin/activate
 alias pip="python -m pip"
+
+export PYTHONPATH=${PYTHONPATH}:/srv/ProjectMetis
+
 EOF
 
 chmod u+x shell .bashrc
