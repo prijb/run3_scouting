@@ -37,7 +37,7 @@ cmsenv
 git cms-addpkg GeneratorInterface/Pythia8Interface
 scram tool remove evtgen
 cp ../../signal/remove_evtgen.patch .
-patch remove_evtgen.patch
+git apply remove_evtgen.patch
 scram b -j 12
 scram tool info pythia8 # check whether it is correctly linked to the standalone pythia8
 ```
