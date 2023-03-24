@@ -95,12 +95,13 @@ function edit_psets {
 }
 
 function setup_cmssw {
-  CMSSW=$1
-  export SCRAM_ARCH=$2
-  scram p CMSSW $CMSSW
-  cd $CMSSW
-  eval $(scramv1 runtime -sh)
-  cd -
+    echo "Setting up CMSSW $1 using SCRAM_ARCH $2"
+    CMSSW=$1
+    export SCRAM_ARCH=$2
+    cmsrel $CMSSW
+    cd $CMSSW
+    eval $(scramv1 runtime -sh)
+    cd -
 }
 
 echo "time at start: $(date +%s)"
@@ -115,35 +116,67 @@ echo "Number of events: $NEVENTS"
 #echo "Fragment file: $FRAGMENT"
 #FRAG=${FRAGMENT#*/}
 
-#setup_cmssw $CMSSW_VERSION $SCRAM_ARCH
-
 echo "Unpacking shipped tarball"
 tar -xf package.tar.gz
 rm -f package.tar.gz
 
+BASEDIR=`pwd`
+
 echo "ls -la after unpacking:"
 ls -la
 
-echo "Setting environment variables"
-BASEDIR=`pwd`
-MYPYTHIA=`pwd`/pythia8/
-NEWBASE=`pwd`/CMSSW_12_4_12/
-echo "BASEDIR: $BASEDIR"
-echo "MYPYTHIA: $MYPYTHIA"
-echo "CMSSW_BASE: $CMSSW_BASE"
-echo "NEWBASE: $NEWBASE"
-
 echo "Setting up CMSSW"
-cd CMSSW_12_4_12/src/
-echo "scram ProjectRename"
-scramv1 b ProjectRename
-echo "cmsenv"
+
+#setup_cmssw $CMSSWVERSION $SCRAM_ARCH
+cmsrel $CMSSWVERSION
+cd $CMSSWVERSION
+CMSSW_BASE=`pwd`
+echo "CMSSW_BASE: $CMSSW_BASE"
+eval $(scramv1 runtime -sh)
 cmsenv
+cd -
 
-echo "Replacing pythia path"
-sed -i "/<environment name=\"PYTHIA8_BASE\" default=/c\\ \ \ \ <environment name=\"PYTHIA8_BASE\" default=\"$MYPYTHIA\"/>" $NEWBASE/config/toolbox/el8_amd64_gcc10/tools/selected/pythia8.xml
+echo "[DIR STAT] ls -la after cmsrel"
+ls -la
 
-echo "Compile (maybe need to build clean?)"
+echo "Preparing pythia"
+mkdir pythia8
+mv pythia8309.tgz pythia8
+cd pythia8/
+MYPYTHIA=`pwd`
+tar -xf pythia8309.tgz
+cd pythia8309
+
+./configure --prefix=$MYPYTHIA --enable-shared --with-hepmc2=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/hepmc/2.06.10-2c9cd2f87f463ffd02a99f594368a84f --with-lhapdf6=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/lhapdf/6.4.0-ae790c99b90d02ddcd723a0f776517df
+
+cd include/Pythia8Plugins/
+rm JetMatching.h
+wget http://amcatnlo.web.cern.ch/amcatnlo/JetMatching.h
+cd ../..
+
+echo "[DIR STAT] ls -la after setting up pythia"
+ls -la
+
+echo "Installing pythia"
+make -j64
+make install
+
+sed -i "/<environment name=\"PYTHIA8_BASE\" default=/c\\ \ \ \ <environment name=\"PYTHIA8_BASE\" default=\"$MYPYTHIA\"/>" $CMSSW_BASE/config/toolbox/el8_amd64_gcc10/tools/selected/pythia8.xml
+
+echo "CMSSW_BASE: $CMSSW_BASE"
+cd $CMSSW_BASE/src
+cmsenv
+scram setup pythia8
+
+echo "Removing evtgen"
+cmsenv
+git cms-addpkg GeneratorInterface/Pythia8Interface
+scram tool remove evtgen
+
+cp ${BASEDIR}/signal/remove_evtgen.patch .
+git apply remove_evtgen.patch
+
+echo "Scram time"
 scram b
 
 echo "Preparing to run"
@@ -154,9 +187,11 @@ echo "Preparing to run"
 #cp ../../$FRAG Configuration/GenProduction/python/
 #scram b
 #
-cp ../../psets/$rawsimcfg .
-cp ../../psets/$aodsimcfg .
+cp ${BASEDIR}/psets/$gensimcfg .
+cp ${BASEDIR}/psets/$rawsimcfg .
+cp ${BASEDIR}/psets/$aodsimcfg .
 
+echo "Editing psets"
 edit_psets $NEVENTS
 #
 ## redoing this everytime because the fragment changes for different signal points.

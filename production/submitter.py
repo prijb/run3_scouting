@@ -14,39 +14,47 @@ import os
 
 if __name__ == '__main__':
 
+
+
     total_summary = {}
 
     reqname = 'DarkShower_ScenarioA_default'  # Scouting For Scouting
 
-    fragment = "signal/darkshower_fragment.py"  # This defines the physics
+    fragment = "psets/darkshower_cfg.py"  # This defines the physics
     events_per_point = 20
     events_per_job = 10
     njobs = int(events_per_point)//events_per_job
 
-    tag = "v0p0"
+    tag = "v0p17"  # v0p8 first one with compiling on worker, 14 switch to el8 from rhel8
+    # 17 - trying to switch of pythia multithreading
     campaign = "Run3Summer22GS"
 
     task = CondorTask(
         sample = DummySample(
-            dataset=f"/{reqname}/{campaign}_{tag}/GENSIM",
+            dataset=f"/{reqname}/{campaign}_{tag}/AODSIM",
             N=njobs,
             nevents=int(events_per_point),
-        )
-        output_name = "gen.root",
+        ),
+        output_name = "output.root",
         executable = "executables/test_signal_production.sh",
-        tarfile = "package.tar.gz",  # contains precompiled CMSSW_12_4_12 and pythia
-        additional_input_files = fragment,
-        #scram_arch = "slc7_amd64_gcc630",
+        tarfile = "package.tar.gz",  # contains precompiled CMSSW_12_4_12, pythia and RAWSIM/AODSIM configs
+        additional_input_files = [fragment],  # this is signal point dependent
+        scram_arch = "el8_amd64_gcc10",  # not directly used, but better define it
+        # should we switch to el8_amd64_gcc10??
+        cmssw_version = "CMSSW_12_4_12",  # not directly used, but better define it
         open_dataset = False,
         files_per_output = 1,
-        #arguments = gridpack,
+        arguments = fragment,  # tell the job the name of the fragment
         condor_submit_params = {
             "sites":"T2_US_UCSD", #
             "classads": [
                 ["param_nevents",events_per_job],
                 ["metis_extraargs",""],
                 ["JobBatchName",reqname],
-                ["SingularityImage", "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/cc7:x86_64-latest"],
+                #["SingularityImage", "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel8-m-m20230223"],
+                #["SingularityImage", "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/cc7:x86_64-latest"],
+                ["SingularityImage", "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el8:x86_64-d20230317"],
+                #["SingularityImage", "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20221104"],
                 ],
             "requirements_line": 'Requirements = (HAS_SINGULARITY=?=True)'  # && (HAS_CVMFS_cms_cern_ch =?= true) && {extra_requirements})'.format(extra_requirements=extra_requirements),
             },
