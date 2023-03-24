@@ -2,7 +2,7 @@
 
 ## Signal sample production
 
-### Using ALMA-8 (recommended)
+### Installing CMSSW with custom pythia version using ALMA-8 (recommended)
 ``` shell
 cmssw-el8
 cmsrel CMSSW_12_4_12
@@ -41,7 +41,7 @@ scram b -j 12
 scram tool info pythia8 # check whether it is correctly linked to the standalone pythia8
 ```
 
-### Installing Pythia8.309
+### Installing Pythia8.309 locally outside of a container (not recommended)
 
 ``` shell
 cmsrel CMSSW_12_4_12
@@ -81,7 +81,7 @@ scram b -j 12
 scram tool info pythia8 # check whether it is correctly linked to the standalone pythia8
 ```
 
-### Testing that the setup works
+### Testing that the setup works, creating GENSIM
 
 ``` shell
 mkdir -p Configuration/GenProduction/python/
@@ -93,3 +93,16 @@ cmsDriver.py Configuration/GenProduction/python/darkshower_fragment.py --python_
 cmsRun darkshower_cfg.py
 ```
 
+### Running RAWSIM and AOD
+
+psets for RAWSIM and AODSIM can be found in `psets/` and run in the same CMSSW release.
+Please run CMSSW in the ALMA-8 container, `cmssw-el8`.
+
+
+## Batch submission (WIP)
+
+All of this is outside any container or CMS environment.
+Make sure the `ProjectMetis` submodule is checked out.
+Run `setup.sh` to add metis to your path.
+Create the tarball to be shipped to the condor workers: `source make_tarball.sh`.
+Run `python3 submitter.py`.
