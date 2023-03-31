@@ -81,7 +81,9 @@ function edit_psets {
     # gensim
     echo "process.source.firstLuminosityBlock = cms.untracked.uint32($IFILE)" >> $gensimcfg
     echo "process.maxEvents.input = $nevents" >> $gensimcfg
-
+    echo "process.options.numberOfThreads=cms.untracked.uint32(1)" >> $gensimcfg
+    echo "process.options.numberOfStreams=cms.untracked.uint32(0)" >> $gensimcfg
+ 
     # rawsim
     echo "process.maxEvents.input = $nevents" >> $rawsimcfg
 
@@ -170,6 +172,9 @@ scram setup pythia8
 
 echo "Removing evtgen"
 cmsenv
+git config --global user.name 'Indara Suarez'
+git config --global user.github indarasuarez
+git config --global user.email 'isuarez@cern.ch'
 git cms-addpkg GeneratorInterface/Pythia8Interface
 scram tool remove evtgen
 
