@@ -149,7 +149,8 @@ MYPYTHIA=`pwd`
 tar -xf pythia8309.tgz
 cd pythia8309
 
-./configure --prefix=$MYPYTHIA --enable-shared --with-hepmc2=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/hepmc/2.06.10-2c9cd2f87f463ffd02a99f594368a84f --with-lhapdf6=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/lhapdf/6.4.0-ae790c99b90d02ddcd723a0f776517df
+#./configure --prefix=$MYPYTHIA --enable-shared --with-hepmc2=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/hepmc/2.06.10-2c9cd2f87f463ffd02a99f594368a84f --with-lhapdf6=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/lhapdf/6.4.0-ae790c99b90d02ddcd723a0f776517df
+./configure --prefix=$MYPYTHIA --enable-shared --with-hepmc2=/cvmfs/cms.cern.ch/rhel8_amd64_gcc10/external/hepmc/2.06.10-2c9cd2f87f463ffd02a99f594368a84f --with-lhapdf6=/cvmfs/cms.cern.ch/rhel8_amd64_gcc10/external/lhapdf/6.4.0-2c0e2c3a943fdac3e094b5a6f5207589
 
 cd include/Pythia8Plugins/
 rm JetMatching.h

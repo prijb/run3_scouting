@@ -25,7 +25,7 @@ if __name__ == '__main__':
     events_per_job = 10
     njobs = int(events_per_point)//events_per_job
 
-    tag = "v0p17"  # v0p8 first one with compiling on worker, 14 switch to el8 from rhel8
+    tag = "v0p28"  # v0p8 first one with compiling on worker, 14 switch to el8 from rhel8
     # 17 - trying to switch of pythia multithreading
     campaign = "Run3Summer22GS"
 
@@ -51,9 +51,9 @@ if __name__ == '__main__':
                 ["param_nevents",events_per_job],
                 ["metis_extraargs",""],
                 ["JobBatchName",reqname],
-                #["SingularityImage", "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel8-m-m20230223"],
+                ["SingularityImage", "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel8-m-m20230223"],
                 #["SingularityImage", "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/cc7:x86_64-latest"],
-                ["SingularityImage", "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el8:x86_64-d20230317"],
+                #["SingularityImage", "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el8:x86_64-d20230317"],
                 #["SingularityImage", "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20221104"],
                 ],
             "requirements_line": 'Requirements = (HAS_SINGULARITY=?=True)'  # && (HAS_CVMFS_cms_cern_ch =?= true) && {extra_requirements})'.format(extra_requirements=extra_requirements),
