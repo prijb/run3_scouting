@@ -77,7 +77,7 @@ Very basic baby maker based on [Nick's version](https://github.com/aminnj/scouti
 This is still WIP, usage at own risk.
 Example:
 ``` shell
-cmssw-el8
+cmssw-el8 --bind /ceph
 cd CMSSW_12_4_12/src/; cmsenv; cd -
 ipython -i babymaker.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v0p29_AODSIM_v0p29/output_82.root -- -o test.root -n -1 -y 2018
 ```
