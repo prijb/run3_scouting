@@ -80,6 +80,7 @@ function edit_psets {
     nevents=$1
     # gensim
     echo "process.source.firstLuminosityBlock = cms.untracked.uint32($IFILE)" >> $gensimcfg
+    echo "process.RandomNumberGeneratorService.generator.initialSeed = $IFILE" >> $gensimcfg
     echo "process.maxEvents.input = $nevents" >> $gensimcfg
     echo "process.options.numberOfThreads=cms.untracked.uint32(1)" >> $gensimcfg
     echo "process.options.numberOfStreams=cms.untracked.uint32(0)" >> $gensimcfg
