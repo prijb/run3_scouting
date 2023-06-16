@@ -15,10 +15,21 @@ import os
 import pickle
 import ast
 import uuid
+import copy
 
 import socket
 import gzip
 
+class scouting_object:
+    def __init__(self, type=None):
+        self.type=type
+    @classmethod
+    def from_root(cls, root_object, type=None):
+        cls.type = type
+        for x in root_object.__dir__():
+            if not x.startswith('_'):
+                setattr(cls, x, getattr(root_object, x)())
+        return cls
 
 MUON_MASS = 0.10566
 randid = str(uuid.uuid4()).split("-")[0]
@@ -120,10 +131,10 @@ def get_track_reference_point(muon):
     return refx, refy, refz
 
 def does_dv_pass_id(dv):
-    if dv.xError() > 0.05: return False
-    if dv.yError() > 0.05: return False
-    if dv.zError() > 0.10: return False
-    if dv.chi2()/dv.ndof() > 5: return False
+    if dv.xError > 0.05: return False
+    if dv.yError > 0.05: return False
+    if dv.zError > 0.10: return False
+    if dv.chi2/dv.ndof > 5: return False
     #if dv.rhoCorr > 11.: return False  # FIXME
     return True
 
@@ -176,28 +187,28 @@ def pick_best_objects(dvs, muons, run, is_mc):
     d_idv_to_charges = {}
     curr_length = 0
     for imuon,muon in enumerate(muons):
-        indices = list(muon.vtxIndx())
+        indices = list(muon.vtxIndx)
         if bugged_branches:
             indices = indices[curr_length:]
             curr_length += len(indices)
         d_imuon_to_idv[imuon] = indices
-        d_imuon_to_pt[imuon] = muon.pt()
+        d_imuon_to_pt[imuon] = muon.pt
         for idx in indices:
             if idx not in d_idv_to_imuon: d_idv_to_imuon[idx] = []
             d_idv_to_imuon[idx].append(imuon)
             if idx not in d_idv_to_charges: d_idv_to_charges[idx] = []
-            d_idv_to_charges[idx].append(muon.charge())
+            d_idv_to_charges[idx].append(muon.charge)
 
     # Make a mapping of *good* dv indices to max(xError, yError)
     d_goodidv_to_xyerrormax = {}
     for idv, dv in enumerate(dvs):
-        xerror = dv.xError()
-        yerror = dv.yError()
-        zerror = dv.zError()
+        xerror = dv.xError
+        yerror = dv.yError
+        zerror = dv.zError
         #if not dv.passid: continue  # FIXME
         d_goodidv_to_xyerrormax[idv] = max(xerror, yerror)
     # sortedidvs = sorted(d_goodidv_to_xyerrormax.keys(), key=d_goodidv_to_xyerrormax.__getitem__)
-    sortedidvs = sorted(list(d_goodidv_to_xyerrormax.keys()), key=lambda i: dvs[i].chi2())
+    sortedidvs = sorted(list(d_goodidv_to_xyerrormax.keys()), key=lambda i: dvs[i].chi2)
 
     # remove dvs that don't have exactly 2 OS muons associated
     d_idv_to_isos = dict()
@@ -892,8 +903,8 @@ class Looper(object):
                     d_ggphi_info["luminosityBlock"] = lumi
                     fh_ggphi.write(str(d_ggphi_info) + "\n")
 
-            dvs = evt.Run3ScoutingVertexs_hltScoutingMuonPacker_displacedVtx_HLT.product()
-            muons = evt.Run3ScoutingMuons_hltScoutingMuonPacker__HLT.product()
+            dvs = [ scouting_object.from_root(x, 'dv') for x in evt.Run3ScoutingVertexs_hltScoutingMuonPacker_displacedVtx_HLT.product() ]
+            muons = [ scouting_object.from_root(x, 'muon') for x in evt.Run3ScoutingMuons_hltScoutingMuonPacker__HLT.product() ]
             if not dvs: dvs = []
 
             # NOTE, this guarantees HLT bit. if we have a DV in the collection, our HLT trigger of interest
@@ -937,12 +948,20 @@ class Looper(object):
             #dvs = list(map(VertexWrapper, dvs))
             if self.has_hit_info:
                 expectedhits = evt.ints_hitMaker_nexpectedhitsmultiple_SLIM.product()
-                for i,n in enumerate(expectedhits):
-                    muons[i].nExpectedPixelHits = n
+                #for i,n in enumerate(expectedhits):
+                for i,mu in enumerate(muons):
+                    #_  = mu.__dir__()
+                    mu.nExpectedPixelHits = expectedhits[i]
+                    #print(mu.__dir__())
+                    #print(mu.nExpectedPixelHits)
+                #print(len(muons), len(expectedhits))
+                #for mu in muons:
+                #    #print(mu.__dir__())
+                #    print(mu.nExpectedPixelHits)
             for i in range(len(dvs)):
-                vx = dvs[i].x()
-                vy = dvs[i].y()
-                vz = dvs[i].z()
+                vx = dvs[i].x
+                vy = dvs[i].y
+                vz = dvs[i].z
                 dvs[i].pvmx = pvmx
                 dvs[i].pvmy = pvmy
                 dvs[i].rho = (vx**2 + vy**2)**0.5
@@ -1039,14 +1058,14 @@ class Looper(object):
             branches["nDV"][0] = len(selected_dvs)
             for idv, dv in enumerate(selected_dvs):
                 pfx = "DV_" if idv == 0 else "sublead_DV_"
-                branches[pfx+"x"][0] = dv.x()
-                branches[pfx+"y"][0] = dv.y()
-                branches[pfx+"z"][0] = dv.z()
-                branches[pfx+"xError"][0] = dv.xError()
-                branches[pfx+"yError"][0] = dv.yError()
-                branches[pfx+"zError"][0] = dv.zError()
-                branches[pfx+"chi2"][0] = dv.chi2()
-                branches[pfx+"ndof"][0] = dv.ndof()
+                branches[pfx+"x"][0] = dv.x
+                branches[pfx+"y"][0] = dv.y
+                branches[pfx+"z"][0] = dv.z
+                branches[pfx+"xError"][0] = dv.xError
+                branches[pfx+"yError"][0] = dv.yError
+                branches[pfx+"zError"][0] = dv.zError
+                branches[pfx+"chi2"][0] = dv.chi2
+                branches[pfx+"ndof"][0] = dv.ndof
                 # NOTE below is self-calculated stuff?
                 #branches[pfx+"rho"][0] = dv.rho  # FIXME
                 #branches[pfx+"rhoCorr"][0] = dv.rhoCorr  # FIXME
@@ -1150,35 +1169,35 @@ class Looper(object):
             branches["nMuon_raw"][0] = len(muons)
             branches["nMuon"][0] = len(selected_muons)
             for imuon,(pfx,muon) in enumerate(zip(["Muon1_", "Muon2_", "sublead_Muon1_", "sublead_Muon2_"], selected_muons)):
-                pt = muon.pt()
-                eta = muon.eta()
-                phi = muon.phi()
+                pt = muon.pt
+                eta = muon.eta
+                phi = muon.phi
                 branches[pfx+"pt"][0] = pt
                 branches[pfx+"eta"][0] = eta
                 branches[pfx+"phi"][0] = phi
                 branches[pfx+"m"][0] = MUON_MASS
-                branches[pfx+"trackIso"][0] = muon.trackIso()
-                branches[pfx+"chi2"][0] = muon.trk_chi2()  # NOTE was just chi2
-                branches[pfx+"ndof"][0] = muon.trk_ndof()  # NOTE was just ndof
-                branches[pfx+"charge"][0] = muon.charge()
-                branches[pfx+"dxy"][0] = muon.trk_dxy()
-                branches[pfx+"dz"][0] = muon.trk_dz()
-                branches[pfx+"nValidMuonHits"][0] = muon.nValidStandAloneMuonHits()
-                branches[pfx+"nValidPixelHits"][0] = muon.nValidPixelHits()
-                branches[pfx+"nMatchedStations"][0] = muon.nStandAloneMuonMatchedStations()
-                branches[pfx+"nTrackerLayersWithMeasurement"][0] = muon.nTrackerLayersWithMeasurement()
-                branches[pfx+"nValidStripHits"][0] = muon.nValidStripHits()
-                branches[pfx+"dxyError"][0] = muon.trk_dxyError()
-                branches[pfx+"dzError"][0] = muon.trk_dzError()
-                #branches[pfx+"nExpectedPixelHits"][0] = muon.nExpectedPixelHits  # FIXME
+                branches[pfx+"trackIso"][0] = muon.trackIso
+                branches[pfx+"chi2"][0] = muon.trk_chi2  # NOTE was just chi2
+                branches[pfx+"ndof"][0] = muon.trk_ndof  # NOTE was just ndof
+                branches[pfx+"charge"][0] = muon.charge
+                branches[pfx+"dxy"][0] = muon.trk_dxy
+                branches[pfx+"dz"][0] = muon.trk_dz
+                branches[pfx+"nValidMuonHits"][0] = muon.nValidStandAloneMuonHits
+                branches[pfx+"nValidPixelHits"][0] = muon.nValidPixelHits
+                branches[pfx+"nMatchedStations"][0] = muon.nStandAloneMuonMatchedStations
+                branches[pfx+"nTrackerLayersWithMeasurement"][0] = muon.nTrackerLayersWithMeasurement
+                branches[pfx+"nValidStripHits"][0] = muon.nValidStripHits
+                branches[pfx+"dxyError"][0] = muon.trk_dxyError
+                branches[pfx+"dzError"][0] = muon.trk_dzError
+                branches[pfx+"nExpectedPixelHits"][0] = muon.nExpectedPixelHits  # FIXME
 
-                branches[pfx+"trk_qoverp"][0] = muon.trk_qoverp()
-                branches[pfx+"trk_lambda"][0] = muon.trk_lambda()
-                branches[pfx+"trk_qoverpError"][0] = muon.trk_qoverpError()
-                branches[pfx+"trk_lambdaError"][0] = muon.trk_lambdaError()
-                branches[pfx+"trk_phiError"][0] = muon.trk_phiError()
-                branches[pfx+"trk_dsz"][0] = muon.trk_dsz()
-                branches[pfx+"trk_dszError"][0] = muon.trk_dszError()
+                branches[pfx+"trk_qoverp"][0] = muon.trk_qoverp
+                branches[pfx+"trk_lambda"][0] = muon.trk_lambda
+                branches[pfx+"trk_qoverpError"][0] = muon.trk_qoverpError
+                branches[pfx+"trk_lambdaError"][0] = muon.trk_lambdaError
+                branches[pfx+"trk_phiError"][0] = muon.trk_phiError
+                branches[pfx+"trk_dsz"][0] = muon.trk_dsz
+                branches[pfx+"trk_dszError"][0] = muon.trk_dszError
 
                 # find index of jet that is closest to this muon. `sorted_etaphis`: [(index, (eta,phi)), ...]
                 jetIdx1, drjet = -1, 999.
@@ -1328,19 +1347,27 @@ class Looper(object):
                 branches["lxyError"][0] = ((dv.xError()*(dv.x()-pvmx))**2 + (dv.yError()*(dv.y()-pvmy))**2)**0.5 / lxy
 
                 # both muons need to have no excess hits if the displacement is >3.5cm (otherwise we're within the 1st bpix layer and extra hits don't make sense to calculate)
-                pass_excesshits = True
-                        ## FIXME
-                        #(
-                        #(lxy < 3.5) or
-                        #    ( (mu1.nValidPixelHits() - mu1.nExpectedPixelHits <= 0) and
-                        #      (mu2.nValidPixelHits() - mu2.nExpectedPixelHits <= 0)
-                        #    )
-                        #)
+                print(self.has_hit_info, len(muons))
+                for mu in muons:
+                    print(mu.nExpectedPixelHits)
+                try:
+                    pass_excesshits = (
+                            (lxy < 3.5) or
+                                ( (mu1.nValidPixelHits() - mu1.nExpectedPixelHits <= 0) and
+                                (mu2.nValidPixelHits() - mu2.nExpectedPixelHits <= 0)
+                                )
+                            )
+                except AttributeError:
+                    print(len(muons))
+                    for mu in muons:
+                        print(mu.nExpectedPixelHits)
+                    raise
                 branches["pass_excesshits"][0] = pass_excesshits
 
                 branches["pass_genmatch"][0] = ((mu1.genMatch_dr < 0.1) and (mu2.genMatch_dr < 0.1)) or (not self.is_mc)
 
                 pass_materialveto = True  # FIXME: (dv.distPixel > 0.05)
+                #pass_materialveto = (dv.distPixel > 0.05)
                 branches["pass_materialveto"][0] = pass_materialveto
 
                 pass_dxyscaled = (
@@ -1385,6 +1412,7 @@ class Looper(object):
             # Fill some branches for subleading DV and associated muons, if they exist
             if len(selected_dvs) >= 2 and len(selected_muons) >= 4:
 
+                print(f"Found many muons! {lxy=}")
                 mu1 = selected_muons[2]
                 mu2 = selected_muons[3]
                 dv = selected_dvs[1]
@@ -1435,6 +1463,9 @@ class Looper(object):
                               (mu2.nValidPixelHits() - mu2.nExpectedPixelHits <= 0)
                             )
                         )
+                print(pass_excesshits)
+                print(self.has_hit_info)
+                print(mu1.nExpectedPixelHits)
                 pass_materialveto = True  # FIXME: (dv.distPixel > 0.05)
 
                 # NOTE loosened wrt 2mu
