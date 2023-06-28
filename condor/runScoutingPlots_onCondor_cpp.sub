@@ -1,0 +1,23 @@
+executable      = $ENV(STARTDIR)/condor/condor_executable_cpp.sh
+output          = $ENV(STARTDIR)/condor/plotting_logs/job.$(ClusterId).$(ProcId).out
+error           = $ENV(STARTDIR)/condor/plotting_logs/job.$(ClusterId).$(ProcId).err
+log             = $ENV(STARTDIR)/condor/plotting_logs/job.$(ClusterId).$(ProcId).log
+
+getenv = True
++JobFlavour = "longlunch"
++DESIRED_Sites = "T2_US_UCSD"
+transfer_input_files = $ENV(STARTDIR)/package.tar.gz
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+x509userproxy=$ENV(X509_USER_PROXY)
+use_x509userproxy = True
+
+# Comment out any of the following configurations
+queue arguments from (
+$ENV(SCOUTINGOUTPUTDIR) 2022 0 70
+$ENV(SCOUTINGOUTPUTDIR) 2022 70 70
+$ENV(SCOUTINGOUTPUTDIR) 2022 140 70
+$ENV(SCOUTINGOUTPUTDIR) 2022 210 70
+$ENV(SCOUTINGOUTPUTDIR) 2022 280 70
+$ENV(SCOUTINGOUTPUTDIR) 2022 350 70
+)

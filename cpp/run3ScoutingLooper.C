@@ -219,11 +219,11 @@ std::vector<std::string> selL1Seeds = {"L1_DoubleMu_15_7",
                                        "L1_DoubleMu4p5_SQ_OS_dR_Max1p2"};
 
 
-void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString process, const char* outdir="temp_data") {
+void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString process, const char* outdir="temp_data", TString label="") {
   // Output folders and files
   fs::create_directory(outdir);
   fs::permissions(outdir,fs::perms::owner_all | fs::perms::group_read | fs::perms::group_exec | fs::perms::others_read | fs::perms::others_exec);
-  TFile* fout = new TFile(TString(outdir)+"/output_"+process+"_"+year+".root", "RECREATE");
+  TFile* fout = new TFile(TString(outdir)+"/output_"+process+"_"+year+label+".root", "RECREATE");
   TTree* tout = new TTree("tout","Run3ScoutingTree");
 
   // Branch variables
