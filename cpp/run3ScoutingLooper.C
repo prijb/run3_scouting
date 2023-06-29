@@ -126,7 +126,7 @@ struct SV {
   }
 
   void sort() {
-    auto comp = sort_permutation(prob, [](float const& a, float const& b){ return a < b; }); // Define permutations based on the prob vector
+    auto comp = sort_permutation(prob, [](float const& a, float const& b){ return a > b; }); // Define permutations based on the prob vector
     // Apply the permutation to all vectors
     apply_permutation_in_place(index, comp);
     apply_permutation_in_place(ndof, comp);
@@ -176,6 +176,7 @@ struct Muon {
   std::vector<unsigned int> pixHits, stripHits;
   std::vector<unsigned int> pixLayers, trkLayers;
   std::vector<int> ch;
+  std::vector<int> isGlobal, isTracker, isStandAlone;
   std::vector<float> pt, eta, phi;
   std::vector<float> chi2ndof;
   std::vector<float> ecalIso, hcalIso, trackIso;
@@ -187,7 +188,6 @@ struct Muon {
   std::vector<float> mindr, maxdr;
   std::vector<float> mindrPF, mindrJet;
   std::vector<TLorentzVector> vec;
-  std::vector<TString> type; // types = ["G & T","G & !T","!G & T","SA & !G & !T","!SA & !G & !T"]
 
   void clear() {
   vtxIdxs.clear();
@@ -196,6 +196,7 @@ struct Muon {
   pixHits.clear(); stripHits.clear();
   pixLayers.clear(); trkLayers.clear();
   ch.clear();
+  isGlobal.clear(); isTracker.clear(); isStandAlone.clear();
   pt.clear(); eta.clear(); phi.clear();
   chi2ndof.clear();
   ecalIso.clear(); hcalIso.clear(); trackIso.clear();
@@ -207,7 +208,6 @@ struct Muon {
   mindr.clear(); maxdr.clear();
   mindrPF.clear(); mindrJet.clear();
   vec.clear();
-  type.clear();
   }
 };
 
@@ -227,12 +227,17 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   TTree* tout = new TTree("tout","Run3ScoutingTree");
 
   // Branch variables
+  int run, lumi, evtn;
   float PV_x, PV_y, PV_z;
   SV SVs;
   int nMuonAssoc;
   Muon Muons;
 
   // Branch definition
+  tout->Branch("run", &run);
+  tout->Branch("lumi", &lumi);
+  tout->Branch("evtn", &evtn);
+
   tout->Branch("PV_x", &PV_x);
   tout->Branch("PV_y", &PV_y);
   tout->Branch("PV_z", &PV_z);
@@ -277,6 +282,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("Muon_eta", &Muons.eta);
   tout->Branch("Muon_phi", &Muons.phi);
   tout->Branch("Muon_ch", &Muons.ch);
+  tout->Branch("Muon_isGlobal", &Muons.isGlobal);
+  tout->Branch("Muon_isTracker", &Muons.isTracker);
+  tout->Branch("Muon_isStandAlone", &Muons.isStandAlone);
   tout->Branch("Muon_chi2ndof", &Muons.chi2ndof);
   tout->Branch("Muon_ecalIso", &Muons.ecalIso);
   tout->Branch("Muon_hcalIso", &Muons.hcalIso);
@@ -299,7 +307,6 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("Muon_mindrJet", &Muons.mindrJet);
   tout->Branch("Muon_mindrPF", &Muons.mindrPF);
   tout->Branch("Muon_vec", &Muons.vec);
-  tout->Branch("Muon_type", &Muons.type);
   
 
   // Event setup
@@ -333,9 +340,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
       auto evAux = ev.eventAuxiliary();
       auto eID = evAux.id();
-      auto run  = eID.run();
-      auto lumi = eID.luminosityBlock();
-      auto evtn = eID.event();
+      run  = eID.run();
+      lumi = eID.luminosityBlock();
+      evtn = eID.event();
 
       // JSON and duplicate removal
       if ( !isMC ) {
@@ -493,6 +500,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.eta.push_back(mu.eta());
         Muons.phi.push_back(mu.phi());
         Muons.ch.push_back(mu.charge());
+        Muons.isGlobal.push_back(isGlobalMuon(mu.type()));
+        Muons.isTracker.push_back(isTrackerMuon(mu.type()));
+        Muons.isStandAlone.push_back(isStandAloneMuon(mu.type()));
         Muons.chi2ndof.push_back(mu.normalizedChi2());
         Muons.ecalIso.push_back(mu.ecalIso());
         Muons.hcalIso.push_back(mu.hcalIso());
@@ -509,17 +519,6 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
         TLorentzVector muVec; muVec.SetPtEtaPhiM(mu.pt(), mu.eta(), mu.phi(), MUON_MASS);
         Muons.vec.push_back(muVec);
-
-        if (isGlobalMuon(mu.type()) && isTrackerMuon(mu.type()))
-          Muons.type.push_back(0.5); // "G & T"
-        if (isGlobalMuon(mu.type()) && !isTrackerMuon(mu.type()))
-          Muons.type.push_back(1.5); // "G & !T"
-        if (!isGlobalMuon(mu.type()) && isTrackerMuon(mu.type()))
-          Muons.type.push_back(2.5); // "!G & T"
-        if (!isGlobalMuon(mu.type()) && !isTrackerMuon(mu.type()) && isStandAloneMuon(mu.type()))
-          Muons.type.push_back(3.5); // "SA & !G & !T"
-        if (!isGlobalMuon(mu.type()) && !isTrackerMuon(mu.type()) && !isStandAloneMuon(mu.type()))
-          Muons.type.push_back(4.5); // "!SA & !G & !T"
 
         const auto pfIsos = getPFIsolation(muVec, pfs);
         const auto pfIsoChg = std::get<0>(pfIsos);
