@@ -9,6 +9,7 @@ namespace fs = std::filesystem;
 #include "DataFormats/FWLite/interface/Handle.h"
 using namespace fwlite;
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingMuon.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingPFJet.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingParticle.h"
@@ -186,6 +187,18 @@ float getCorrectedPhi(const Run3ScoutingMuon& mu, const TLorentzVector muVec, co
   return phiCorr;
 }
 
+
+struct GenPart {
+  std::vector<float> pt, eta, phi, m;
+  std::vector<float> vx, vy, vz, lxy;
+  std::vector<int> status, pdgId, motherPdgId;
+
+  void clear() {
+    pt.clear(); eta.clear(); phi.clear(); m.clear();
+    vx.clear(); vy.clear(); vz.clear(); lxy.clear();
+    status.clear(); pdgId.clear(); motherPdgId.clear();
+  }
+};
 
 struct SV {
   std::vector<unsigned int> index, ndof;
@@ -383,6 +396,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   // Branch variables
   unsigned int run, lumi, evtn;
   float PV_x, PV_y, PV_z;
+  GenPart GenParts;
   SV SVs;
   SVOverlap SVOverlaps;
   int nMuonAssoc;
@@ -396,6 +410,18 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("PV_x", &PV_x);
   tout->Branch("PV_y", &PV_y);
   tout->Branch("PV_z", &PV_z);
+
+  tout->Branch("GenPart_pt", &GenParts.pt);
+  tout->Branch("GenPart_eta", &GenParts.eta);
+  tout->Branch("GenPart_phi", &GenParts.phi);
+  tout->Branch("GenPart_m", &GenParts.m);
+  tout->Branch("GenPart_vx", &GenParts.vx);
+  tout->Branch("GenPart_vy", &GenParts.vy);
+  tout->Branch("GenPart_vz", &GenParts.vz);
+  tout->Branch("GenPart_lxy", &GenParts.lxy);
+  tout->Branch("GenPart_status", &GenParts.status);
+  tout->Branch("GenPart_pdgId", &GenParts.pdgId);
+  tout->Branch("GenPart_motherPdgId", &GenParts.motherPdgId);
 
   tout->Branch("SV_index", &SVs.index);
   tout->Branch("SV_ndof", &SVs.ndof);
@@ -519,34 +545,36 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         duplicate_removal::DorkyEventIdentifier id(run, evtn, lumi);
         if ( is_duplicate(id) )
           continue;
+        if ( rndm_partialUnblinding.Rndm() > partialUnblindingPercentage )
+          continue;
       }
-      if ( rndm_partialUnblinding.Rndm() > partialUnblindingPercentage )
-        continue;
 
 
       // L1 selection
-      auto l1s = getObject<std::vector<std::string>>(ev, "triggerMaker", "l1name");
-      auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
+      if (!isMC) { // FIXME: This if needs to be removed when signal samples have the trigger info
+        auto l1s = getObject<std::vector<std::string>>(ev, "triggerMaker", "l1name");
+        auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
 
-      bool passL1 = false;
-      for (unsigned int iL1=0; iL1<l1s.size(); ++iL1) {
-        for (auto selL1Seed : selL1Seeds) {
-          if (l1s[iL1] == selL1Seed) {
-            passL1 = true;
-            break;
+        bool passL1 = false;
+        for (unsigned int iL1=0; iL1<l1s.size(); ++iL1) {
+          for (auto selL1Seed : selL1Seeds) {
+            if (l1s[iL1] == selL1Seed) {
+              passL1 = true;
+              break;
+            }
           }
+          if (passL1 && l1Prescales[iL1])
+            break;
         }
-        if (passL1 && l1Prescales[iL1])
-          break;
-      }
-      if (!passL1)
-        continue;
-
-      // HLT selection
-      auto hlts = getObject<std::vector<std::string>>(ev, "triggerMaker", "hltname");
-      for (auto hlt : hlts) { 
-        if (!TString(hlt).Contains("DoubleMu3_noVtx"))
+        if (!passL1)
           continue;
+
+        // HLT selection
+        auto hlts = getObject<std::vector<std::string>>(ev, "triggerMaker", "hltname");
+        for (auto hlt : hlts) { 
+          if (!TString(hlt).Contains("DoubleMu3_noVtx"))
+            continue;
+        }
       }
 
 
@@ -558,6 +586,45 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         PV_x = pvs[0].x();
         PV_y = pvs[0].y();
         PV_z = pvs[0].z();
+      }
+
+      // GenPart
+      GenParts.clear();
+      if (isMC) {
+        auto genparts = getObject<std::vector<reco::GenParticle>>(ev, "genParticles", "");
+        for (auto genpart : genparts) {
+          if (abs(genpart.pdgId())!=13 && // Muon
+              abs(genpart.pdgId())!=999999 && // Dark photon
+              abs(genpart.pdgId())!=4900111 && // Dark pion
+              abs(genpart.pdgId())!=4900211 && // Dark pion
+              abs(genpart.pdgId())!=4900221 && // Dark eta
+              abs(genpart.pdgId())!=4900113 && // Dark rho
+              abs(genpart.pdgId())!=4900213 && // Dark rho
+              abs(genpart.pdgId())!=4900101 && // Dark mass
+              abs(genpart.pdgId())!=4900102 && // Dark mass
+              abs(genpart.pdgId())!=25) // Higgs
+            continue;
+          if (!genpart.isLastCopy())
+            continue;
+
+          if (genpart.numberOfMothers() > 0) {
+            auto motherIdx = genpart.motherRef().index();
+            while (genparts[motherIdx].pdgId() == genpart.pdgId()) {
+              motherIdx = genparts[motherIdx].motherRef().index();
+            }
+            GenParts.pt.push_back(genpart.pt());
+            GenParts.eta.push_back(genpart.eta());
+            GenParts.phi.push_back(genpart.phi());
+            GenParts.m.push_back(genpart.mass());
+            GenParts.vx.push_back(genpart.vx());
+            GenParts.vy.push_back(genpart.vy());
+            GenParts.vz.push_back(genpart.vz());
+            GenParts.lxy.push_back(TMath::Hypot(genpart.vx(), genpart.vy()));
+            GenParts.status.push_back(genpart.status());
+            GenParts.pdgId.push_back(genpart.pdgId());
+            GenParts.motherPdgId.push_back(genparts[motherIdx].pdgId());
+          }
+        }
       }
 
       // SV selection
