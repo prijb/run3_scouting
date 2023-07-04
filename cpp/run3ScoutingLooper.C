@@ -782,8 +782,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         auto mu = mus[iMu];
         std::vector<int> matchedAndSelVtxIdxs;
         for (auto matchedVtxIdx : mu.vtxIndx()) {
-          for (auto selVtxIdx : SVs.index) {
-            if (matchedVtxIdx==selVtxIdx)
+          for (unsigned int iSV=0; iSV<SVs.index.size(); ++iSV) {
+            if (matchedVtxIdx==SVs.index[iSV] && SVs.selected[iSV])
               matchedAndSelVtxIdxs.push_back(matchedVtxIdx);
           }
         }
