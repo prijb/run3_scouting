@@ -191,12 +191,12 @@ float getCorrectedPhi(const Run3ScoutingMuon& mu, const TLorentzVector muVec, co
 struct GenPart {
   std::vector<float> pt, eta, phi, m;
   std::vector<float> vx, vy, vz, lxy;
-  std::vector<int> status, pdgId, motherPdgId;
+  std::vector<int> status, index, pdgId, motherIndex, motherPdgId;
 
   void clear() {
     pt.clear(); eta.clear(); phi.clear(); m.clear();
     vx.clear(); vy.clear(); vz.clear(); lxy.clear();
-    status.clear(); pdgId.clear(); motherPdgId.clear();
+    status.clear(); index.clear(); pdgId.clear(); motherIndex.clear(); motherPdgId.clear();
   }
 };
 
@@ -417,7 +417,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("GenPart_vz", &GenParts.vz);
   tout->Branch("GenPart_lxy", &GenParts.lxy);
   tout->Branch("GenPart_status", &GenParts.status);
+  tout->Branch("GenPart_index", &GenParts.index);
   tout->Branch("GenPart_pdgId", &GenParts.pdgId);
+  tout->Branch("GenPart_motherIndex", &GenParts.motherIndex);
   tout->Branch("GenPart_motherPdgId", &GenParts.motherPdgId);
 
   tout->Branch("SV_index", &SVs.index);
@@ -592,7 +594,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       GenParts.clear();
       if (isMC) {
         auto genparts = getObject<std::vector<reco::GenParticle>>(ev, "genParticles", "");
-        for (auto genpart : genparts) {
+        for (unsigned int iGen=0; iGen<genparts.size(); iGen++) {
+          auto genpart = genparts[iGen];
           if (abs(genpart.pdgId())!=13 && // Muon
               abs(genpart.pdgId())!=999999 && // Dark photon
               abs(genpart.pdgId())!=4900111 && // Dark pion
@@ -607,23 +610,27 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           if (!genpart.isLastCopy())
             continue;
 
+          int motherIdx = -1, motherPdgId = 0; // Default value
           if (genpart.numberOfMothers() > 0) {
-            auto motherIdx = genpart.motherRef().index();
+            motherIdx = genpart.motherRef().index();
             while (genparts[motherIdx].pdgId() == genpart.pdgId()) {
               motherIdx = genparts[motherIdx].motherRef().index();
             }
-            GenParts.pt.push_back(genpart.pt());
-            GenParts.eta.push_back(genpart.eta());
-            GenParts.phi.push_back(genpart.phi());
-            GenParts.m.push_back(genpart.mass());
-            GenParts.vx.push_back(genpart.vx());
-            GenParts.vy.push_back(genpart.vy());
-            GenParts.vz.push_back(genpart.vz());
-            GenParts.lxy.push_back(TMath::Hypot(genpart.vx(), genpart.vy()));
-            GenParts.status.push_back(genpart.status());
-            GenParts.pdgId.push_back(genpart.pdgId());
-            GenParts.motherPdgId.push_back(genparts[motherIdx].pdgId());
+            motherPdgId = genparts[motherIdx].pdgId();
           }
+          GenParts.pt.push_back(genpart.pt());
+          GenParts.eta.push_back(genpart.eta());
+          GenParts.phi.push_back(genpart.phi());
+          GenParts.m.push_back(genpart.mass());
+          GenParts.vx.push_back(genpart.vx());
+          GenParts.vy.push_back(genpart.vy());
+          GenParts.vz.push_back(genpart.vz());
+          GenParts.lxy.push_back(TMath::Hypot(genpart.vx(), genpart.vy()));
+          GenParts.status.push_back(genpart.status());
+          GenParts.index.push_back(iGen);
+          GenParts.pdgId.push_back(genpart.pdgId());
+          GenParts.motherIndex.push_back(motherIdx);
+          GenParts.motherPdgId.push_back(motherPdgId);
         }
       }
 
