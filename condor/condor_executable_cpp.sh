@@ -5,8 +5,9 @@ CMSSWVERSION=CMSSW_12_6_0
 
 OUTDIR=$1
 YEAR=$2
-STARTFILE=$3
-NFILES=$4
+PROCESS=$3
+STARTFILE=$4
+NFILES=$5
 
 function stageout {
     COPY_SRC=$1
@@ -46,8 +47,8 @@ cd /cvmfs/cms.cern.ch/$SCRAMARCH/cms/cmssw/$CMSSWVERSION/src ; eval `scramv1 run
 
 tar xvf package.tar.gz
 cd ScoutingRun3/cpp
-echo $OUTDIR $YEAR $STARTFILE $NFILES
-./main.exe $OUTDIR $YEAR $STARTFILE $NFILES
+echo $OUTDIR $YEAR $PROCESS $STARTFILE $NFILES
+./main.exe $OUTDIR $YEAR $PROCESS $STARTFILE $NFILES
 
 for FILE in $(ls $OUTDIR);
 do

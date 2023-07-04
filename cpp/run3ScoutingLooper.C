@@ -379,13 +379,6 @@ struct Muon {
 };
 
 
-std::vector<std::string> selL1Seeds = {"L1_DoubleMu_15_7",
-                                       "L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7",
-                                       "L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18",
-                                       "L1_DoubleMu4_SQ_OS_dR_Max1p2",
-                                       "L1_DoubleMu4p5_SQ_OS_dR_Max1p2"};
-
-
 void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString process, const char* outdir="temp_data", TString label="") {
   // Output folders and files
   fs::create_directory(outdir);
@@ -395,6 +388,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
   // Branch variables
   unsigned int run, lumi, evtn;
+  bool passL1, passHLT;
   float PV_x, PV_y, PV_z;
   GenPart GenParts;
   SV SVs;
@@ -406,6 +400,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("run", &run);
   tout->Branch("lumi", &lumi);
   tout->Branch("evtn", &evtn);
+
+  tout->Branch("passL1", &passL1);
+  tout->Branch("passHLT", &passHLT);
 
   tout->Branch("PV_x", &PV_x);
   tout->Branch("PV_y", &PV_y);
@@ -550,32 +547,35 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       }
 
 
-      // L1 selection
-      if (!isMC) { // FIXME: This if needs to be removed when signal samples have the trigger info
-        auto l1s = getObject<std::vector<std::string>>(ev, "triggerMaker", "l1name");
-        auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
-
-        bool passL1 = false;
-        for (unsigned int iL1=0; iL1<l1s.size(); ++iL1) {
-          for (auto selL1Seed : selL1Seeds) {
-            if (l1s[iL1] == selL1Seed) {
-              passL1 = true;
-              break;
-            }
-          }
-          if (passL1 && l1Prescales[iL1])
-            break;
-        }
-        if (!passL1)
-          continue;
-
-        // HLT selection
-        auto hlts = getObject<std::vector<std::string>>(ev, "triggerMaker", "hltname");
-        for (auto hlt : hlts) { 
-          if (!TString(hlt).Contains("DoubleMu3_noVtx"))
-            continue;
+      // L1 selection // FIXME: Buggy collection for MC
+      auto l1s = getObject<std::vector<bool>>(ev, "triggerMaker", "l1result");
+      auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
+      passL1 = false;
+      for (unsigned int iL1=0; iL1<l1s.size(); ++iL1) {
+        if (l1s[iL1]==true && l1Prescales[iL1]==1) { // L1 trigger fired and is not prescaled
+          passL1 = true;
+          break;
         }
       }
+      if (!isMC) { // Apply only for data, keep track for MC based on passL1
+        if (!passL1)
+          continue;
+      }
+
+      // HLT selection // FIXME: Buggy collection
+      //auto hlts = getObject<std::vector<bool>>(ev, "triggerMaker", "hltresult");
+      //passHLT = false;
+      //for (auto hlt : hlts) { 
+      //  if (hlt==true) {
+      //    passHLT = true;
+      //    break;
+      //  }
+      //}
+      //if (!isMC) {
+      //  if (!passHLT)
+      //    continue;
+      //}
+      passHLT = true; // Temporary pass through
 
 
       // PV selection

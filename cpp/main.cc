@@ -48,13 +48,35 @@ int main(int argc, char **argv) {
   TString process;
   // Sample list: Data
   if ( sampleArg=="Data" ) {
-    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_0/ScoutingPFRun3/crab_skim_2022D_0/230613_184336/0000/", startFile, nFiles);
+    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/ScoutingPFRun3/crab_skim__2022D_2/230703_062612/0000/", startFile, nFiles); // 999 files
+    //files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/ScoutingPFRun3/crab_skim__2022D_2/230703_062612/0001/", startFile, nFiles); // 5 files
     process = "Data";
   }
+  //
   // Sample list: Signal
-  if ( sampleArg=="Signal" ) {
-    files = getFiles("/ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v0p30_AODSIM_v0p30/", startFile, nFiles);
-    process = "Signal";
+  if ( sampleArg=="Signal_ScenA_v0p30" ) {
+    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/DarkShower_ScenarioA_default_Run3Summer22GS_v0p30_AODSIM_v0p30/crab_skim__2022_DarkShower_ScenarioA_default_Run3Summer22GS_v0p30_AODSIM_v0p30/230703_184107/0000/", startFile, nFiles); // 61 files
+    process = "Signal_ScenA_v0p30";
+  }
+  if ( sampleArg=="Signal_ScenA_v1p3" ) {
+    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/DarkShower_ScenarioA_default_Run3Summer22GS_v1p3_AODSIM_v1p3/crab_skim__2022_DarkShower_ScenarioA_default_Run3Summer22GS_v1p3_AODSIM_v1p3/230703_184125/0000/", startFile, nFiles); // 69 files
+    process = "Signal_ScenA_v1p3";
+  }
+  if ( sampleArg=="Signal_ScenA_v1p4" ) {
+    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/DarkShower_ScenarioA_default_Run3Summer22GS_v1p4_AODSIM_v1p4/crab_skim__2022_DarkShower_ScenarioA_default_Run3Summer22GS_v1p4_AODSIM_v1p4/230703_184144/0000/", startFile, nFiles); // 95 files
+    process = "Signal_ScenA_v1p4";
+  }
+  if ( sampleArg=="Signal_ScenA_v1p5" ) {
+    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/DarkShower_ScenarioA_default_Run3Summer22GS_v1p5_AODSIM_v1p5/crab_skim__2022_DarkShower_ScenarioA_default_Run3Summer22GS_v1p5_AODSIM_v1p5/230703_184201/0000/", startFile, nFiles); // 93 files
+    process = "Signal_ScenA_v1p5";
+  }
+  if ( sampleArg=="Signal_ScenB_v0p32" ) {
+    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/DarkShower_ScenarioB_default_Run3Summer22GS_v0p32_AODSIM_v0p32/crab_skim__2022_DarkShower_ScenarioB_default_Run3Summer22GS_v0p32_AODSIM_v0p32/230703_184218/0000/", startFile, nFiles); // 48 files
+    process = "Signal_ScenB_v0p32";
+  }
+  if ( sampleArg=="Signal_ScenC_v0p34" ) {
+    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/DarkShower_ScenarioC_default_Run3Summer22GS_v0p34_AODSIM_v0p34/crab_skim__2022_DarkShower_ScenarioC_default_Run3Summer22GS_v0p34_AODSIM_v0p34/230703_184235/0000/", startFile, nFiles); // 46 files
+    process = "Signal_ScenC_v0p34";
   }
 
   std::cout << "################################## \n";
