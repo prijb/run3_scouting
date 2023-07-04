@@ -743,7 +743,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           float dz = z - zOther;
           float dxy = dx*dx + dy*dy;
           float d3d = dxy*dxy + dz*dz;
-          if ( fabs(dx)<0.05 && fabs(dy)<0.05 && fabs(dz)<0.1 && TMath::Sqrt(dxy)<0.05 && TMath::Sqrt(d3d) ) {
+          if ( fabs(dx)<0.05 && fabs(dy)<0.05 && fabs(dz)<0.1 && TMath::Sqrt(dxy)<0.05 && TMath::Sqrt(d3d)<0.1 ) {
             vtxIdxs_temp.push_back(jSV);
             sumOfProb += SVs.prob[jSV];
           }
@@ -909,7 +909,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
         float mindrJet=1e6;
         for (auto jet : jets) {
-          if (!(jet.pt()>20.0 && fabs(jet.eta())<2.5))
+          if (!(jet.pt()>20.0 && fabs(jet.eta())<3.0))
             continue;
           TLorentzVector jetVec; jetVec.SetPtEtaPhiM(jet.pt(), jet.eta(), jet.phi(), jet.m());
           float dr = muVec.DeltaR(jetVec);
