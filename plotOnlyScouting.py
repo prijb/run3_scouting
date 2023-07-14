@@ -6,21 +6,33 @@ import copy
 sys.path.append('utils')
 import plotUtils
 
-
+isData = False
 indir = sys.argv[1]
-if not os.path.isfile("%s/histograms_all.root"%indir):
-    os.system('hadd '+indir+'/histograms_all.root $(find '+indir+' -name "histograms_*.root")')
-    
+infiles = []
+if len(sys.argv)==2:
+    if not os.path.isfile("%s/histograms_data_all.root"%indir):
+        os.system('hadd '+indir+'/histograms_data_all.root $(find '+indir+' -name "histograms_*Data*.root")')
+    infiles.append("%s/histograms_data_all.root"%indir)
+    isData = True
+else:
+    for fn in range(2,len(sys.argv)):
+        if os.path.isfile("%s/histograms_%s.root"%(indir,sys.argv[fn])):
+            infiles.append("%s/histograms_%s.root"%(indir,sys.argv[fn]))
+        if "Data" in sys.argv[fn] or "data" in sys.argv[fn]:
+            isData=True
+
+if len(infiles)<1:
+    exit()
+
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
-outdir = 'plots_%s'%today
+outdir = 'plotsOnly_%s'%today
 #outdir = indir
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
 
-fin = ROOT.TFile.Open("%s/histograms_all.root"%indir,"r")
-fin.cd()
+fin = ROOT.TFile.Open(infiles[0],"r")
 listkeys = fin.GetListOfKeys()
 size = listkeys.GetSize()
 h1dn = []
@@ -32,18 +44,34 @@ for i in range(0,size):
         h2dn.append(listkeys.At(i).GetName())
 h1d = []
 h2d = []
-for hn in h1dn:
-    h1d.append(copy.deepcopy(fin.Get(hn)))
-for hn in h2dn:
-    h2d.append(copy.deepcopy(fin.Get(hn)))
+inf = []
+colors = [1,2,4,6]
+if not isData:
+    colors = [2,4,6]
+print(len(infiles))
+for fn,f in enumerate(infiles):
+    inf.append(ROOT.TFile(f))
+    h1d.append([])
+    h2d.append([])
+    for hn in h1dn:
+        print(f, hn)
+        ht = inf[fn].Get(hn).Clone("%s_%d"%(hn,fn))
+        #ht.SetDirectory(0)
+        h1d[fn].append(copy.deepcopy(ht))
+        h1d[fn][len(h1d[fn])-1].SetLineColor(colors[fn])
+        h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[fn])
 
 # Draw histograms
 unityArea = True
 doLogy = True
 
 # Labels
-yearenergy = "Run2022D (13.6 TeV)"
+yearenergy = "1.46 fb^{-1} (Run2022D, 13.6 TeV)"
 cmsExtra = "Preliminary"
+if not isData:
+    yearenergy = "(13.6 TeV)"
+    cmsExtra = "Simulation"
+
 drawCMSOnTop = True
 #
 latex = ROOT.TLatex()
@@ -63,50 +91,65 @@ latexCMSExtra.SetTextSize(0.04)
 latexCMSExtra.SetNDC(True)
 
 ROOT.gStyle.SetOptStat(0)
-can = ROOT.TCanvas("can","",600,600)
-for h in h1d:
-    #if "lxy" in h.GetName() or "l3d" in h.GetName():
-    #    h.Rebin(2)
-    #    ytitle = h.GetYaxis().GetTitle()
-    #    ytitle = ytitle.replace("0.1","0.2")
-    #    h.GetYaxis().SetTitle(ytitle)
-    if "_type" not in h.GetName():
-        xmin=None
-        xmax=None
-        #if "lxy" in h.GetName():
-        #    xmax=20.0
-        plotUtils.PutUnderflowInFirstBin(h,xmin)
-        plotUtils.PutOverflowInLastBin(h,xmax)
-    if xmin!=None:
-        h.GetXaxis().SetRangeUser(h.GetXaxis().GetBinLowEdge(h.GetXaxis().FindBin(xmin)),h.GetXaxis().GetBinUpEdge(h.GetNbinsX()))
-    if xmax!=None:
-        h.GetXaxis().SetRangeUser(h.GetXaxis().GetBinLowEdge(1),h.GetXaxis().GetBinUpEdge(h.GetXaxis().FindBin(xmax)))
-    h.SetBinErrorOption(ROOT.TH1.kPoisson)
-    h.GetYaxis().SetLabelSize(0.025)
-    h.GetYaxis().SetMaxDigits(3)
-    h.GetYaxis().SetRangeUser(0.0, 1.1*h.GetMaximum())
-    h.SetLineWidth(2)
-    ytitle = h.GetYaxis().GetTitle()
-    if doLogy:
-        h.GetYaxis().SetRangeUser(0.9, 2.0*h.GetMaximum())
-    if unityArea:
-        ytitle = ytitle.replace("Events", "Fraction of events")
-        if h.Integral(0,-1)>0:
-            h.Scale(1.0/h.Integral(0,-1))
-        h.GetYaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
-        if doLogy:
-            h.GetYaxis().SetRangeUser(0.9/h.GetEntries(), 2.0*h.GetMaximum())
-    if "hsv" in h.GetName() and not "mind" in h.GetName() and not "maxd" in h.GetName():
-        ytitle = ytitle.replace("Events", "Number of SVs")
-        ytitle = ytitle.replace("events", "SVs")
-    if "hmuon" in h.GetName() and h.GetName()!="hmuon_mindr" and h.GetName()!="hmuon_maxdr":
-        ytitle = ytitle.replace("Events", "Number of muons")
-        ytitle = ytitle.replace("events", "muons")
-    h.GetYaxis().SetTitle(ytitle)
+can = ROOT.TCanvas("can","",600, 600)
+for hn,hnn in enumerate(h1dn):
+    for fn in range(len(infiles)):
+        h = h1d[fn][hn].Clone()
+        print(fn, h1d[fn][hn].GetName())
+        if "_type" not in hnn:
+            xmin=None
+            xmax=None
+            if "fourmuon_lxy" in hnn:
+                xmax=5.0
+            plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
+            plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
+        if fn==0:
+            if xmin!=None:
+                h1d[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(h1d[fn][hn].GetXaxis().FindBin(xmin)),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
+            if xmax!=None:
+                h1d[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetXaxis().FindBin(xmax)))
+            if isData:
+                h1d[fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
+            h1d[fn][hn].GetYaxis().SetLabelSize(0.025)
+            h1d[fn][hn].GetYaxis().SetMaxDigits(3)
+            h1d[fn][hn].GetYaxis().SetRangeUser(0.0, 1.1*h1d[fn][hn].GetMaximum())
+            h1d[fn][hn].SetLineWidth(2)
+            ytitle = h1d[fn][hn].GetYaxis().GetTitle()
+            if doLogy:
+                h1d[fn][hn].GetYaxis().SetRangeUser(0.9, 2.0*h1d[fn][hn].GetMaximum())
+        if unityArea:
+            ytitle = ytitle.replace("Events", "Fraction of events")
+            integral = h1d[fn][hn].Integral(0,-1)
+            if h1d[fn][hn].Integral(0,-1)>0:
+                h1d[fn][hn].Scale(1.0/h1d[fn][hn].Integral(0,-1))
+            h1d[fn][hn].GetYaxis().SetRangeUser(0.0,1.1*h1d[fn][hn].GetMaximum())
+            if doLogy:
+                minb = 1e9
+                for b in range(1,h1d[fn][hn].GetNbinsX()+1):
+                    if h1d[fn][hn].GetBinContent(b)<minb:
+                        minb = h1d[fn][hn].GetBinContent(b)
+                h1d[fn][hn].GetYaxis().SetRangeUser(max(0.9*minb,0.9/integral), 2.0*h1d[fn][hn].GetMaximum())
+        if "hsv" in hnn and not "mind" in hnn and not "maxd" in hnn:
+            ytitle = ytitle.replace("Events", "Number of SVs")
+            ytitle = ytitle.replace("events", "SVs")
+        if "hmuon" in hnn and hnn!="hmuon_mindr" and hnn!="hmuon_maxdr":
+            ytitle = ytitle.replace("Events", "Number of muons")
+            ytitle = ytitle.replace("events", "muons")
+        h1d[fn][hn].GetYaxis().SetTitle(ytitle)
+        can.cd()
+        if fn==0:
+            if doLogy:
+                ROOT.gPad.SetLogy()
+            if isData:
+                print("Drawing %s, %d"%(hnn,fn))
+                h1d[fn][hn].Draw("PE")
+            else:
+                print("Drawing %s, %d"%(hnn,fn))
+                h1d[fn][hn].Draw("hist")
+        else:
+            print("Drawing %s, %d"%(hnn,fn))
+            h1d[fn][hn].Draw("hist,same")
     can.cd()
-    if doLogy:
-        ROOT.gPad.SetLogy()
-    h.Draw("E")
     can.Update()
     latex.DrawLatex(0.90, 0.91, yearenergy);
     if drawCMSOnTop:
@@ -116,12 +159,16 @@ for h in h1d:
         latexCMS.DrawLatex(0.13,0.86,"CMS");
         latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
     ROOT.gPad.RedrawAxis()
-    outname = "%s"%h.GetName()
+    can.Update()
+    outname = "%s"%hnn
     if "h_" in outname:
         outname = outname.replace("h_","")
     elif "hsv" in outname or "hmuon" in outname:
         outname = outname.replace("hsv","sv")
         outname = outname.replace("hmuon","muon")
+    elif "hdi" in outname or "hfour" in outname:
+        outname = outname.replace("hdi","di")
+        outname = outname.replace("hfour","four")
     can.SaveAs("%s/%s.png"%(outdir,outname))
     can.Clear()
 
