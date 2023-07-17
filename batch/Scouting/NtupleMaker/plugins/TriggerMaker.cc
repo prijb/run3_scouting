@@ -86,7 +86,7 @@ void TriggerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       l1_result->push_back(l1htbit);
       l1_name->push_back(l1seed);
       l1_prescale->push_back(prescale);
-      std::cout << l1seed << " " << l1htbit << " " << prescale << std::endl;
+      //std::cout << l1seed << " " << l1htbit << " " << prescale << std::endl;
     }
   }
 
