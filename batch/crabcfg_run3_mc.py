@@ -44,6 +44,7 @@ config.General.requestName+=config.Data.outputPrimaryDataset
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1 #can be larger
 
+#edit the area and user name
 config.Data.outLFNDirBase = '/store/user/legianni/testRAWScouting_'+ntuple_version # DB no
 config.Data.publication = False
 config.Site.storageSite = "T2_US_UCSD"
