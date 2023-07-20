@@ -32,20 +32,17 @@ from coffea.nanoevents.methods import vector
 
 def get_muons(events):
     return ak.zip({
-        'pt': events['GenMuon_pt'],
-        'eta': events['GenMuon_eta'],
-        'phi': events['GenMuon_phi'],
-        'mass': events['GenMuon_m'],
-        'charge': (-1)*abs(events['GenMuon_pdgId'])/events["GenMuon_pdgId"],
-        'lxy': events['GenMuon_lxy'],
-        'vx': events['GenMuon_vx'],
-        'vy': events['GenMuon_vy'],
-        'vz': events['GenMuon_vz'],
-        'status': events['GenMuon_status'],
-        'motherIdx': events['GenMuon_mother_idx'],
-        'motherId': events['GenMuon_motherId'],
-        'grandmotherIdx': events['GenMuon_grandmother_idx'],
-        'grandmotherId': events['GenMuon_grandmotherId'],
+        'pt': events['Muon_pt'],
+        'eta': events['Muon_eta'],
+        'phi': events['Muon_phi'],
+        'mass': 0.106*ak.ones_like(events['Muon_pt']),
+        'charge': events['Muon_ch'],
+        'lxy': events['SV_lxy'][events.Muon_bestAssocSVIdx],
+        'vx': events['SV_x'][events.Muon_bestAssocSVIdx],
+        'vy': events['SV_y'][events.Muon_bestAssocSVIdx],
+        'vz': events['SV_z'][events.Muon_bestAssocSVIdx],
+        'trackRelIso': events['Muon_trackRelIso'],
+        'mindr': events['Muon_mindr'],
         }, with_name="PtEtaPhiMLorentzVector")
 
 def get_particles(events):
@@ -54,13 +51,14 @@ def get_particles(events):
         'eta': events['GenPart_eta'],
         'phi': events['GenPart_phi'],
         'mass': events['GenPart_m'],
-        'charge': (-1)*abs(events['GenPart_Id'])/events["GenPart_Id"],
-        'pdgId': events['GenPart_Id'],
+        'charge': (-1)*abs(events['GenPart_pdgId'])/events["GenPart_pdgId"],
+        'pdgId': events['GenPart_pdgId'],
         'vx': events['GenPart_vx'],
         'vy': events['GenPart_vy'],
         'vz': events['GenPart_vz'],
-        #'lxy': events['GenPart_lxy'],  # not there yet
-        'motherIdx': events['GenPart_mother_idx'],
+        'lxy': events['GenPart_lxy'],
+        'motherIdx': events['GenPart_motherIndex'],
+        'motherPdgId': events['GenPart_motherPdgId'],
         #'grandmotherIdx': events['GenMuon_grandmother_idx'],  # not there yet
         }, with_name="PtEtaPhiMLorentzVector")
 
@@ -69,10 +67,12 @@ def get_particles(events):
 class MuonProcessor(processor.ProcessorABC):
     def __init__(self):
 
-        mass_axis = hist.axis.Regular(5000, 0.0, 50, name="mass", label=r"$M(\mu\mu)\ (GeV)$")
+        #mass_axis = hist.axis.Regular(5000, 0.0, 50, name="mass", label=r"$M(\mu\mu)\ (GeV)$")
+        mass_axis = hist.axis.Regular(50, 0.0, 50, name="mass", label=r"$M(\mu\mu)\ (GeV)$")
         pt_axis = hist.axis.Regular(20, 0.0, 200, name="pt", label=r"$p_{T}(\mu\mu)\ (GeV)$")
         dataset_axis = hist.axis.StrCategory([], name="dataset", label="Dataset", growth=True)
-        lxy_axis = hist.axis.Regular(50, 0, 100, name="l", label=r"$L_{xy}$")
+        lxy_axis = hist.axis.Regular(200, 0, 100, name="l", label=r"$L_{xy}$")
+        iso_axis = hist.axis.Regular(50, 0, 1, name="iso", label=r"$L_{xy}$")
 
         self.make_output = lambda: {
             # book histograms
@@ -84,6 +84,16 @@ class MuonProcessor(processor.ProcessorABC):
             "lxy": hist.Hist(
                 lxy_axis,
             ),
+            "mu1_lxy_iso_mass": hist.Hist(
+                lxy_axis,
+                iso_axis,
+                #mass_axis,
+            ),
+            "mu2_lxy_iso_mass": hist.Hist(
+                lxy_axis,
+                iso_axis,
+                #mass_axis,
+            ),
             "EventCount": processor.value_accumulator(int),
             }
 
@@ -92,8 +102,15 @@ class MuonProcessor(processor.ProcessorABC):
         dataset = events.metadata["dataset"]
         output = self.make_output()
 
-        dimuon_sel = ak.num(events.Muon_pt[((events.Muon_trackRelIso < 0.1) & (events.Muon_mindr>0.3))]) == 2
+        muon = get_muons(events)
+        genpart = get_particles(events)
+
+        dimuon_sel = ak.num(muon.pt[((muon.trackRelIso < 0.1) & (muon.mindr>0.3))]) == 2
         sel_events = events[dimuon_sel]
+        sel_muons  = muon[dimuon_sel]
+        dimuon     = choose(sel_muons)
+        mu1_idx    = ak.singletons(ak.argmax(sel_muons.pt, axis=1))
+        mu2_idx    = ak.singletons(ak.argmin(sel_muons.pt, axis=1))
         #dimuon = choose(get_muons(events), 2)
         #OS_dimuon   = dimuon[((dimuon['0'].charge*dimuon['1'].charge)<0)]
 
@@ -102,8 +119,20 @@ class MuonProcessor(processor.ProcessorABC):
         #    mass=ak.flatten(OS_dimuon.mass, axis=1),
         #    pt=ak.flatten(OS_dimuon.pt, axis=1),
         #    )
+        #print(mu1_idx)
+        #print(sel_muons.lxy)
+        output["mu1_lxy_iso_mass"].fill(
+            l = ak.flatten(sel_muons.lxy[mu1_idx]),
+            iso = ak.flatten(sel_muons.trackRelIso[mu1_idx]),
+            #mass = ak.flatten(dimuon.mass)
+        )
+        output["mu2_lxy_iso_mass"].fill(
+            l = ak.flatten(sel_muons.lxy[mu2_idx]),
+            iso = ak.flatten(sel_muons.trackRelIso[mu2_idx]),
+            #mass = ak.flatten(dimuon.mass)
+        )
         output["lxy"].fill(
-            l = ak.flatten(sel_events.SV_lxy[sel_events.Muon_bestAssocSVIdx][:,:1]),
+            l = ak.flatten(sel_muons.lxy[:,:1]),
         )
 
         output["EventCount"] = len(events)
@@ -175,4 +204,10 @@ if __name__ == '__main__':
     ax.set_xlabel(r"$L_{xy}$")
     ax.set_ylabel(r"Events")
     #plt.legend(loc=0)
-    fig.savefig(f'{plot_dir}/dimuon_lxy2.png')
+    fig.savefig(f'{plot_dir}/dimuon_lxy3.png')
+
+
+
+
+    #print("Seems like I found a J/Psi!")
+    #output['dimuon'][:, :, 2.8j:3.5j:2j][{'dataset':sum, 'pt':sum}].show()
