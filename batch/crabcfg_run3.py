@@ -37,7 +37,7 @@ config.Data.unitsPerJob = int(10e6/2)
 #'/ScoutingPFRun3/Run2022A-v1/RAW#ff2aeb80-96a6-4007-a019-ff75eed7a527',
 #]
 
-config.Data.lumiMask = "Cert_Collisions2022_355100_362760_Golden.json"
+config.Data.lumiMask = "data/Cert_Collisions2022_355100_362760_Golden.json"
 
 #edit the area and user name
 config.Data.outLFNDirBase = '/store/user/legianni/testRAWScouting_'+ntuple_version # DB no
