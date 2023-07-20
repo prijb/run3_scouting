@@ -87,12 +87,12 @@ class MuonProcessor(processor.ProcessorABC):
             "mu1_lxy_iso_mass": hist.Hist(
                 lxy_axis,
                 iso_axis,
-                #mass_axis,
+                mass_axis,
             ),
             "mu2_lxy_iso_mass": hist.Hist(
                 lxy_axis,
                 iso_axis,
-                #mass_axis,
+                mass_axis,
             ),
             "EventCount": processor.value_accumulator(int),
             }
@@ -124,12 +124,12 @@ class MuonProcessor(processor.ProcessorABC):
         output["mu1_lxy_iso_mass"].fill(
             l = ak.flatten(sel_muons.lxy[mu1_idx]),
             iso = ak.flatten(sel_muons.trackRelIso[mu1_idx]),
-            #mass = ak.flatten(dimuon.mass)
+            mass = ak.flatten(dimuon.mass[:,:1])
         )
         output["mu2_lxy_iso_mass"].fill(
             l = ak.flatten(sel_muons.lxy[mu2_idx]),
             iso = ak.flatten(sel_muons.trackRelIso[mu2_idx]),
-            #mass = ak.flatten(dimuon.mass)
+            mass = ak.flatten(dimuon.mass[:,:1])
         )
         output["lxy"].fill(
             l = ak.flatten(sel_muons.lxy[:,:1]),
