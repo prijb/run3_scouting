@@ -6,6 +6,8 @@ import copy
 sys.path.append('utils')
 import plotUtils
 
+ROOT.gROOT.SetBatch(1)
+
 isData = False
 indir = sys.argv[1]
 infiles = []
@@ -26,7 +28,7 @@ if len(infiles)<1:
 
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
-outdir = 'plotsOnly_%s'%today
+outdir = '/home/users/%s/public_html/Run3Scouting/plotsOnly_%s'%(user,today)
 #outdir = indir
 if not os.path.exists(outdir):
     os.makedirs(outdir)
@@ -172,45 +174,45 @@ for hn,hnn in enumerate(h1dn):
     can.SaveAs("%s/%s.png"%(outdir,outname))
     can.Clear()
 
-for h in h2d:
-    can.cd()
-    ROOT.gPad.SetLogy(0)
-    h.GetYaxis().SetLabelSize(0.025)
-    h.GetYaxis().SetMaxDigits(3)
-    ztitle = h.GetZaxis().GetTitle()
-    if unityArea:
-        ztitle = ztitle.replace("Events", "Fraction of events [%]")
-        if h.Integral(0,-1,0,-1)>0:
-            h.Scale(100.0/h.Integral(0,-1,0,-1))
-        h.GetZaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
-    if "nmuons" in h.GetName():
-        ztitle = ztitle.replace("Events", "Number of muons")
-        ztitle = ztitle.replace("events", "muons")
-    h.GetZaxis().SetTitle(ztitle)
-    can.cd()
-    if unityArea:
-        ROOT.gStyle.SetPaintTextFormat(".2f");
-        h.Draw("colz,text")
-    can.Update()
-    palette = h.GetListOfFunctions().FindObject("palette")
-    if palette:
-        palette.SetX2NDC(0.925)
-    can.Update()
-    h.GetZaxis().SetLabelSize(0.025)
-    h.GetZaxis().SetMaxDigits(2)
-    h.GetZaxis().SetRangeUser(0.0, 1.1*h.GetMaximum())
-    latex.DrawLatex(0.90, 0.91, yearenergy);
-    if drawCMSOnTop:
-        latexCMS.DrawLatex(0.1,0.91,"CMS");
-        latexCMSExtra.DrawLatex(0.19,0.91, cmsExtra);
-    else:
-        latexCMS.DrawLatex(0.13,0.86,"CMS");
-        latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
-    ROOT.gPad.RedrawAxis()
-    outname = "%s"%h.GetName()
-    if "h_" in outname:
-        outname = outname.replace("h_","")
-    can.SaveAs("%s/%s.png"%(outdir,outname))
-    can.Clear()
+#for h in h2d:
+#    can.cd()
+#    ROOT.gPad.SetLogy(0)
+#    h.GetYaxis().SetLabelSize(0.025)
+#    h.GetYaxis().SetMaxDigits(3)
+#    ztitle = h.GetZaxis().GetTitle()
+#    if unityArea:
+#        ztitle = ztitle.replace("Events", "Fraction of events [%]")
+#        if h.Integral(0,-1,0,-1)>0:
+#            h.Scale(100.0/h.Integral(0,-1,0,-1))
+#        h.GetZaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
+#    if "nmuons" in h.GetName():
+#        ztitle = ztitle.replace("Events", "Number of muons")
+#        ztitle = ztitle.replace("events", "muons")
+#    h.GetZaxis().SetTitle(ztitle)
+#    can.cd()
+#    if unityArea:
+#        ROOT.gStyle.SetPaintTextFormat(".2f");
+#        h.Draw("colz,text")
+#    can.Update()
+#    palette = h.GetListOfFunctions().FindObject("palette")
+#    if palette:
+#        palette.SetX2NDC(0.925)
+#    can.Update()
+#    h.GetZaxis().SetLabelSize(0.025)
+#    h.GetZaxis().SetMaxDigits(2)
+#    h.GetZaxis().SetRangeUser(0.0, 1.1*h.GetMaximum())
+#    latex.DrawLatex(0.90, 0.91, yearenergy);
+#    if drawCMSOnTop:
+#        latexCMS.DrawLatex(0.1,0.91,"CMS");
+#        latexCMSExtra.DrawLatex(0.19,0.91, cmsExtra);
+#    else:
+#        latexCMS.DrawLatex(0.13,0.86,"CMS");
+#        latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
+#    ROOT.gPad.RedrawAxis()
+#    outname = "%s"%h.GetName()
+#    if "h_" in outname:
+#        outname = outname.replace("h_","")
+#    can.SaveAs("%s/%s.png"%(outdir,outname))
+#    can.Clear()
 
 del can

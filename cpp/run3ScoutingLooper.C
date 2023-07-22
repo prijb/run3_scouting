@@ -27,7 +27,7 @@ using namespace fwlite;
 #include "tools/tqdm.h"
 
 
-float partialUnblindingPercentage = 0.5; // 50% of Run2022D
+float partialUnblindingPercentage = 0.1; // 10% of each era
 
 
 template<class T>
@@ -506,7 +506,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tqdm bar;
 
   bool isMC = true;
-  if (process == "Data")
+  if ( process.Contains("Data") )
     isMC = false;
 
   if ( !isMC ) {

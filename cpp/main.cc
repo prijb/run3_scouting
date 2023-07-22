@@ -15,7 +15,7 @@ int char2int(const char *c) {
 }
 
 
-std::vector<TString> getFiles(std::string inputDir, int startFile, int nFiles) {
+std::vector<TString> getFiles(const std::string inputDir, const int startFile, const int nFiles) {
   std::vector<TString> files;
   const fs::path dir{inputDir};
   unsigned int iFile=0;
@@ -47,10 +47,29 @@ int main(int argc, char **argv) {
   std::vector<TString> files;
   TString process;
   // Sample list: Data
-  if ( sampleArg=="Data" ) {
-    files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/ScoutingPFRun3/crab_skim__2022D_2/230703_062612/0000/", startFile, nFiles); // 999 files
-    //files = getFiles("/ceph/cms/store/user/legianni/testRAWScouting_2/ScoutingPFRun3/crab_skim__2022D_2/230703_062612/0001/", startFile, nFiles); // 5 files
-    process = "Data";
+  if ( sampleArg=="DataB" ) {
+    files = getFiles("/ceph/cms/store/user/evourlio/Run3ScoutingSamples/Data/2022B_2/", startFile, nFiles);
+    process = "DataB";
+  }
+  if ( sampleArg=="DataC" ) {
+    files = getFiles("/ceph/cms/store/user/evourlio/Run3ScoutingSamples/Data/2022C_2/", startFile, nFiles);
+    process = "DataC";
+  }
+  if ( sampleArg=="DataD" ) {
+    files = getFiles("/ceph/cms/store/user/evourlio/Run3ScoutingSamples/Data/2022D_2/", startFile, nFiles);
+    process = "DataD";
+  }
+  if ( sampleArg=="DataE" ) {
+    files = getFiles("/ceph/cms/store/user/evourlio/Run3ScoutingSamples/Data/2022E_2/", startFile, nFiles);
+    process = "DataE";
+  }
+  if ( sampleArg=="DataF" ) {
+    files = getFiles("/ceph/cms/store/user/evourlio/Run3ScoutingSamples/Data/2022F_2/", startFile, nFiles);
+    process = "DataF";
+  }
+  if ( sampleArg=="DataG" ) {
+    files = getFiles("/ceph/cms/store/user/evourlio/Run3ScoutingSamples/Data/2022G_2/", startFile, nFiles);
+    process = "DataG";
   }
   //
   // Sample list: Signal
