@@ -55,6 +55,6 @@ do
   echo "File $FILE to be copied..."
   echo ""
   COPY_SRC="file://`pwd`/${OUTDIR}/$FILE"
-  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/ScoutingRun3Output/${OUTDIR}/$FILE"
+  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
   stageout $COPY_SRC $COPY_DEST
 done;

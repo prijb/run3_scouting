@@ -6,6 +6,13 @@ from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
 import plotUtils
 
+# Functions
+def applyMuonSelection(muVec):
+    selected = True
+    # Add your cut below
+    #selected = (v.M() < 5.0)
+    return selected
+
 isData = True
 removeDuplicates = False
 if not isData:
@@ -19,8 +26,8 @@ if "Signal" in sys.argv[2]:
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
 outdir = 'plots_%s'%today
-#if not os.path.exists(outdir):
-#    os.makedirs(outdir)
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 #os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
 
 files = []
@@ -455,6 +462,12 @@ hdimuon_deta.GetYaxis().SetTitle("Events / 0.1")
 hdimuon_deta.SetLineColor(2)
 h1d.append(hdimuon_deta)
 
+hdimuon_detaOverdphi = ROOT.TH1D("hdimuon_detaOverdphi","",20,-5.0,5.0)
+hdimuon_detaOverdphi.GetXaxis().SetTitle("log_{10}|#Delta#eta(#mu, #mu) / #Delta#phi(#mu, #mu)|")
+hdimuon_detaOverdphi.GetYaxis().SetTitle("Events / 0.1")
+hdimuon_detaOverdphi.SetLineColor(2)
+h1d.append(hdimuon_detaOverdphi)
+
 hdimuon_3dangle = ROOT.TH1D("hdimuon_3dangle","",64,0.0,6.4)
 hdimuon_3dangle.GetXaxis().SetTitle("|3D angle(#mu, #mu)|")
 hdimuon_3dangle.GetYaxis().SetTitle("Events / 0.1")
@@ -756,6 +769,30 @@ hfourmuon_maxdeta.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_maxdeta.SetLineColor(2)
 h1d.append(hfourmuon_maxdeta)
 
+hfourmuon_mindetaOvermindphi = ROOT.TH1D("hfourmuon_mindetaOvermindphi","",20,-5.0,5.0)
+hfourmuon_mindetaOvermindphi.GetXaxis().SetTitle("log_{10}( min|#Delta#eta(#mu, #mu)| / min|#Delta#phi(#mu, #mu)| )")
+hfourmuon_mindetaOvermindphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_mindetaOvermindphi.SetLineColor(2)
+h1d.append(hfourmuon_mindetaOvermindphi)
+
+hfourmuon_maxdetaOvermindphi = ROOT.TH1D("hfourmuon_maxdetaOvermindphi","",20,-5.0,5.0)
+hfourmuon_maxdetaOvermindphi.GetXaxis().SetTitle("log_{10}( max|#Delta#eta(#mu, #mu)| / min|#Delta#phi(#mu, #mu)| )")
+hfourmuon_maxdetaOvermindphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_maxdetaOvermindphi.SetLineColor(2)
+h1d.append(hfourmuon_maxdetaOvermindphi)
+
+hfourmuon_mindetaOvermaxdphi = ROOT.TH1D("hfourmuon_mindetaOvermaxdphi","",20,-5.0,5.0)
+hfourmuon_mindetaOvermaxdphi.GetXaxis().SetTitle("log_{10}( min|#Delta#eta(#mu, #mu)| / max|#Delta#phi(#mu, #mu)| )")
+hfourmuon_mindetaOvermaxdphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_mindetaOvermaxdphi.SetLineColor(2)
+h1d.append(hfourmuon_mindetaOvermaxdphi)
+
+hfourmuon_maxdetaOvermaxdphi = ROOT.TH1D("hfourmuon_maxdetaOvermaxdphi","",20,-5.0,5.0)
+hfourmuon_maxdetaOvermaxdphi.GetXaxis().SetTitle("log_{10}( max|#Delta#eta(#mu, #mu)| / max|#Delta#phi(#mu, #mu)| )")
+hfourmuon_maxdetaOvermaxdphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_maxdetaOvermaxdphi.SetLineColor(2)
+h1d.append(hfourmuon_maxdetaOvermaxdphi)
+
 hfourmuon_min3dangle = ROOT.TH1D("hfourmuon_min3dangle","",64,0.0,6.4)
 hfourmuon_min3dangle.GetXaxis().SetTitle("min |3D angle(#mu, #mu)|")
 hfourmuon_min3dangle.GetYaxis().SetTitle("Events / 0.1")
@@ -1006,8 +1043,13 @@ for e in range(firste,laste):
                         osvvec_qmu.append(ROOT.TVector3())
                         osvvec_qmu[len(osvvec_qmu)-1].SetXYZ(t.SVOverlap_x[osvidx[int(m/2)]]-t.PV_x, t.SVOverlap_y[osvidx[int(m/2)]]-t.PV_y, t.SVOverlap_z[osvidx[int(m/2)]]-t.PV_z)
                         osvidx_qmu.append(osvidx[int(m/2)])
+    seldmuidxs = []
     for vn,v in enumerate(dmuvec):
+        if not applyMuonSelection(v):
+            continue
         mass = v.M()
+        seldmuidxs.append(dmuidxs[int(vn*2)])
+        seldmuidxs.append(dmuidxs[int(vn*2)+1])
         pt   = v.Pt()
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs[int(vn*2)+1]]))
@@ -1023,6 +1065,12 @@ for e in range(firste,laste):
         hdimuon_dr.Fill(drmm)
         hdimuon_dphi.Fill(dpmm)
         hdimuon_deta.Fill(demm)
+        if demm == 0.0:
+            hdimuon_detaOverdphi.Fill(-999.0)
+        elif dpmm == 0.0:
+            hdimuon_detaOverdphi.Fill(999.0)
+        else:
+            hdimuon_detaOverdphi.Fill(ROOT.TMath.Log10(demm/dpmm))
         hdimuon_3dangle.Fill(a3dmm)
         hdimuon_lxy.Fill(lxy)
         hdimuon_dphisv.Fill(dphisv)
@@ -1030,8 +1078,13 @@ for e in range(firste,laste):
         hdimuon_detasvodphisv.Fill(detasvodphisv)
         hdimuon_3danglesv.Fill(a3dsv)
 
+    seldmuidxs_osv = []
     for vn,v in enumerate(dmuvec_osv):
+        if not applyMuonSelection(v):
+            continue
         mass = v.M()
+        seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)])
+        seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)+1])
         pt   = v.Pt()
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]]))
@@ -1047,6 +1100,12 @@ for e in range(firste,laste):
         hdimuon_dr.Fill(drmm)
         hdimuon_dphi.Fill(dpmm)
         hdimuon_deta.Fill(demm)
+        if demm == 0.0:
+            hdimuon_detaOverdphi.Fill(-999.0)
+        elif dpmm == 0.0:
+            hdimuon_detaOverdphi.Fill(999.0)
+        else:
+            hdimuon_detaOverdphi.Fill(ROOT.TMath.Log10(demm/dpmm))
         hdimuon_3dangle.Fill(a3dmm)
         hdimuon_lxy.Fill(lxy)
         hdimuon_dphisv.Fill(dphisv)
@@ -1057,6 +1116,8 @@ for e in range(firste,laste):
     mindrmm, mindpmm, mindemm, mina3dmm = 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxa3dmm = -1., -1., -1., -1
     for vn,v in enumerate(qmuvec_osv):
+        if not applyMuonSelection(v):
+            continue
         mass = v.M()
         pt   = v.Pt()
         for m in range(vn*4,vn*4+4):
@@ -1095,6 +1156,30 @@ for e in range(firste,laste):
         hfourmuon_maxdr.Fill(maxdrmm)
         hfourmuon_maxdphi.Fill(maxdpmm)
         hfourmuon_maxdeta.Fill(maxdemm)
+        if mindemm == 0.0:
+            hfourmuon_mindetaOvermindphi.Fill(-999.0)
+            hfourmuon_mindetaOvermaxdphi.Fill(-999.0)
+        else:
+            if mindpmm == 0.0:
+                hfourmuon_mindetaOvermindphi.Fill(999.0)
+            else:
+                hfourmuon_mindetaOvermindphi.Fill(ROOT.TMath.Log10(mindemm/mindpmm))
+            if maxdpmm == 0.0:
+                hfourmuon_mindetaOvermaxdphi.Fill(999.0)
+            else:
+                hfourmuon_mindetaOvermaxdphi.Fill(ROOT.TMath.Log10(mindemm/maxdpmm))
+        if maxdemm == 0.0:
+            hfourmuon_maxdetaOvermindphi.Fill(-999.0)
+            hfourmuon_maxdetaOvermaxdphi.Fill(-999.0)
+        else:
+            if mindpmm == 0.0:
+                hfourmuon_maxdetaOvermindphi.Fill(999.0)
+            else:
+                hfourmuon_maxdetaOvermindphi.Fill(ROOT.TMath.Log10(mindemm/mindpmm))
+            if maxdpmm == 0.0:
+                hfourmuon_maxdetaOvermaxdphi.Fill(999.0)
+            else:
+                hfourmuon_maxdetaOvermaxdphi.Fill(ROOT.TMath.Log10(mindemm/maxdpmm))
         hfourmuon_max3dangle.Fill(maxa3dmm)
         hfourmuon_lxy.Fill(lxy)
         hfourmuon_dphisv.Fill(dphisv)
@@ -1102,7 +1187,7 @@ for e in range(firste,laste):
         hfourmuon_detasvodphisv.Fill(detasvodphisv)
         hfourmuon_3danglesv.Fill(a3dsv)
 
-    selmuidxs = dmuidxs+dmuidxs_osv
+    selmuidxs = seldmuidxs+seldmuidxs_osv
     for m in selmuidxs:
         hselmuon_pt.Fill(t.Muon_pt[m])
         hselmuon_eta.Fill(t.Muon_eta[m])

@@ -8,8 +8,8 @@ usage()
     echo ""
     echo "  sh condor/runScoutingPlots_onCondor.sh input_dir output_dir"
     echo ""
-    echo "The output_dir will be created in /ceph/cms/store/user/$USER/ScoutingRun3Output/"
-    echo "Control the jobs to be run by editing runScoutingPlots_onCondor.sub"
+    echo "The output_dir will be created in /ceph/cms/store/user/$USER/Run3ScoutingOutput/"
+    echo "Control the jobs to be run by editing runScoutingLooper_onCondor.sub"
     echo ""
     exit
 }
@@ -20,8 +20,8 @@ export SCOUTINGOUTPUTDIR=$1
 export STARTDIR=$PWD
 
 mkdir -p condor/plotting_logs
-mkdir -p /ceph/cms/store/user/$USER/ScoutingRun3Output/$SCOUTINGOUTPUTDIR
+mkdir -p /ceph/cms/store/user/$USER/Run3ScoutingOutput/$SCOUTINGOUTPUTDIR
 
 sh condor/create_package.sh
 
-condor_submit condor/runScoutingPlots_onCondor_cpp.sub
+condor_submit condor/runScoutingLooper_onCondor.sub
