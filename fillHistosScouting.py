@@ -1,54 +1,113 @@
 import ROOT
 import os,sys,json
+import argparse
 from datetime import date    
 import numpy as np
 from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
 import plotUtils
 
-# Functions
-def applyMuonSelection(muVec):
-    selected = True
-    # Add your cut below
-    #selected = (v.M() < 5.0)
-    return selected
-
-isData = True
-removeDuplicates = False
-if not isData:
-    removeDuplicates = False
-oncondor = False
-MUON_MASS = 0.10566
-
-if "Signal" in sys.argv[2]:
-    isData = False
-
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
-outdir = 'plots_%s'%today
+
+parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("--inDir", default="/ceph/cms/store/user/"+user+"/Run3ScoutingOutput/looperOutput_"+today, help="Choose input directory. Default: '/ceph/cms/store/user/"+user+"/Run3ScoutingOutput/looperOutput_"+today+"'")
+parser.add_argument("--inSample", default="*", help="Choose sample; for all samples in input directory, choose '*'")
+parser.add_argument("--inFile", default="*", help="Choose input file by index (for debug); for all files in input directory, choose '*'")
+parser.add_argument("--outDir", default=os.environ.get("PWD")+"/outputHistograms_"+today, help="Choose output directory. Default: '"+os.environ.get("PWD")+"/outputHistograms_"+today+"'")
+parser.add_argument("--condor", default=False, action="store_true", help="Run on condor")
+parser.add_argument("--data", default=False, action="store_true", help="Process data")
+parser.add_argument("--signal", default=False, action="store_true", help="Process signal")
+parser.add_argument("--year", default="2022", help="Year to be processes. Default: 2022")
+parser.add_argument("--partialUnblinding", default=False, action="store_true", help="Process x% (default: x=50) of available data")
+parser.add_argument("--partialUnblindingFraction", default="0.5", help="Fraction of available data to be processed")
+parser.add_argument("--removeDuplicates", default=False, action="store_true", help="Check for and remove duplicates")
+parser.add_argument("--splitIndex", default="-1", help="Split index")
+parser.add_argument("--splitPace", default="250000", help="Split pace")
+parser.add_argument("--dimuonMassSel", default=[], nargs="+", help="Selection on dimuon mass: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--dimuonPtSel", default=[], nargs="+", help="Selection on dimuon pT: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--fourmuonMassSel", default=[], nargs="+", help="Selection on four-muon mass: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--fourmuonPtSel", default=[], nargs="+", help="Selection on four-muon pT: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+args = parser.parse_args()
+
+indir  = args.inDir.replace("/ceph/cms","")
+outdir = args.outDir
+
 if not os.path.exists(outdir):
     os.makedirs(outdir)
-#os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
+
+# Functions
+def applyDiMuonSelection(vec):
+    selected = True
+    if len(args.dimuonMassSel)>0:
+        selected = selected and (vec.M() > args.dimuonMassSel[0])
+    if len(args.dimuonMassSel)>1:
+        selected = selected and (vec.M() < args.dimuonMassSel[1])
+    if len(args.dimuonPtSel)>0:
+        selected = selected and (vec.Pt() > args.dimuonPtSel[0])
+    if len(args.dimuonPtSel)>0:
+        selected = selected and (vec.Pt() < args.dimuonPtSel[1])
+    return selected
+
+def applyFourMuonSelection(vec):
+    selected = True
+    if len(args.fourmuonMassSel)>0:
+        selected = selected and (vec.M() > args.fourmuonMassSel[0])
+    if len(args.fourmuonMassSel)>1:
+        selected = selected and (vec.M() < args.fourmuonMassSel[1])
+    if len(args.fourmuonPtSel)>0:
+        selected = selected and (vec.Pt() > args.fourmuonPtSel[0])
+    if len(args.fourmuonPtSel)>0:
+        selected = selected and (vec.Pt() < args.fourmuonPtSel[1])
+    return selected
+
+def applyLxySelection(lxy):
+    selected = True
+    if len(args.lxySel)>0:
+        selected = selected and (lxy > args.lxySel[0])
+    if len(args.lxySel)>1:
+        selected = selected and (lxy < args.lxySel[1])
+    return selected
+
+isData = args.data
+if "Data" in args.inSample:
+    isData = True
+removeDuplicates = args.removeDuplicates
+if not isData:
+    removeDuplicates = False
+MUON_MASS = 0.10566
+
+if args.signal:
+    isData = False
+
+skimFraction = float(args.partialUnblindingFraction)
+skimEvents = args.partialUnblinding
+if not isData:
+    skimEvents = False
+rndm_partialUnblinding = ROOT.TRandom3(42)
 
 files = []
-if not oncondor:
-    for f in os.listdir("/ceph/cms%s"%sys.argv[1]):
-        if len(sys.argv)>=3:
-            thisfile="_%s.root"%sys.argv[2]
-            if "output" in f and ".root" in f and thisfile in f and os.path.isfile("/ceph/cms%s/%s"%(sys.argv[1],f)):
-                files.append("/ceph/cms%s/%s"%(sys.argv[1],f))
-        else:
-            if "output" in f and ".root" in f and os.path.isfile("/ceph/cms%s/%s"%(sys.argv[1],f)):
-                files.append("/ceph/cms%s/%s"%(sys.argv[1],f))
+prependtodir = ""
+if not args.condor:
+    prependtodir = "/ceph/cms"
 else:
-    infile = open('infiles.txt',"r")
-    for l in infile.readlines():
-        files.append("davs://redirector.t2.ucsd.edu:1095%s/%s"%(sys.argv[1],l.replace("\n","")))
+    prependtodir = "davs://redirector.t2.ucsd.edu:1095"
+if args.inFile!="*" and args.inSample!="*":
+    thisfile="output_%s_%s_%s.root"%(args.inSample,args.year,args.inFile)
+    if os.path.isfile("/ceph/cms%s/%s"%(indir,thisfile)):
+        files.append("%s%s/%s"%(prependtodir,indir,thisfile))
+elif args.inSample!="*":
+    for f in os.listdir("/ceph/cms%s"%indir):
+        if (args.inSample in f) and (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
+            files.append("%s%s/%s"%(prependtodir,indir,f))
+else:
+    for f in os.listdir("/ceph/cms%s"%indir):
+        if (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
+            files.append("%s%s/%s"%(prependtodir,indir,f))
 
-index = -1
-pace = 250000
-if len(sys.argv)>=4:
-    index = int(sys.argv[3])
+index = int(args.splitIndex)
+pace  = int(args.splitPace)
 
 t = ROOT.TChain("tout")
 for f in files:
@@ -842,6 +901,7 @@ elist = []
 print("Starting loop over %d events"%t.GetEntries())
 firste = 0
 laste  = t.GetEntries()
+print(args.inSample, laste)
 if index>=0:
     firste = index*pace
     laste  = min((index+1)*pace,t.GetEntries())
@@ -850,8 +910,6 @@ if firste >= t.GetEntries():
 print("From event %d to event %d"%(firste,laste))
 for e in range(firste,laste):
     t.GetEntry(e)
-    #if e>=1000:
-    #    break
     #if e%1000==0:
     #    print("At entry %d"%e)
     if removeDuplicates:
@@ -863,6 +921,14 @@ for e in range(firste,laste):
             continue
         else:
             elist.append((run,lumi,eid))
+    if skimEvents and skimFraction>0.0:
+        if rndm_partialUnblinding.Rndm() > skimFraction:
+            continue
+    ### As advised in LUM POG TWiki 
+    ### (https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun3),
+    ### exclude runs 359571 + 359661
+    if isData and t.run==359571 or t.run==359661:
+            continue
 
     # Muons
     nmuonsass=0
@@ -891,12 +957,8 @@ for e in range(firste,laste):
         hsvsel_maxdx.Fill(t.SV_maxdx[v])
         hsvsel_mindy.Fill(t.SV_mindy[v])
         hsvsel_maxdy.Fill(t.SV_maxdy[v])
-        #hsvsel_mindxy.Fill(t.SV_mindxy[v])
-        #hsvsel_maxdxy.Fill(t.SV_maxdxy[v])
         hsvsel_mindz.Fill(t.SV_mindz[v])
         hsvsel_maxdz.Fill(t.SV_maxdz[v])
-        #hsvsel_mind3d.Fill(t.SV_mind3d[v])
-        #hsvsel_maxd3d.Fill(t.SV_maxd3d[v])
     h_nsvsel.Fill(nSVsel)
 
     nMu = len(t.Muon_selected)
@@ -1045,17 +1107,19 @@ for e in range(firste,laste):
                         osvidx_qmu.append(osvidx[int(m/2)])
     seldmuidxs = []
     for vn,v in enumerate(dmuvec):
-        if not applyMuonSelection(v):
+        if not applyDiMuonSelection(v):
             continue
-        mass = v.M()
+        lxy  = t.SV_lxy[svidx[vn]]
+        if not applyLxySelection(lxy):
+            continue
         seldmuidxs.append(dmuidxs[int(vn*2)])
         seldmuidxs.append(dmuidxs[int(vn*2)+1])
+        mass = v.M()
         pt   = v.Pt()
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs[int(vn*2)+1]].Eta())
         a3dmm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Angle(t.Muon_vec[dmuidxs[int(vn*2)+1]].Vect()))
-        lxy  = t.SV_lxy[svidx[vn]]
         dphisv = abs(v.Vect().DeltaPhi(svvec[vn]))
         detasv = abs(v.Vect().Eta()-svvec[vn].Eta())
         detasvodphisv = ROOT.TMath.Log10(detasv/dphisv)
@@ -1080,17 +1144,19 @@ for e in range(firste,laste):
 
     seldmuidxs_osv = []
     for vn,v in enumerate(dmuvec_osv):
-        if not applyMuonSelection(v):
+        if not applyDiMuonSelection(v):
             continue
-        mass = v.M()
+        lxy  = t.SVOverlap_lxy[osvidx[vn]]
+        if not applyLxySelection(lxy):
+            continue
         seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)])
         seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)+1])
+        mass = v.M()
         pt   = v.Pt()
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Eta())
         a3dmm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Angle(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Vect()))
-        lxy  = t.SVOverlap_lxy[osvidx[vn]]
         dphisv = abs(v.Vect().DeltaPhi(osvvec[vn]))
         detasv = abs(v.Vect().Eta()-osvvec[vn].Eta())
         detasvodphisv = ROOT.TMath.Log10(detasv/dphisv)
@@ -1116,7 +1182,10 @@ for e in range(firste,laste):
     mindrmm, mindpmm, mindemm, mina3dmm = 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxa3dmm = -1., -1., -1., -1
     for vn,v in enumerate(qmuvec_osv):
-        if not applyMuonSelection(v):
+        if not applyFourMuonSelection(v):
+            continue
+        lxy  = t.SVOverlap_lxy[osvidx_qmu[vn]]
+        if not applyLxySelection(v):
             continue
         mass = v.M()
         pt   = v.Pt()
@@ -1142,7 +1211,6 @@ for e in range(firste,laste):
                     mina3dmm = a3dmm
                 if a3dmm>maxa3dmm:
                     maxa3dmm = a3dmm                    
-        lxy  = t.SVOverlap_lxy[osvidx_qmu[vn]]
         dphisv = abs(v.Vect().DeltaPhi(osvvec_qmu[vn]))
         detasv = abs(v.Vect().Eta()-osvvec_qmu[vn].Eta())
         detasvodphisv = ROOT.TMath.Log10(detasv/dphisv)
@@ -1234,138 +1302,16 @@ for e in range(firste,laste):
         hselmuon_nstriphits.Fill(t.Muon_stripHits[m])
         hselmuon_ntrackerlayers.Fill(t.Muon_trkLayers[m])
 
-doPlots = True
-if len(sys.argv)>2:
-    doPlots = False
-# Draw histograms
-unityArea = True
-doLogy = True
-
-# Labels
-yearenergy = "1.46 fb^{-1} (Run2022D, 13.6 TeV)"
-cmsExtra = "Preliminary"
-drawCMSOnTop = True
-#
-latex = ROOT.TLatex()
-latex.SetTextFont(42)
-latex.SetTextAlign(31)
-latex.SetTextSize(0.04)
-latex.SetNDC(True)
-#
-latexCMS = ROOT.TLatex()
-latexCMS.SetTextFont(61)
-latexCMS.SetTextSize(0.04)
-latexCMS.SetNDC(True)
-#
-latexCMSExtra = ROOT.TLatex()
-latexCMSExtra.SetTextFont(52)
-latexCMSExtra.SetTextSize(0.04)
-latexCMSExtra.SetNDC(True)
-
-ROOT.gStyle.SetOptStat(0)
-can = ROOT.TCanvas("can","",600,600)
-for h in h1d:
-    if not doPlots:
-        break
-    if "_type" not in h.GetName():
-        plotUtils.PutUnderflowInFirstBin(h)
-        plotUtils.PutOverflowInLastBin(h)
-    h.SetBinErrorOption(ROOT.TH1.kPoisson)
-    h.GetYaxis().SetLabelSize(0.025)
-    h.GetYaxis().SetMaxDigits(3)
-    h.GetYaxis().SetRangeUser(0.0, 1.1*h.GetMaximum())
-    h.SetLineWidth(2)
-    ytitle = h.GetYaxis().GetTitle()
-    if doLogy:
-        h.GetYaxis().SetRangeUser(0.9, 2.0*h.GetMaximum())
-    if unityArea:
-        ytitle = ytitle.replace("Events", "Fraction of events")
-        if h.Integral(0,-1)>0:
-            h.Scale(1.0/h.Integral(0,-1))
-        h.GetYaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
-        if doLogy:
-            h.GetYaxis().SetRangeUser(0.9/h.GetEntries(), 2.0*h.GetMaximum())
-    if "hsv" in h.GetName():
-        ytitle = ytitle.replace("Events", "Number of SVs")
-        ytitle = ytitle.replace("events", "SVs")
-    if "hmuon" in h.GetName():
-        ytitle = ytitle.replace("Events", "Number of muons")
-        ytitle = ytitle.replace("events", "muons")
-    h.GetYaxis().SetTitle(ytitle)
-    can.cd()
-    if doLogy:
-        ROOT.gPad.SetLogy()
-    h.Draw("E")
-    can.Update()
-    latex.DrawLatex(0.90, 0.91, yearenergy);
-    if drawCMSOnTop:
-        latexCMS.DrawLatex(0.1,0.91,"CMS");
-        latexCMSExtra.DrawLatex(0.19,0.91, cmsExtra);
+### Write histograms
+foname = "%s/histograms_%s_all.root"%(outdir,args.year)
+if args.inSample!="*":
+    if args.inFile!="*":
+        foname = "%s/histograms_file%s_%s_%s"%(outdir,args.inFile,args.inSample,args.year)
     else:
-        latexCMS.DrawLatex(0.13,0.86,"CMS");
-        latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
-    ROOT.gPad.RedrawAxis()
-    outname = "%s"%h.GetName()
-    if "h_" in outname:
-        outname = outname.replace("h_","")
-    elif "hsv" in outname or "hmuon" in outname:
-        outname = outname.replace("hsv","sv")
-        outname = outname.replace("hmuon","muon")
-    can.SaveAs("%s/%s.png"%(outdir,outname))
-    can.Clear()
-
-for h in h2d:
-    if not doPlots:
-        break
-    can.cd()
-    ROOT.gPad.SetLogy(0)
-    h.GetYaxis().SetLabelSize(0.025)
-    h.GetYaxis().SetMaxDigits(3)
-    ztitle = h.GetZaxis().GetTitle()
-    if unityArea:
-        ztitle = ztitle.replace("Events", "Fraction of events [%]")
-        if h.Integral(0,-1,0,-1)>0:
-            h.Scale(100.0/h.Integral(0,-1,0,-1))
-        h.GetZaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
-    if "nmuons" in h.GetName():
-        ztitle = ztitle.replace("Events", "Number of muons")
-        ztitle = ztitle.replace("events", "muons")
-    h.GetZaxis().SetTitle(ztitle)
-    can.cd()
-    if unityArea:
-        ROOT.gStyle.SetPaintTextFormat(".2f");
-        h.Draw("colz,text")
-    can.Update()
-    palette = h.GetListOfFunctions().FindObject("palette")
-    if palette:
-        palette.SetX2NDC(0.925)
-    can.Update()
-    h.GetZaxis().SetLabelSize(0.025)
-    h.GetZaxis().SetMaxDigits(2)
-    h.GetZaxis().SetRangeUser(0.0, 1.1*h.GetMaximum())
-    latex.DrawLatex(0.90, 0.91, yearenergy);
-    if drawCMSOnTop:
-        latexCMS.DrawLatex(0.1,0.91,"CMS");
-        latexCMSExtra.DrawLatex(0.19,0.91, cmsExtra);
-    else:
-        latexCMS.DrawLatex(0.13,0.86,"CMS");
-        latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
-    ROOT.gPad.RedrawAxis()
-    outname = "%s"%h.GetName()
-    if "h_" in outname:
-        outname = outname.replace("h_","")
-    can.SaveAs("%s/%s.png"%(outdir,outname))
-    can.Clear()
-
-del can
-
-foname = "%s/histograms_all.root"%outdir
-if len(sys.argv)>2:
-    if len(sys.argv)>3:
-        foname = "%s/histograms_file%s_%s.root"%(outdir,sys.argv[2],sys.argv[3])
-    else:
-        foname = "%s/histograms_file%s.root"%(outdir,sys.argv[2])
-fout = ROOT.TFile(foname,"RECREATE")
+        foname = "%s/histograms_%s_%s"%(outdir,args.inSample,args.year)
+if index>=0:
+    foname = foname+("_%d"%index)
+fout = ROOT.TFile(foname+".root","RECREATE")
 fout.cd()
 for h in h1d:
     h.Write()

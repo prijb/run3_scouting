@@ -6,7 +6,7 @@ usage()
 {
     echo "Usage:"
     echo ""
-    echo "  sh condor/runScoutingPlots_onCondor.sh input_dir output_dir"
+    echo "  sh condor/runScoutingLooper_onCondor.sh input_dir output_dir"
     echo ""
     echo "The output_dir will be created in /ceph/cms/store/user/$USER/Run3ScoutingOutput/"
     echo "Control the jobs to be run by editing runScoutingLooper_onCondor.sub"
