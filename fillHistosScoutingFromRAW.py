@@ -5,7 +5,6 @@ from datetime import date
 import numpy as np
 from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
-import plotUtils
 import jsonUtils
 import isolationUtils
 

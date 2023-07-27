@@ -4,8 +4,6 @@ import argparse
 from datetime import date    
 import numpy as np
 from DataFormats.FWLite import Events, Handle
-sys.path.append('utils')
-import plotUtils
 
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")

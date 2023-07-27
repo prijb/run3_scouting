@@ -3,8 +3,6 @@ import os,sys,json
 from datetime import date    
 import numpy as np
 from DataFormats.FWLite import Events, Handle
-sys.path.append('utils')
-import plotUtils
 
 MUON_MASS = 0.10566
 user = os.environ.get("USER")
