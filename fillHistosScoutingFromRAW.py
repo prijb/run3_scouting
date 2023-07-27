@@ -26,11 +26,6 @@ parser.add_argument("--removeDuplicates", default=False, action="store_true", he
 parser.add_argument("--applyJSON", default=False, action="store_true", help="Apply JSON")
 parser.add_argument("--splitIndex", default="-1", help="Split index")
 parser.add_argument("--splitPace", default="10", help="Split pace")
-parser.add_argument("--dimuonMassSel", default=[], nargs="+", help="Selection on dimuon mass: first (or only) value is lower cut, second (optional) value is upper cut")
-parser.add_argument("--dimuonPtSel", default=[], nargs="+", help="Selection on dimuon pT: first (or only) value is lower cut, second (optional) value is upper cut")
-parser.add_argument("--fourmuonMassSel", default=[], nargs="+", help="Selection on four-muon mass: first (or only) value is lower cut, second (optional) value is upper cut")
-parser.add_argument("--fourmuonPtSel", default=[], nargs="+", help="Selection on four-muon pT: first (or only) value is lower cut, second (optional) value is upper cut")
-parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 args = parser.parse_args()
 
 indir  = args.inDir.replace("/ceph/cms","")
@@ -654,13 +649,13 @@ for en,e in enumerate(events):
     h_nsv.Fill(len(svs))
     svvalues_sel = []
     for v in svs:
+        lxy = ROOT.TMath.Sqrt((v['x']-pvx)*(v['x']-pvx)+(v['y']-pvy)*(v['y']-pvy))
+        hsv_lxy.Fill(lxy)
         hsv_chi2ndof.Fill(v['chi2']/v['ndof'])
         hsv_chi2prob.Fill(v['prob'])
         hsv_xerr.Fill(v['xe'])
         hsv_yerr.Fill(v['ye'])
         hsv_zerr.Fill(v['ze'])
-        lxy = ROOT.TMath.Sqrt((v['x']-pvx)*(v['x']-pvx)+(v['y']-pvy)*(v['y']-pvy))
-        hsv_lxy.Fill(lxy)
         l3d = ROOT.TMath.Sqrt(lxy*lxy+(v['z']-pvz)*(v['z']-pvz))
         hsv_l3d.Fill(l3d)
         if v['chi2']/v['ndof']>5.0 or v['xe']>0.05 or v['ye']>0.05 or v['ze']>0.1:

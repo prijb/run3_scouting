@@ -26,7 +26,14 @@ parser.add_argument("--dimuonMassSel", default=[], nargs="+", help="Selection on
 parser.add_argument("--dimuonPtSel", default=[], nargs="+", help="Selection on dimuon pT: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--fourmuonMassSel", default=[], nargs="+", help="Selection on four-muon mass: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--fourmuonPtSel", default=[], nargs="+", help="Selection on four-muon pT: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--dimuonMassSelForFourMuon", default=[], nargs="+", help="Selection on dimuon mass in four-muon system: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--dimuonMassDiffSelForFourMuon", default=["0.05"], nargs="+", help="Selection on dimuon mass difference / mean in four-muon system: first (or only) value is *upper* cut, second (optional) value is *lower* cut")
+parser.add_argument("--dimuonPtSelForFourMuon", default=[], nargs="+", help="Selection on dimuon pT in four-muon system: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--dimuonMassSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon mass in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--dimuonMassDiffSelForFourMuonOSV", default=["0.05"], nargs="+", help="Selection on dimuon mass difference / mean in four-muon system from overlapping SV: first (or only) value is *upper* cut, second (optional) value is *lower* cut")
+parser.add_argument("--dimuonPtSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon pT in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 args = parser.parse_args()
 
 indir  = args.inDir.replace("/ceph/cms","")
@@ -39,33 +46,73 @@ if not os.path.exists(outdir):
 def applyDiMuonSelection(vec):
     selected = True
     if len(args.dimuonMassSel)>0:
-        selected = selected and (vec.M() > args.dimuonMassSel[0])
+        selected = selected and (vec.M() > float(args.dimuonMassSel[0]))
     if len(args.dimuonMassSel)>1:
-        selected = selected and (vec.M() < args.dimuonMassSel[1])
+        selected = selected and (vec.M() < float(args.dimuonMassSel[1]))
     if len(args.dimuonPtSel)>0:
-        selected = selected and (vec.Pt() > args.dimuonPtSel[0])
-    if len(args.dimuonPtSel)>0:
-        selected = selected and (vec.Pt() < args.dimuonPtSel[1])
+        selected = selected and (vec.Pt() > float(args.dimuonPtSel[0]))
+    if len(args.dimuonPtSel)>1:
+        selected = selected and (vec.Pt() < float(args.dimuonPtSel[1]))
     return selected
 
 def applyFourMuonSelection(vec):
     selected = True
     if len(args.fourmuonMassSel)>0:
-        selected = selected and (vec.M() > args.fourmuonMassSel[0])
+        selected = selected and (vec.M() > float(args.fourmuonMassSel[0]))
     if len(args.fourmuonMassSel)>1:
-        selected = selected and (vec.M() < args.fourmuonMassSel[1])
+        selected = selected and (vec.M() < float(args.fourmuonMassSel[1]))
     if len(args.fourmuonPtSel)>0:
-        selected = selected and (vec.Pt() > args.fourmuonPtSel[0])
-    if len(args.fourmuonPtSel)>0:
-        selected = selected and (vec.Pt() < args.fourmuonPtSel[1])
+        selected = selected and (vec.Pt() > float(args.fourmuonPtSel[0]))
+    if len(args.fourmuonPtSel)>1:
+        selected = selected and (vec.Pt() < float(args.fourmuonPtSel[1]))
+    return selected
+
+def applyDiMuonSelectionForFourMuon(vecf,vecs):
+    selected = True
+    if len(args.dimuonMassSelForFourMuon)>0:
+        selected = selected and (vecf.M() > float(args.dimuonMassSelForFourMuon[0])) and (vecs.M() > float(args.dimuonMassSelForFourMuon[0]))
+    if len(args.dimuonMassSelForFourMuon)>1:
+        selected = selected and (vecf.M() < float(args.dimuonMassSelForFourMuon[1])) and (vecs.M() < float(args.dimuonMassSelForFourMuon[1]))
+    if len(args.dimuonPtSelForFourMuon)>0:
+        selected = selected and (vecf.Pt() > float(args.dimuonPtSelForFourMuon[0])) and (vecs.Pt() > float(args.dimuonPtSelForFourMuon[0]))
+    if len(args.dimuonPtSelForFourMuon)>1:
+        selected = selected and (vecf.Pt() < float(args.dimuonPtSelForFourMuon[1])) and (vecs.Pt() < float(args.dimuonPtSelForFourMuon[1]))
+    if len(args.dimuonMassDiffSelForFourMuon)>0:
+        selected = selected and (abs(vecf.M()-vecs.M())*2.0/(vecf.M()+vecs.M()) < float(args.dimuonMassDiffSelForFourMuon[0]))
+    if len(args.dimuonMassDiffSelForFourMuon)>1:
+        selected = selected and (abs(vecf.M()-vecs.M())*2.0/(vecf.M()+vecs.M()) > float(args.dimuonMassDiffSelForFourMuon[1]))
+    return selected
+
+def applyDiMuonSelectionForFourMuonOSV(vecf,vecs):
+    selected = True
+    if len(args.dimuonMassSelForFourMuonOSV)>0:
+        selected = selected and (vecf.M() > float(args.dimuonMassSelForFourMuonOSV[0])) and (vecs.M() > float(args.dimuonMassSelForFourMuonOSV[0]))
+    if len(args.dimuonMassSelForFourMuonOSV)>1:
+        selected = selected and (vecf.M() < float(args.dimuonMassSelForFourMuonOSV[1])) and (vecs.M() < float(args.dimuonMassSelForFourMuonOSV[1]))
+    if len(args.dimuonPtSelForFourMuonOSV)>0:
+        selected = selected and (vecf.Pt() > float(args.dimuonPtSelForFourMuonOSV[0])) and (vecs.Pt() > float(args.dimuonPtSelForFourMuonOSV[0]))
+    if len(args.dimuonPtSelForFourMuonOSV)>1:
+        selected = selected and (vecf.Pt() < float(args.dimuonPtSelForFourMuonOSV[1])) and (vecs.Pt() < float(args.dimuonPtSelForFourMuonOSV[1]))
+    if len(args.dimuonMassDiffSelForFourMuonOSV)>0:
+        selected = selected and (abs(vecf.M()-vecs.M())*2.0/(vecf.M()+vecs.M()) < float(args.dimuonMassDiffSelForFourMuonOSV[0]))
+    if len(args.dimuonMassDiffSelForFourMuonOSV)>1:
+        selected = selected and (abs(vecf.M()-vecs.M())*2.0/(vecf.M()+vecs.M()) > float(args.dimuonMassDiffSelForFourMuonOSV[1]))
     return selected
 
 def applyLxySelection(lxy):
     selected = True
     if len(args.lxySel)>0:
-        selected = selected and (lxy > args.lxySel[0])
+        selected = selected and (lxy > float(args.lxySel[0]))
     if len(args.lxySel)>1:
-        selected = selected and (lxy < args.lxySel[1])
+        selected = selected and (lxy < float(args.lxySel[1]))
+    return selected
+
+def applyFourMuonLxySelection(lxymin,lxymax):
+    selected = True
+    if len(args.lxySelForFourMuon)>0:
+        selected = selected and (lxymin > float(args.lxySel[0]))
+    if len(args.lxySelForFourMuon)>1:
+        selected = selected and (lxymax < float(args.lxySel[1]))
     return selected
 
 isData = args.data
@@ -770,6 +817,122 @@ hselmuon_pfreliso0p3all.GetYaxis().SetTitle("Events / 0.05")
 hselmuon_pfreliso0p3all.SetLineColor(2)
 h1d.append(hselmuon_pfreliso0p3all)
 
+# Four-muon from overlapping SV
+
+hfourmuon_osv_mass = ROOT.TH1D("hfourmuon_osv_mass","",200,0.0,100.0)
+hfourmuon_osv_mass.GetXaxis().SetTitle("m_{4#mu} [GeV]")
+hfourmuon_osv_mass.GetYaxis().SetTitle("Events / 0.5 GeV")
+hfourmuon_osv_mass.SetLineColor(2)
+h1d.append(hfourmuon_osv_mass)
+
+hfourmuon_osv_lxy = ROOT.TH1D("hfourmuon_osv_lxy","",500,0.0,50.0)
+hfourmuon_osv_lxy.GetXaxis().SetTitle("l_{xy} (from PV) [cm]")
+hfourmuon_osv_lxy.GetYaxis().SetTitle("Events / 0.1 cm")
+hfourmuon_osv_lxy.SetLineColor(2)
+h1d.append(hfourmuon_osv_lxy)
+
+hfourmuon_osv_pt = ROOT.TH1D("hfourmuon_osv_pt","",100,0.0,500.0)
+hfourmuon_osv_pt.GetXaxis().SetTitle("p_{T}^{4#mu} [GeV]")
+hfourmuon_osv_pt.GetYaxis().SetTitle("Events / 5 GeV")
+hfourmuon_osv_pt.SetLineColor(2)
+h1d.append(hfourmuon_osv_pt)
+
+hfourmuon_osv_mindr = ROOT.TH1D("hfourmuon_osv_mindr","",100,0.0,5.0)
+hfourmuon_osv_mindr.GetXaxis().SetTitle("min #DeltaR(#mu, #mu)")
+hfourmuon_osv_mindr.GetYaxis().SetTitle("Events / 0.05")
+hfourmuon_osv_mindr.SetLineColor(2)
+h1d.append(hfourmuon_osv_mindr)
+
+hfourmuon_osv_mindphi = ROOT.TH1D("hfourmuon_osv_mindphi","",32,0.0,3.2)
+hfourmuon_osv_mindphi.GetXaxis().SetTitle("min |#Delta#phi(#mu, #mu)| [rad]")
+hfourmuon_osv_mindphi.GetYaxis().SetTitle("Events / 0.1 rad")
+hfourmuon_osv_mindphi.SetLineColor(2)
+h1d.append(hfourmuon_osv_mindphi)
+
+hfourmuon_osv_mindeta = ROOT.TH1D("hfourmuon_osv_mindeta","",50,0.0,5.0)
+hfourmuon_osv_mindeta.GetXaxis().SetTitle("min |#Delta#eta(#mu, #mu)|")
+hfourmuon_osv_mindeta.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_mindeta.SetLineColor(2)
+h1d.append(hfourmuon_osv_mindeta)
+
+hfourmuon_osv_maxdr = ROOT.TH1D("hfourmuon_osv_maxdr","",100,0.0,5.0)
+hfourmuon_osv_maxdr.GetXaxis().SetTitle("max #DeltaR(#mu, #mu)")
+hfourmuon_osv_maxdr.GetYaxis().SetTitle("Events / 0.05")
+hfourmuon_osv_maxdr.SetLineColor(2)
+h1d.append(hfourmuon_osv_maxdr)
+
+hfourmuon_osv_maxdphi = ROOT.TH1D("hfourmuon_osv_maxdphi","",32,0.0,3.2)
+hfourmuon_osv_maxdphi.GetXaxis().SetTitle("max |#Delta#phi(#mu, #mu)| [rad]")
+hfourmuon_osv_maxdphi.GetYaxis().SetTitle("Events / 0.1 rad")
+hfourmuon_osv_maxdphi.SetLineColor(2)
+h1d.append(hfourmuon_osv_maxdphi)
+
+hfourmuon_osv_maxdeta = ROOT.TH1D("hfourmuon_osv_maxdeta","",50,0.0,5.0)
+hfourmuon_osv_maxdeta.GetXaxis().SetTitle("max |#Delta#eta(#mu, #mu)|")
+hfourmuon_osv_maxdeta.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_maxdeta.SetLineColor(2)
+h1d.append(hfourmuon_osv_maxdeta)
+
+hfourmuon_osv_mindetaOvermindphi = ROOT.TH1D("hfourmuon_osv_mindetaOvermindphi","",20,-5.0,5.0)
+hfourmuon_osv_mindetaOvermindphi.GetXaxis().SetTitle("log_{10}( min|#Delta#eta(#mu, #mu)| / min|#Delta#phi(#mu, #mu)| )")
+hfourmuon_osv_mindetaOvermindphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_mindetaOvermindphi.SetLineColor(2)
+h1d.append(hfourmuon_osv_mindetaOvermindphi)
+
+hfourmuon_osv_maxdetaOvermindphi = ROOT.TH1D("hfourmuon_osv_maxdetaOvermindphi","",20,-5.0,5.0)
+hfourmuon_osv_maxdetaOvermindphi.GetXaxis().SetTitle("log_{10}( max|#Delta#eta(#mu, #mu)| / min|#Delta#phi(#mu, #mu)| )")
+hfourmuon_osv_maxdetaOvermindphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_maxdetaOvermindphi.SetLineColor(2)
+h1d.append(hfourmuon_osv_maxdetaOvermindphi)
+
+hfourmuon_osv_mindetaOvermaxdphi = ROOT.TH1D("hfourmuon_osv_mindetaOvermaxdphi","",20,-5.0,5.0)
+hfourmuon_osv_mindetaOvermaxdphi.GetXaxis().SetTitle("log_{10}( min|#Delta#eta(#mu, #mu)| / max|#Delta#phi(#mu, #mu)| )")
+hfourmuon_osv_mindetaOvermaxdphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_mindetaOvermaxdphi.SetLineColor(2)
+h1d.append(hfourmuon_osv_mindetaOvermaxdphi)
+
+hfourmuon_osv_maxdetaOvermaxdphi = ROOT.TH1D("hfourmuon_osv_maxdetaOvermaxdphi","",20,-5.0,5.0)
+hfourmuon_osv_maxdetaOvermaxdphi.GetXaxis().SetTitle("log_{10}( max|#Delta#eta(#mu, #mu)| / max|#Delta#phi(#mu, #mu)| )")
+hfourmuon_osv_maxdetaOvermaxdphi.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_maxdetaOvermaxdphi.SetLineColor(2)
+h1d.append(hfourmuon_osv_maxdetaOvermaxdphi)
+
+hfourmuon_osv_min3dangle = ROOT.TH1D("hfourmuon_osv_min3dangle","",64,0.0,6.4)
+hfourmuon_osv_min3dangle.GetXaxis().SetTitle("min |3D angle(#mu, #mu)|")
+hfourmuon_osv_min3dangle.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_min3dangle.SetLineColor(2)
+h1d.append(hfourmuon_osv_min3dangle)
+
+hfourmuon_osv_max3dangle = ROOT.TH1D("hfourmuon_osv_max3dangle","",64,0.0,6.4)
+hfourmuon_osv_max3dangle.GetXaxis().SetTitle("max |3D angle(#mu, #mu)|")
+hfourmuon_osv_max3dangle.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_max3dangle.SetLineColor(2)
+h1d.append(hfourmuon_osv_max3dangle)
+
+hfourmuon_osv_dphisv = ROOT.TH1D("hfourmuon_osv_dphisv","",32,0.0,3.2)
+hfourmuon_osv_dphisv.GetXaxis().SetTitle("|#Delta#phi(#vec{(4#mu)}, #vec{SV})| [rad]")
+hfourmuon_osv_dphisv.GetYaxis().SetTitle("Events / 0.1 rad")
+hfourmuon_osv_dphisv.SetLineColor(2)
+h1d.append(hfourmuon_osv_dphisv)
+
+hfourmuon_osv_detasv = ROOT.TH1D("hfourmuon_osv_detasv","",50,0.0,5.0)
+hfourmuon_osv_detasv.GetXaxis().SetTitle("|#Delta#eta(#vec{(4#mu)}, #vec{SV})|")
+hfourmuon_osv_detasv.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_detasv.SetLineColor(2)
+h1d.append(hfourmuon_osv_detasv)
+
+hfourmuon_osv_detasvodphisv = ROOT.TH1D("hfourmuon_osv_detasvodphisv","",20,-5.0,5.0)
+hfourmuon_osv_detasvodphisv.GetXaxis().SetTitle("log_{10}(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|/|#Delta#phi(#vec{(4#mu)}, #vec{SV})|)")
+hfourmuon_osv_detasvodphisv.GetYaxis().SetTitle("Events / 0.5")
+hfourmuon_osv_detasvodphisv.SetLineColor(2)
+h1d.append(hfourmuon_osv_detasvodphisv)
+
+hfourmuon_osv_3danglesv = ROOT.TH1D("hfourmuon_osv_3danglesv","",64,0.0,6.4)
+hfourmuon_osv_3danglesv.GetXaxis().SetTitle("|3D angle(#vec{(4#mu)}, #vec{SV})|")
+hfourmuon_osv_3danglesv.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_osv_3danglesv.SetLineColor(2)
+h1d.append(hfourmuon_osv_3danglesv)
+
 # Four-muon
 
 hfourmuon_mass = ROOT.TH1D("hfourmuon_mass","",200,0.0,100.0)
@@ -778,11 +941,17 @@ hfourmuon_mass.GetYaxis().SetTitle("Events / 0.5 GeV")
 hfourmuon_mass.SetLineColor(2)
 h1d.append(hfourmuon_mass)
 
-hfourmuon_lxy = ROOT.TH1D("hfourmuon_lxy","",500,0.0,50.0)
-hfourmuon_lxy.GetXaxis().SetTitle("l_{xy} (from PV) [cm]")
-hfourmuon_lxy.GetYaxis().SetTitle("Events / 0.1 cm")
-hfourmuon_lxy.SetLineColor(2)
-h1d.append(hfourmuon_lxy)
+hfourmuon_minlxy = ROOT.TH1D("hfourmuon_minlxy","",500,0.0,50.0)
+hfourmuon_minlxy.GetXaxis().SetTitle("min(l_{xy}) (from PV) [cm]")
+hfourmuon_minlxy.GetYaxis().SetTitle("Events / 0.1 cm")
+hfourmuon_minlxy.SetLineColor(2)
+h1d.append(hfourmuon_minlxy)
+
+hfourmuon_maxlxy = ROOT.TH1D("hfourmuon_maxlxy","",500,0.0,50.0)
+hfourmuon_maxlxy.GetXaxis().SetTitle("max(l_{xy}) (from PV) [cm]")
+hfourmuon_maxlxy.GetYaxis().SetTitle("Events / 0.1 cm")
+hfourmuon_maxlxy.SetLineColor(2)
+h1d.append(hfourmuon_maxlxy)
 
 hfourmuon_pt = ROOT.TH1D("hfourmuon_pt","",100,0.0,500.0)
 hfourmuon_pt.GetXaxis().SetTitle("p_{T}^{4#mu} [GeV]")
@@ -862,29 +1031,65 @@ hfourmuon_max3dangle.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_max3dangle.SetLineColor(2)
 h1d.append(hfourmuon_max3dangle)
 
-hfourmuon_dphisv = ROOT.TH1D("hfourmuon_dphisv","",32,0.0,3.2)
-hfourmuon_dphisv.GetXaxis().SetTitle("|#Delta#phi(#vec{(4#mu)}, #vec{SV})| [rad]")
-hfourmuon_dphisv.GetYaxis().SetTitle("Events / 0.1 rad")
-hfourmuon_dphisv.SetLineColor(2)
-h1d.append(hfourmuon_dphisv)
+hfourmuon_mindphisv = ROOT.TH1D("hfourmuon_mindphisv","",32,0.0,3.2)
+hfourmuon_mindphisv.GetXaxis().SetTitle("min(|#Delta#phi(#vec{(4#mu)}, #vec{SV})|) [rad]")
+hfourmuon_mindphisv.GetYaxis().SetTitle("Events / 0.1 rad")
+hfourmuon_mindphisv.SetLineColor(2)
+h1d.append(hfourmuon_mindphisv)
 
-hfourmuon_detasv = ROOT.TH1D("hfourmuon_detasv","",50,0.0,5.0)
-hfourmuon_detasv.GetXaxis().SetTitle("|#Delta#eta(#vec{(4#mu)}, #vec{SV})|")
-hfourmuon_detasv.GetYaxis().SetTitle("Events / 0.1")
-hfourmuon_detasv.SetLineColor(2)
-h1d.append(hfourmuon_detasv)
+hfourmuon_mindetasv = ROOT.TH1D("hfourmuon_mindetasv","",50,0.0,5.0)
+hfourmuon_mindetasv.GetXaxis().SetTitle("min(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|)")
+hfourmuon_mindetasv.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_mindetasv.SetLineColor(2)
+h1d.append(hfourmuon_mindetasv)
 
-hfourmuon_detasvodphisv = ROOT.TH1D("hfourmuon_detasvodphisv","",20,-5.0,5.0)
-hfourmuon_detasvodphisv.GetXaxis().SetTitle("log_{10}(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|/|#Delta#phi(#vec{(4#mu)}, #vec{SV})|)")
-hfourmuon_detasvodphisv.GetYaxis().SetTitle("Events / 0.5")
-hfourmuon_detasvodphisv.SetLineColor(2)
-h1d.append(hfourmuon_detasvodphisv)
+hfourmuon_min3danglesv = ROOT.TH1D("hfourmuon_min3danglesv","",64,0.0,6.4)
+hfourmuon_min3danglesv.GetXaxis().SetTitle("min(|3D angle(#vec{(4#mu)}, #vec{SV})|)")
+hfourmuon_min3danglesv.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_min3danglesv.SetLineColor(2)
+h1d.append(hfourmuon_min3danglesv)
 
-hfourmuon_3danglesv = ROOT.TH1D("hfourmuon_3danglesv","",64,0.0,6.4)
-hfourmuon_3danglesv.GetXaxis().SetTitle("|3D angle(#vec{(4#mu)}, #vec{SV})|")
-hfourmuon_3danglesv.GetYaxis().SetTitle("Events / 0.1")
-hfourmuon_3danglesv.SetLineColor(2)
-h1d.append(hfourmuon_3danglesv)
+hfourmuon_maxdphisv = ROOT.TH1D("hfourmuon_maxdphisv","",32,0.0,3.2)
+hfourmuon_maxdphisv.GetXaxis().SetTitle("max(|#Delta#phi(#vec{(4#mu)}, #vec{SV})|) [rad]")
+hfourmuon_maxdphisv.GetYaxis().SetTitle("Events / 0.1 rad")
+hfourmuon_maxdphisv.SetLineColor(2)
+h1d.append(hfourmuon_maxdphisv)
+
+hfourmuon_maxdetasv = ROOT.TH1D("hfourmuon_maxdetasv","",50,0.0,5.0)
+hfourmuon_maxdetasv.GetXaxis().SetTitle("max(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|)")
+hfourmuon_maxdetasv.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_maxdetasv.SetLineColor(2)
+h1d.append(hfourmuon_maxdetasv)
+
+hfourmuon_max3danglesv = ROOT.TH1D("hfourmuon_max3danglesv","",64,0.0,6.4)
+hfourmuon_max3danglesv.GetXaxis().SetTitle("max(|3D angle(#vec{(4#mu)}, #vec{SV})|)")
+hfourmuon_max3danglesv.GetYaxis().SetTitle("Events / 0.1")
+hfourmuon_max3danglesv.SetLineColor(2)
+h1d.append(hfourmuon_max3danglesv)
+
+hfourmuon_mindetasvomindphisv = ROOT.TH1D("hfourmuon_mindetasvomindphisv","",20,-5.0,5.0)
+hfourmuon_mindetasvomindphisv.GetXaxis().SetTitle("log_{10}(min(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|)/min(|#Delta#phi(#vec{(4#mu)}, #vec{SV})|))")
+hfourmuon_mindetasvomindphisv.GetYaxis().SetTitle("Events / 0.5")
+hfourmuon_mindetasvomindphisv.SetLineColor(2)
+h1d.append(hfourmuon_mindetasvomindphisv)
+
+hfourmuon_maxdetasvomaxdphisv = ROOT.TH1D("hfourmuon_maxdetasvomaxdphisv","",20,-5.0,5.0)
+hfourmuon_maxdetasvomaxdphisv.GetXaxis().SetTitle("log_{10}(max(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|)/max(|#Delta#phi(#vec{(4#mu)}, #vec{SV})|))")
+hfourmuon_maxdetasvomaxdphisv.GetYaxis().SetTitle("Events / 0.5")
+hfourmuon_maxdetasvomaxdphisv.SetLineColor(2)
+h1d.append(hfourmuon_maxdetasvomaxdphisv)
+
+hfourmuon_mindetasvomaxdphisv = ROOT.TH1D("hfourmuon_mindetasvomaxdphisv","",20,-5.0,5.0)
+hfourmuon_mindetasvomaxdphisv.GetXaxis().SetTitle("log_{10}(min(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|)/max(|#Delta#phi(#vec{(4#mu)}, #vec{SV})|))")
+hfourmuon_mindetasvomaxdphisv.GetYaxis().SetTitle("Events / 0.5")
+hfourmuon_mindetasvomaxdphisv.SetLineColor(2)
+h1d.append(hfourmuon_mindetasvomaxdphisv)
+
+hfourmuon_maxdetasvomindphisv = ROOT.TH1D("hfourmuon_maxdetasvomindphisv","",20,-5.0,5.0)
+hfourmuon_maxdetasvomindphisv.GetXaxis().SetTitle("log_{10}(max(|#Delta#eta(#vec{(4#mu)}, #vec{SV})|)/min(|#Delta#phi(#vec{(4#mu)}, #vec{SV})|))")
+hfourmuon_maxdetasvomindphisv.GetYaxis().SetTitle("Events / 0.5")
+hfourmuon_maxdetasvomindphisv.SetLineColor(2)
+h1d.append(hfourmuon_maxdetasvomindphisv)
 
 ###
 
@@ -1038,9 +1243,17 @@ for e in range(firste,laste):
     osvvec = []
     osvidx = []
     qmuvec_osv = []
+    qmu_dimuvec_osv = []
     qmuidxs_osv = []
     osvvec_qmu = []
     osvidx_qmu = []
+    qmuvec = []
+    qmu_dimuvec = []
+    qmuidxs = []
+    svvecminlxy_qmu = []
+    svidxminlxy_qmu = []
+    svvecmaxlxy_qmu = []
+    svidxmaxlxy_qmu = []
     for m in muselidxs:
         chg   = t.Muon_ch[m]
         ovidx = -1
@@ -1100,9 +1313,51 @@ for e in range(firste,laste):
                         qmuidxs_osv.append(dmuidxs_osv[mm+1])
                         qmuvec_osv.append(dmuvec_osv[int(m/2)])
                         qmuvec_osv[len(qmuvec_osv)-1] = qmuvec_osv[len(qmuvec_osv)-1]+dmuvec_osv[int(mm/2)]
+                        qmu_dimuvec_osv.append(dmuvec_osv[int(m/2)])
+                        qmu_dimuvec_osv.append(dmuvec_osv[int(mm/2)])
                         osvvec_qmu.append(ROOT.TVector3())
                         osvvec_qmu[len(osvvec_qmu)-1].SetXYZ(t.SVOverlap_x[osvidx[int(m/2)]]-t.PV_x, t.SVOverlap_y[osvidx[int(m/2)]]-t.PV_y, t.SVOverlap_z[osvidx[int(m/2)]]-t.PV_z)
                         osvidx_qmu.append(osvidx[int(m/2)])
+    dmuidxs_all = dmuidxs_osv+dmuidxs
+    dmuvec_all = dmuvec_osv+dmuvec
+    svidx_all = osvidx+svidx
+    svvec_all = osvvec+svvec
+    if len(dmuidxs_all)>=4:
+        for m in range(len(dmuidxs_all)):
+            if m%2>0:
+                continue
+            if len(qmuidxs)>3:
+                break
+            if m in dmuidxs_osv and m in qmuidxs_osv:
+                continue
+            for mm in range(m+2,len(dmuidxs_all)):
+                if mm%2>0:
+                    continue
+                if len(qmuidxs)>3:
+                    break
+                if mm in dmuidxs_osv and mm in qmuidxs_osv:
+                    continue
+                if svidx_all[int(m/2)] in osvidx_qmu or svidx_all[int(mm/2)] in osvidx_qmu:
+                    continue
+                else:
+                    qmuidxs.append(dmuidxs_all[m])
+                    qmuidxs.append(dmuidxs_all[m+1])
+                    qmuidxs.append(dmuidxs_all[mm])
+                    qmuidxs.append(dmuidxs_all[mm+1])
+                    qmuvec.append(dmuvec_all[int(m/2)])
+                    qmuvec[len(qmuvec)-1] = qmuvec[len(qmuvec)-1]+dmuvec_all[int(mm/2)]
+                    qmu_dimuvec.append(dmuvec_all[int(m/2)])
+                    qmu_dimuvec.append(dmuvec_all[int(mm/2)])
+                    if svvec_all[int(m/2)].Perp() < svvec_all[int(mm/2)].Perp():
+                        svvecminlxy_qmu.append(svvec_all[int(m/2)])
+                        svidxminlxy_qmu.append(svidx_all[int(m/2)])
+                        svvecmaxlxy_qmu.append(svvec_all[int(mm/2)])
+                        svidxmaxlxy_qmu.append(svidx_all[int(mm/2)])
+                    else:
+                        svvecminlxy_qmu.append(svvec_all[int(mm/2)])
+                        svidxminlxy_qmu.append(svidx_all[int(mm/2)])
+                        svvecmaxlxy_qmu.append(svvec_all[int(m/2)])
+                        svidxmaxlxy_qmu.append(svidx_all[int(m/2)])
     seldmuidxs = []
     for vn,v in enumerate(dmuvec):
         if not applyDiMuonSelection(v):
@@ -1180,6 +1435,8 @@ for e in range(firste,laste):
     mindrmm, mindpmm, mindemm, mina3dmm = 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxa3dmm = -1., -1., -1., -1
     for vn,v in enumerate(qmuvec_osv):
+        if not applyDiMuonSelectionForFourMuonOSV(qmu_dimuvec_osv[vn*2], qmu_dimuvec_osv[vn*2+1]):
+            continue
         if not applyFourMuonSelection(v):
             continue
         lxy  = t.SVOverlap_lxy[osvidx_qmu[vn]]
@@ -1208,11 +1465,96 @@ for e in range(firste,laste):
                 if a3dmm<mina3dmm:
                     mina3dmm = a3dmm
                 if a3dmm>maxa3dmm:
-                    maxa3dmm = a3dmm                    
+                    maxa3dmm = a3dmm
         dphisv = abs(v.Vect().DeltaPhi(osvvec_qmu[vn]))
         detasv = abs(v.Vect().Eta()-osvvec_qmu[vn].Eta())
         detasvodphisv = ROOT.TMath.Log10(detasv/dphisv)
         a3dsv  = abs(v.Vect().Angle(osvvec_qmu[vn]))
+        hfourmuon_osv_mass.Fill(mass)
+        hfourmuon_osv_pt.Fill(pt)
+        hfourmuon_osv_mindr.Fill(mindrmm)
+        hfourmuon_osv_mindphi.Fill(mindpmm)
+        hfourmuon_osv_mindeta.Fill(mindemm)
+        hfourmuon_osv_min3dangle.Fill(mina3dmm)
+        hfourmuon_osv_maxdr.Fill(maxdrmm)
+        hfourmuon_osv_maxdphi.Fill(maxdpmm)
+        hfourmuon_osv_maxdeta.Fill(maxdemm)
+        if mindemm == 0.0:
+            hfourmuon_osv_mindetaOvermindphi.Fill(-999.0)
+            hfourmuon_osv_mindetaOvermaxdphi.Fill(-999.0)
+        else:
+            if mindpmm == 0.0:
+                hfourmuon_osv_mindetaOvermindphi.Fill(999.0)
+            else:
+                hfourmuon_osv_mindetaOvermindphi.Fill(ROOT.TMath.Log10(mindemm/mindpmm))
+            if maxdpmm == 0.0:
+                hfourmuon_osv_mindetaOvermaxdphi.Fill(999.0)
+            else:
+                hfourmuon_osv_mindetaOvermaxdphi.Fill(ROOT.TMath.Log10(mindemm/maxdpmm))
+        if maxdemm == 0.0:
+            hfourmuon_osv_maxdetaOvermindphi.Fill(-999.0)
+            hfourmuon_osv_maxdetaOvermaxdphi.Fill(-999.0)
+        else:
+            if mindpmm == 0.0:
+                hfourmuon_osv_maxdetaOvermindphi.Fill(999.0)
+            else:
+                hfourmuon_osv_maxdetaOvermindphi.Fill(ROOT.TMath.Log10(mindemm/mindpmm))
+            if maxdpmm == 0.0:
+                hfourmuon_osv_maxdetaOvermaxdphi.Fill(999.0)
+            else:
+                hfourmuon_osv_maxdetaOvermaxdphi.Fill(ROOT.TMath.Log10(maxdemm/maxdpmm))
+        hfourmuon_osv_max3dangle.Fill(maxa3dmm)
+        hfourmuon_osv_lxy.Fill(lxy)
+        hfourmuon_osv_dphisv.Fill(dphisv)
+        hfourmuon_osv_detasv.Fill(detasv)
+        hfourmuon_osv_detasvodphisv.Fill(detasvodphisv)
+        hfourmuon_osv_3danglesv.Fill(a3dsv)
+
+    mindrmm, mindpmm, mindemm, mina3dmm = 1e6, 1e6, 1e6, 1e6
+    maxdrmm, maxdpmm, maxdemm, maxa3dmm = -1., -1., -1., -1
+    for vn,v in enumerate(qmuvec):
+        if not applyDiMuonSelectionForFourMuon(qmu_dimuvec[vn*2], qmu_dimuvec[vn*2+1]):
+            continue
+        if not applyFourMuonSelection(v):
+            continue
+        minlxy = svvecminlxy_qmu.Perp()
+        maxlxy = svvecmaxlxy_qmu.Perp()
+        if not applyFourMuonLxySelection(minlxy,maxlxy):
+            continue
+        mass = v.M()
+        pt   = v.Pt()
+        for m in range(vn*4,vn*4+4):
+            for mm in range(m+1,vn*4+4):
+                drmm = t.Muon_vec[m].DeltaR(t.Muon_vec[mm])
+                dpmm = abs(t.Muon_vec[m].DeltaPhi(t.Muon_vec[mm]))
+                demm = abs(t.Muon_vec[m].Eta()-t.Muon_vec[mm].Eta())
+                a3dmm = abs(t.Muon_vec[m].Angle(t.Muon_vec[mm].Vect()))
+                if drmm<mindrmm:
+                    mindrmm = drmm
+                if drmm>maxdrmm:
+                    maxdrmm = drmm
+                if dpmm<mindpmm:
+                    mindpmm = dpmm
+                if dpmm>maxdpmm:
+                    maxdpmm = dpmm
+                if demm<mindemm:
+                    mindemm = demm
+                if demm>maxdemm:
+                    maxdemm = demm
+                if a3dmm<mina3dmm:
+                    mina3dmm = a3dmm
+                if a3dmm>maxa3dmm:
+                    maxa3dmm = a3dmm
+        mindphisv = min(abs(v.Vect().DeltaPhi(svvecminlxy_qmu[vn])),abs(v.Vect().DeltaPhi(svvecmaxlxy_qmu[vn])))
+        maxdphisv = max(abs(v.Vect().DeltaPhi(svvecminlxy_qmu[vn])),abs(v.Vect().DeltaPhi(svvecmaxlxy_qmu[vn])))
+        mindetasv = min(abs(v.Vect().Eta()-svvecminlxy_qmu[vn].Eta()),abs(v.Vect().Eta()-svvecmaxlxy_qmu[vn].Eta()))
+        maxdetasv = max(abs(v.Vect().Eta()-svvecminlxy_qmu[vn].Eta()),abs(v.Vect().Eta()-svvecmaxlxy_qmu[vn].Eta()))
+        mina3dsv  = min(abs(v.Vect().Angle(svvecminlxy_qmu[vn])),abs(v.Vect().Angle(svvecmaxlxy_qmu[vn])))
+        maxa3dsv  = max(abs(v.Vect().Angle(svvecminlxy_qmu[vn])),abs(v.Vect().Angle(svvecmaxlxy_qmu[vn])))
+        mindetasvomindphisv = ROOT.TMath.Log10(mindetasv/mindphisv)
+        maxdetasvomaxdphisv = ROOT.TMath.Log10(maxdetasv/maxdphisv)
+        mindetasvomaxdphisv = ROOT.TMath.Log10(mindetasv/maxdphisv)
+        maxdetasvomindphisv = ROOT.TMath.Log10(maxdetasv/mindphisv)
         hfourmuon_mass.Fill(mass)
         hfourmuon_pt.Fill(pt)
         hfourmuon_mindr.Fill(mindrmm)
@@ -1245,13 +1587,20 @@ for e in range(firste,laste):
             if maxdpmm == 0.0:
                 hfourmuon_maxdetaOvermaxdphi.Fill(999.0)
             else:
-                hfourmuon_maxdetaOvermaxdphi.Fill(ROOT.TMath.Log10(mindemm/maxdpmm))
+                hfourmuon_maxdetaOvermaxdphi.Fill(ROOT.TMath.Log10(maxdemm/maxdpmm))
         hfourmuon_max3dangle.Fill(maxa3dmm)
-        hfourmuon_lxy.Fill(lxy)
-        hfourmuon_dphisv.Fill(dphisv)
-        hfourmuon_detasv.Fill(detasv)
-        hfourmuon_detasvodphisv.Fill(detasvodphisv)
-        hfourmuon_3danglesv.Fill(a3dsv)
+        hfourmuon_minlxy.Fill(minlxy)
+        hfourmuon_maxlxy.Fill(maxlxy)
+        hfourmuon_mindphisv.Fill(mindphisv)
+        hfourmuon_mindetasv.Fill(mindetasv)
+        hfourmuon_min3danglesv.Fill(mina3dsv)
+        hfourmuon_maxdphisv.Fill(maxdphisv)
+        hfourmuon_maxdetasv.Fill(maxdetasv)
+        hfourmuon_max3danglesv.Fill(maxa3dsv)
+        hfourmuon_mindetasvomindphisv.Fill(mindetasvomindphisv)
+        hfourmuon_maxdetasvomaxdphisv.Fill(maxdetasvomaxdphisv)
+        hfourmuon_mindetasvomaxdphisv.Fill(mindetasvomaxdphisv)
+        hfourmuon_maxdetasvomindphisv.Fill(maxdetasvomindphisv)
 
     selmuidxs = seldmuidxs+seldmuidxs_osv
     for m in selmuidxs:

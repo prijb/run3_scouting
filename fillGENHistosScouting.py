@@ -24,8 +24,6 @@ parser.add_argument("--splitIndex", default="-1", help="Split index")
 parser.add_argument("--splitPace", default="250000", help="Split pace")
 parser.add_argument("--dimuonMassSel", default=[], nargs="+", help="Selection on dimuon mass: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--dimuonPtSel", default=[], nargs="+", help="Selection on dimuon pT: first (or only) value is lower cut, second (optional) value is upper cut")
-parser.add_argument("--fourmuonMassSel", default=[], nargs="+", help="Selection on four-muon mass: first (or only) value is lower cut, second (optional) value is upper cut")
-parser.add_argument("--fourmuonPtSel", default=[], nargs="+", help="Selection on four-muon pT: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 args = parser.parse_args()
 
@@ -34,6 +32,26 @@ outdir = args.outDir
 
 if not os.path.exists(outdir):
     os.makedirs(outdir)
+
+def applyDiMuonSelection(mass,pt):
+    selected = True
+    if len(args.dimuonMassSel)>0:
+        selected = selected and (mass > float(args.dimuonMassSel[0]))
+    if len(args.dimuonMassSel)>1:
+        selected = selected and (mass < float(args.dimuonMassSel[1]))
+    if len(args.dimuonPtSel)>0:
+        selected = selected and (pt > float(args.dimuonPtSel[0]))
+    if len(args.dimuonPtSel)>1:
+        selected = selected and (pt < float(args.dimuonPtSel[1]))
+    return selected
+
+def applyLxySelection(lxy):
+    selected = True
+    if len(args.lxySel)>0:
+        selected = selected and (lxy > float(args.lxySel[0]))
+    if len(args.lxySel)>1:
+        selected = selected and (lxy < float(args.lxySel[1]))
+    return selected
 
 isData = args.data
 if not args.signal:
@@ -167,15 +185,19 @@ for e in range(t.GetEntries()):
                     if (t.GenPart_index[p] in Gmmid) or (t.GenPart_index[pp] in Gmmid):
                         continue
                     if (t.GenPart_pdgId[pp]+t.GenPart_pdgId[p])==0 and abs(t.GenPart_motherPdgId[pp])==dpid and t.GenPart_motherIndex[pp]==t.GenPart_motherIndex[p]:
-                        Gmmid.append(t.GenPart_index[p])
-                        Gmmid.append(t.GenPart_index[pp])
-                        Glxy.append(t.GenPart_lxy[p])
                         tvec0 = ROOT.TLorentzVector()
                         tvec0.SetPtEtaPhiM(t.GenPart_pt[p], t.GenPart_eta[p], t.GenPart_phi[p], t.GenPart_m[p])
                         tvec1 = ROOT.TLorentzVector()
                         tvec1.SetPtEtaPhiM(t.GenPart_pt[pp], t.GenPart_eta[pp], t.GenPart_phi[pp], t.GenPart_m[pp])
+                        if not applyDiMuonSelection((tvec0+tvec1).M(), (tvec0+tvec1).Pt()):
+                            continue
+                        if not applyLxySelection(t.GenPart_lxy[p]):
+                            continue
                         Gmass.append((tvec0+tvec1).M())
                         Gptmm.append((tvec0+tvec1).Pt())
+                        Gmmid.append(t.GenPart_index[p])
+                        Gmmid.append(t.GenPart_index[pp])
+                        Glxy.append(t.GenPart_lxy[p])
                         if tvec0.Pt()>tvec1.Pt():
                             Gptml.append(tvec0.Pt())
                             Gptmt.append(tvec1.Pt())
