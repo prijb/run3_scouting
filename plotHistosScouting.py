@@ -34,9 +34,12 @@ parser.add_argument("--dimuonMassDiffSelForFourMuonOSV", default=["0.05"], nargs
 parser.add_argument("--dimuonPtSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon pT in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--doRatio", default=False, action="store_true", help="Plot ratios for 1D histograms")
 parser.add_argument("--shape", default=False, action="store_true", help="Shape normalization")
 parser.add_argument("--logY", default=False, action="store_true", help="Log-scale for Y axis")
-parser.add_argument("--zoomMass", default=False, action="store_true", help="Zoom mass < 35 GeV")
+parser.add_argument("--zoomMass", default=[], nargs="+", help="Zoom mass [1] < mass < [0] GeV")
+parser.add_argument("--zoomLxy", default=[], nargs="+", help="Zoom lxy [1] < lxy < [0] cm")
+parser.add_argument("--zoomPixel2D", default=False, action="store_true", help="Zoom -20 <(x,y)< 20 cm")
 parser.add_argument("--pdf", default=False, action="store_true", help="Output format: .pdf. Default: .png")
 args = parser.parse_args()
 
@@ -51,6 +54,14 @@ for s in samples:
     if "Data" in s:
         isData = True
         break
+
+doRatio = args.doRatio
+if len(samples)<=1:
+    doRatio = False
+
+roff = 0.0
+if not doRatio:
+    roff=0.01
 
 colors = dict()
 colors["Data"]  = ROOT.kBlack
@@ -135,8 +146,8 @@ for fn,f in enumerate(infiles):
             h1d[fn][len(h1d[fn])-1].SetLineColor(colors[samplecol[fn]])
             h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]])
         else:
-            h1d[fn][len(h1d[fn])-1].SetLineColor(colors[samplecol[fn][nSigSamples]])
-            h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn][nSigSamples]])
+            h1d[fn][len(h1d[fn])-1].SetLineColor(colors[samplecol[fn]][nSigSamples])
+            h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nSigSamples])
             nSigSamples = nSigSamples+1
     for hn in h2dn:
         ht = inf[fn].Get(hn).Clone("%s_%d"%(hn,fn))
@@ -201,50 +212,91 @@ latexCMSExtra.SetTextFont(52)
 latexCMSExtra.SetTextSize(0.04)
 latexCMSExtra.SetNDC(True)
 
-ROOT.gStyle.SetOptStat(0)
-can = ROOT.TCanvas("can","",600, 600)
+h1dr     = []
+h1dr_den = []
+h_axis       = []
+h_axis_ratio = []
+maxX         = []
+line         = []
+for fn in range(len(infiles)):
+    h1dr.append([])
 for hn,hnn in enumerate(h1dn):
     for fn in range(len(infiles)):
-        h = h1d[fn][hn].Clone()
-        #print(fn, h1d[fn][hn].GetName())
         if "_type" not in hnn:
             xmin=None
             xmax=None
-            if "fourmuon_lxy" in hnn:
+            if "lxy" in hnn and len(args.zoomLxy)>0:
+                xmax=float(args.zoomLxy[0])
+                if len(args.zoomLxy)>1:
+                    xmin=float(args.zoomLxy[1])
+            if "mass" in hnn and len(args.zoomMass)>0:
+                xmax=float(args.zoomMass[0])
+                if len(args.zoomLxy)>1:
+                    xmin=float(args.zoomMass[1])
+            if "sv" in hnn and ("xerr" in hnn or "yerr" in hnn):
+                xmax=0.05
+            if "sv" in hnn and "zerr" in hnn:
+                xmax=0.10
+            if "sv" in hnn and "chi2ndof" in hnn:
                 xmax=5.0
-            if "fourmuon_mass" in hnn or "dimuon_mass" in hnn and args.zoomMass:
-                xmax=35.0
-            plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
-            plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
+            if not ( ("lxy" in hnn and len(args.zoomLxy)>0) or ("mass" in hnn and len(args.zoomMass)>0) ):
+                plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
+                plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
+        h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
+        maxY = 0.0
         if fn==0:
+            h1dr_den.append(h1d[fn][hn].Clone("%s_denominator"%hnn))
+            if samples[fn]=="Data":
+                for b in range(1,h1dr[fn][hn].GetNbinsX()+1):
+                    h1dr_den[hn].SetBinError(b,0.0)
             if xmin!=None:
-                h1d[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(h1d[fn][hn].GetXaxis().FindBin(xmin)),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
+                tb = h1d[fn][hn].GetXaxis().FindBin(xmin)
+                h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tb),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
+                h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tb),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
             if xmax!=None:
-                h1d[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetXaxis().FindBin(xmax)))
-            if isData:
-                h1d[fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
+                tb = h1d[fn][hn].GetXaxis().FindBin(xmax)
+                if h1d[fn][hn].Integral(tb, -1)<=0.0:
+                    tb = tb-1
+                h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tb))
+                h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tb))
+            if "Data" in samples[fn]:
+                h1d [fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
+                h1dr[fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
             h1d[fn][hn].GetYaxis().SetLabelSize(0.025)
             h1d[fn][hn].GetYaxis().SetMaxDigits(3)
-            h1d[fn][hn].GetYaxis().SetRangeUser(0.0, 1.1*h1d[fn][hn].GetMaximum())
+            maxY = h1d[fn][hn].GetMaximum()
+            if ("hits" in hnn) or ("layers" in hnn) or h1d[fn][hn].GetXaxis().GetBinLowEdge(1)<0.0:
+                maxY = 1.25*maxY
+                if doLogy:
+                    maxY = 5.0*maxY
+            h1d[fn][hn].GetYaxis().SetRangeUser(0.0, 1.1*maxY)
             h1d[fn][hn].SetLineWidth(2)
             ytitle = h1d[fn][hn].GetYaxis().GetTitle()
             if doLogy:
-                h1d[fn][hn].GetYaxis().SetRangeUser(0.9, 2.0*h1d[fn][hn].GetMaximum())
+                h1d[fn][hn].GetYaxis().SetRangeUser(0.9, 2.0*maxY)
+        h1dr[fn][hn].Divide(h1dr_den[hn])
         if unityArea:
             ytitle = ytitle.replace("Events", "Fraction of events")
             integral = h1d[fn][hn].Integral(0,-1)
             if h1d[fn][hn].Integral(0,-1)>0:
                 h1d[fn][hn].Scale(1.0/h1d[fn][hn].Integral(0,-1))
-            h1d[fn][hn].GetYaxis().SetRangeUser(0.0,1.1*h1d[fn][hn].GetMaximum())
+            maxY = h1d[fn][hn].GetMaximum()
+            if ("hits" in hnn) or ("layers" in hnn) or h1d[fn][hn].GetXaxis().GetBinLowEdge(1)<0.0:
+                maxY = 1.25*maxY
+                if doLogy:
+                    maxY = 5.0*maxY
+            h1d[fn][hn].GetYaxis().SetRangeUser(0.0,1.1*maxY)
             if doLogy:
                 minb = 1e9
                 for b in range(1,h1d[fn][hn].GetNbinsX()+1):
                     if h1d[fn][hn].GetBinContent(b)<minb:
                         minb = h1d[fn][hn].GetBinContent(b)
                 if integral>0.0:
-                    h1d[fn][hn].GetYaxis().SetRangeUser(max(0.9*minb,0.9/integral), 2.0*h1d[fn][hn].GetMaximum())
+                    h1d[fn][hn].GetYaxis().SetRangeUser(max(0.9*minb,0.9/integral), 2.0*maxY)
                 else:
-                    h1d[fn][hn].GetYaxis().SetRangeUser(1e-3, 1.0)
+                    h1d[fn][hn].GetYaxis().SetRangeUser(1e-1, 1.0)
+                    h1d[fn][hn].SetMinimum(1e-1)
+                    h1d[fn][hn].SetMaximum(1.0)
         if "hsv" in hnn and not "mind" in hnn and not "maxd" in hnn:
             ytitle = ytitle.replace("Events", "Number of SVs")
             ytitle = ytitle.replace("events", "SVs")
@@ -252,34 +304,111 @@ for hn,hnn in enumerate(h1dn):
             ytitle = ytitle.replace("Events", "Number of muons")
             ytitle = ytitle.replace("events", "muons")
         h1d[fn][hn].GetYaxis().SetTitle(ytitle)
-        can.cd()
         if fn==0:
-            if doLogy:
-                ROOT.gPad.SetLogy()
-            if "Data" in samples[fn]:
-                #print("Drawing %s, %d"%(hnn,fn))
-                h1d[fn][hn].Draw("PE")
-            else:
-                #print("Drawing %s, %d"%(hnn,fn))
-                h1d[fn][hn].Draw("hist")
-        else:
-            #print("Drawing %s, %d"%(hnn,fn))
-            if "Data" in samples[fn]:
-                h1d[fn][hn].Draw("PE,same")
-            else:
-                h1d[fn][hn].Draw("hist,same")                
-    leg.Draw("same")
-    can.cd()
-    can.Update()
-    latex.DrawLatex(0.90, 0.91, yearenergy);
-    if drawCMSOnTop:
-        latexCMS.DrawLatex(0.1,0.91,"CMS");
-        latexCMSExtra.DrawLatex(0.19,0.91, cmsExtra);
+            h_axis.append(h1d[fn][hn].Clone("axis_%s"%hnn))
+            h_axis[hn].Reset("ICE")
+            h_axis[hn].GetYaxis().SetTitleSize(0.04)
+            h_axis[hn].GetYaxis().SetTitleOffset(1.35)
+            h_axis[hn].GetXaxis().SetTitleSize(0.04)
+            h_axis[hn].GetXaxis().SetTitleOffset(1.25-roff*10.0)
+            h_axis[hn].GetXaxis().SetLabelSize(0.035)
+            h_axis[hn].GetYaxis().SetLabelSize(0.035)
+            h_axis_ratio.append(h_axis[hn].Clone("axis_ratio_%s"%hnn))
+            maxX.append(h_axis[hn].GetXaxis().GetBinUpEdge(plotUtils.GetLastBin(h_axis[hn])))
+            line.append(ROOT.TLine(h_axis[hn].GetXaxis().GetBinLowEdge(1), 1.0, maxX[hn], 1.0))
+
+ROOT.gStyle.SetOptStat(0)
+can = ROOT.TCanvas("can","",600, 600)
+minR = []
+maxR = []
+for hn,hnn in enumerate(h1dn):
+    pads = []
+    if doRatio:
+        pads.append(ROOT.TPad("1","1",0.0,0.18,1.0,1.0))
+        pads.append(ROOT.TPad("2","2",0.0,0.0,1.0,0.19))
+        pads[0].SetTopMargin(0.08)
+        pads[0].SetBottomMargin(0.13)
+        pads[0].SetLeftMargin(0.10)
+        pads[0].SetRightMargin(0.05)
+        pads[1].SetLeftMargin(0.10)
+        pads[1].SetRightMargin(0.05)
     else:
-        latexCMS.DrawLatex(0.13,0.86,"CMS");
-        latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
-    ROOT.gPad.RedrawAxis()
-    can.Update()
+        pads.append(ROOT.TPad("1","1",0,0,1,1))
+        pads[0].SetTopMargin(0.08)
+        pads[0].SetLeftMargin(0.10)
+        pads[0].SetRightMargin(0.05)
+    if doRatio:
+        minR.append(0.0)
+        maxR.append(2.0)
+        ty = np.array([])
+        tmax=maxR[hn]
+        for fn in range(len(infiles)):
+            tg = ROOT.TGraph(h1dr[fn][hn])
+            ty = tg.GetY()
+            if len(ty)>0:
+                tmax = np.amax(ty)
+            if tmax>maxR[hn]:
+                maxR[hn]=tmax*1.05
+            if maxR[hn]>5.0:
+                minR[hn]=0.1
+        h_axis_ratio[hn].GetYaxis().SetRangeUser(minR[hn],maxR[hn])
+        h_axis_ratio[hn].SetMinimum(minR[hn])
+        h_axis_ratio[hn].SetMaximum(maxR[hn])
+        h_axis_ratio[hn].SetTitle(";;Ratio")
+        h_axis_ratio[hn].GetYaxis().SetTitleSize(0.16)
+        h_axis_ratio[hn].GetYaxis().SetTitleOffset(0.25)
+        if doLogy:
+            h_axis_ratio[hn].GetYaxis().SetTitleOffset(0.3)
+        h_axis_ratio[hn].GetYaxis().SetNdivisions(505)
+        h_axis_ratio[hn].GetYaxis().SetLabelSize(0.12)
+        h_axis_ratio[hn].GetYaxis().CenterTitle()
+        h_axis_ratio[hn].GetYaxis().SetTickLength(0.02)
+        h_axis_ratio[hn].GetXaxis().SetLabelSize(0.0)
+        h_axis_ratio[hn].GetXaxis().SetTitle("")
+        h_axis_ratio[hn].GetXaxis().SetTickSize(0.06)
+
+        pads[0].Draw()
+        pads[1].Draw()
+        pads[1].cd()
+        if maxR[hn]>5.0:
+            pads[1].SetLogy()
+        pads[1].SetTickx()
+        h_axis_ratio[hn].Draw("")
+        for fn in range(1,len(infiles)):
+            if "Data" in samples[fn]:
+                h1dr[fn][hn].Draw("SAME,P,E")
+            else:
+                h1dr[fn][hn].Draw("SAME,HIST,E")
+        line[hn].SetLineStyle(2)
+        line[hn].SetLineColor(colors[samplecol[0]])
+        line[hn].SetLineWidth(1)
+        line[hn].Draw("SAME")
+        pads[1].Modified()
+        pads[1].Update()
+
+    else:
+        pads[0].Draw()
+
+    pads[0].cd()
+    if doLogy:
+        pads[0].SetLogy()
+    h_axis[hn].Draw("")
+    for fn in range(len(infiles)):
+        if "Data" in samples[fn]:
+            h1d[fn][hn].Draw("PE,same")
+        else:
+            h1d[fn][hn].Draw("hist,same")
+    leg.Draw("same")
+    pads[0].RedrawAxis()
+    pads[0].Update()
+    can.cd()
+    latex.DrawLatex(0.95, 0.945-roff, yearenergy);
+    if drawCMSOnTop:
+        latexCMS.DrawLatex(0.11,0.945-roff,"CMS");
+        latexCMSExtra.DrawLatex(0.21,0.945-roff, cmsExtra);
+    else:
+        latexCMS.DrawLatex(0.14,0.875,"CMS");
+        latexCMSExtra.DrawLatex(0.14,0.825, cmsExtra);
     outname = "%s"%hnn
     if "h_" in outname:
         outname = outname.replace("h_","")
@@ -298,20 +427,34 @@ for hn,hnn in enumerate(h1dn):
     if args.pdf:
         can.SaveAs("%s/%s.pdf"%(outdir,outname))
     can.Clear()
+    del pads
 
 for hn,hnn in enumerate(h2dn):
     for fn in range(len(infiles)):
         h = h2d[fn][hn].Clone()
+        if args.zoomPixel2D:
+            h.GetXaxis().SetRangeUser(-20.0,20.0)
+            h.GetYaxis().SetRangeUser(-20.0,20.0)
         can.cd()
         ROOT.gPad.SetLogy(0)
+        if doLogy:
+            ROOT.gPad.SetLogz()
         h.GetYaxis().SetLabelSize(0.025)
         h.GetYaxis().SetMaxDigits(3)
         ztitle = h.GetZaxis().GetTitle()
+        integral = h.Integral(0,-1,0,-1)
         if unityArea:
-            ztitle = ztitle.replace("Events", "Fraction of events [%]")
-            if h.Integral(0,-1,0,-1)>0:
-                h.Scale(100.0/h.Integral(0,-1,0,-1))
-            h.GetZaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
+            ztitle = ztitle.replace("Events", "Fraction of events")
+            ztitle = ztitle.replace("Number", "Fraction")
+            if integral>0:
+                h.Scale(1.0/integral)
+            if not doLogy:
+                h.GetZaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
+            else:
+                if integral>0:
+                    h.GetZaxis().SetRangeUser(1.0/integral,1.1*h.GetMaximum())
+                else:
+                    h.GetZaxis().SetRangeUser(1e-1,1.1*h.GetMaximum())
         if "nmuons" in h.GetName():
             ztitle = ztitle.replace("Events", "Number of muons")
             ztitle = ztitle.replace("events", "muons")
@@ -319,15 +462,22 @@ for hn,hnn in enumerate(h2dn):
         can.cd()
         if unityArea:
             ROOT.gStyle.SetPaintTextFormat(".2f");
-        h.Draw("colz,text")
+        h.Draw("colz")
         can.Update()
         palette = h.GetListOfFunctions().FindObject("palette")
         if palette:
             palette.SetX2NDC(0.925)
         can.Update()
+        h.GetZaxis().SetTitle(ztitle)
         h.GetZaxis().SetLabelSize(0.025)
         h.GetZaxis().SetMaxDigits(2)
-        h.GetZaxis().SetRangeUser(0.0, 1.1*h.GetMaximum())
+        if not doLogy:
+            h.GetZaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
+        else:
+            if integral>0:
+                h.GetZaxis().SetRangeUser(1.0/integral,2.0*h.GetMaximum())
+            else:
+                h.GetZaxis().SetRangeUser(1e-1,1.1*h.GetMaximum())
         latex.DrawLatex(0.90, 0.91, yearenergy);
         if drawCMSOnTop:
             latexCMS.DrawLatex(0.1,0.91,"CMS");
@@ -336,11 +486,15 @@ for hn,hnn in enumerate(h2dn):
             latexCMS.DrawLatex(0.13,0.86,"CMS");
             latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
         ROOT.gPad.RedrawAxis()
-        outname = "%s_%s"%(h.GetName(),samples[fn])
+        outname = "%s_%s"%(hnn,samples[fn])
         if "h_" in outname:
             outname = outname.replace("h_","")
+        elif "hsv" in outname:
+            outname = outname.replace("hsv","sv")
         if unityArea:
             outname = outname+"_unitArea"
+        if doLogy:
+            outname = outname+"_logZ"
         can.SaveAs("%s/%s.png"%(outdir,outname))
         if args.pdf:
             can.SaveAs("%s/%s.pdf"%(outdir,outname))

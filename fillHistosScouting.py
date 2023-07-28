@@ -163,65 +163,47 @@ h1d = []
 h2d = []
 
 # Displaced vertices:
-h_nsv = ROOT.TH1D("h_nsv","",10,0,10)
-h_nsv.GetXaxis().SetTitle("Number of valid SVs")
-h_nsv.GetYaxis().SetTitle("Events")
-h_nsv.SetLineColor(1)
-h1d.append(h_nsv)
-
 h_nsvsel = ROOT.TH1D("h_nsvsel","",10,0,10)
 h_nsvsel.GetXaxis().SetTitle("Number of selected valid SVs")
 h_nsvsel.GetYaxis().SetTitle("Events")
 h_nsvsel.SetLineColor(4)
 h1d.append(h_nsvsel)
 
-hsv_chi2ndof = ROOT.TH1D("hsv_chi2ndof","",100,0.0,10.0)
-hsv_chi2ndof.GetXaxis().SetTitle("SV #chi^{2}/ndof")
-hsv_chi2ndof.GetYaxis().SetTitle("Events / 0.1")
-hsv_chi2ndof.SetLineColor(1)
-h1d.append(hsv_chi2ndof)
+hsvsel_chi2ndof = ROOT.TH1D("hsvsel_chi2ndof","",100,0.0,10.0)
+hsvsel_chi2ndof.GetXaxis().SetTitle("SV #chi^{2}/ndof")
+hsvsel_chi2ndof.GetYaxis().SetTitle("Events / 0.1")
+hsvsel_chi2ndof.SetLineColor(1)
+h1d.append(hsvsel_chi2ndof)
 
-hsv_chi2prob = ROOT.TH1D("hsv_chi2prob","",100,0.0,1.0)
-hsv_chi2prob.GetXaxis().SetTitle("SV #chi^{2} probability")
-hsv_chi2prob.GetYaxis().SetTitle("Events / 0.01")
-hsv_chi2prob.SetLineColor(1)
-h1d.append(hsv_chi2prob)
+hsvsel_chi2prob = ROOT.TH1D("hsvsel_chi2prob","",100,0.0,1.0)
+hsvsel_chi2prob.GetXaxis().SetTitle("SV #chi^{2} probability")
+hsvsel_chi2prob.GetYaxis().SetTitle("Events / 0.01")
+hsvsel_chi2prob.SetLineColor(1)
+h1d.append(hsvsel_chi2prob)
 
-hsv_xerr = ROOT.TH1D("hsv_xerr","",50,0,0.5)
-hsv_xerr.GetXaxis().SetTitle("SV x error [cm]")
-hsv_xerr.GetYaxis().SetTitle("Events / 0.01 cm")
-hsv_xerr.SetLineColor(1)
-h1d.append(hsv_xerr)
+hsvsel_xerr = ROOT.TH1D("hsvsel_xerr","",500,0,0.5)
+hsvsel_xerr.GetXaxis().SetTitle("SV x error [cm]")
+hsvsel_xerr.GetYaxis().SetTitle("Events / 0.001 cm")
+hsvsel_xerr.SetLineColor(1)
+h1d.append(hsvsel_xerr)
 
-hsv_yerr = ROOT.TH1D("hsv_yerr","",50,0,0.5)
-hsv_yerr.GetXaxis().SetTitle("SV y error [cm]")
-hsv_yerr.GetYaxis().SetTitle("Events / 0.01 cm")
-hsv_yerr.SetLineColor(1)
-h1d.append(hsv_yerr)
+hsvsel_yerr = ROOT.TH1D("hsvsel_yerr","",500,0,0.5)
+hsvsel_yerr.GetXaxis().SetTitle("SV y error [cm]")
+hsvsel_yerr.GetYaxis().SetTitle("Events / 0.001 cm")
+hsvsel_yerr.SetLineColor(1)
+h1d.append(hsvsel_yerr)
 
-hsv_zerr = ROOT.TH1D("hsv_zerr","",50,0,0.5)
-hsv_zerr.GetXaxis().SetTitle("SV z error [cm]")
-hsv_zerr.GetYaxis().SetTitle("Events / 0.01 cm")
-hsv_zerr.SetLineColor(1)
-h1d.append(hsv_zerr)
+hsvsel_zerr = ROOT.TH1D("hsvsel_zerr","",500,0,0.5)
+hsvsel_zerr.GetXaxis().SetTitle("SV z error [cm]")
+hsvsel_zerr.GetYaxis().SetTitle("Events / 0.001 cm")
+hsvsel_zerr.SetLineColor(1)
+h1d.append(hsvsel_zerr)
 
-hsv_lxy = ROOT.TH1D("hsv_lxy","",500,0,50)
-hsv_lxy.GetXaxis().SetTitle("l_{xy} (from PV) [cm]")
-hsv_lxy.GetYaxis().SetTitle("Events / 0.1 cm")
-hsv_lxy.SetLineColor(1)
-h1d.append(hsv_lxy)
-
-hsvsel_lxy = ROOT.TH1D("hsvsel_lxy","",500,0,50)
+hsvsel_lxy = ROOT.TH1D("hsvsel_lxy","",1000,0.0,100.0)
 hsvsel_lxy.GetXaxis().SetTitle("l_{xy} (from PV) [cm]")
 hsvsel_lxy.GetYaxis().SetTitle("Events / 0.1 cm")
-hsvsel_lxy.SetLineColor(4)
+hsvsel_lxy.SetLineColor(1)
 h1d.append(hsvsel_lxy)
-
-hsv_l3d = ROOT.TH1D("hsv_l3d","",1000,0,100)
-hsv_l3d.GetXaxis().SetTitle("l_{3D} (from PV) [cm]")
-hsv_l3d.GetYaxis().SetTitle("Events / 0.1 cm")
-hsv_l3d.SetLineColor(1)
-h1d.append(hsv_l3d)
 
 hsvsel_l3d = ROOT.TH1D("hsvsel_l3d","",1000,0,100)
 hsvsel_l3d.GetXaxis().SetTitle("l_{3D} (from PV) [cm]")
@@ -242,7 +224,7 @@ hsvsel_mindy.SetLineColor(4)
 h1d.append(hsvsel_mindy)
 
 hsvsel_mindz = ROOT.TH1D("hsvsel_mindz","",100,0,1)
-hsvsel_mindz.GetXaxis().SetTitle("min d_{z} (SV_{i}, SV_{j}) [cm]")
+hsvsel_mindz.GetXaxis().SetTitle("min D_{z} (SV_{i}, SV_{j}) [cm]")
 hsvsel_mindz.GetYaxis().SetTitle("Events / 0.01 cm")
 hsvsel_mindz.SetLineColor(4)
 h1d.append(hsvsel_mindz)
@@ -264,6 +246,105 @@ hsvsel_maxdz.GetXaxis().SetTitle("MAX D_{z} (SV_{i}, SV_{j}) [cm]")
 hsvsel_maxdz.GetYaxis().SetTitle("Events / 0.01 cm")
 hsvsel_maxdz.SetLineColor(4)
 h1d.append(hsvsel_maxdz)
+
+hsvsel_yvsx = ROOT.TH2D("hsvsel_yvsx","",2000,-100.0,100.0,2000,-100.0,100.0)
+hsvsel_yvsx.GetXaxis().SetTitle("x (from PV) [cm]")
+hsvsel_yvsx.GetYaxis().SetTitle("y (from PV) [cm]")
+hsvsel_yvsx.GetZaxis().SetTitle("Number of SVs")
+hsvsel_yvsx.SetLineColor(1)
+h2d.append(hsvsel_yvsx)
+
+###
+
+h_nsvselass = ROOT.TH1D("h_nsvselass","",10,0,10)
+h_nsvselass.GetXaxis().SetTitle("Number of SVs with selected dimuon pair")
+h_nsvselass.GetYaxis().SetTitle("Events")
+h_nsvselass.SetLineColor(4)
+h1d.append(h_nsvselass)
+
+hsvselass_chi2ndof = ROOT.TH1D("hsvselass_chi2ndof","",100,0.0,10.0)
+hsvselass_chi2ndof.GetXaxis().SetTitle("SV #chi^{2}/ndof")
+hsvselass_chi2ndof.GetYaxis().SetTitle("Events / 0.1")
+hsvselass_chi2ndof.SetLineColor(1)
+h1d.append(hsvselass_chi2ndof)
+
+hsvselass_chi2prob = ROOT.TH1D("hsvselass_chi2prob","",100,0.0,1.0)
+hsvselass_chi2prob.GetXaxis().SetTitle("SV #chi^{2} probability")
+hsvselass_chi2prob.GetYaxis().SetTitle("Events / 0.01")
+hsvselass_chi2prob.SetLineColor(1)
+h1d.append(hsvselass_chi2prob)
+
+hsvselass_xerr = ROOT.TH1D("hsvselass_xerr","",500,0,0.5)
+hsvselass_xerr.GetXaxis().SetTitle("SV x error [cm]")
+hsvselass_xerr.GetYaxis().SetTitle("Events / 0.001 cm")
+hsvselass_xerr.SetLineColor(1)
+h1d.append(hsvselass_xerr)
+
+hsvselass_yerr = ROOT.TH1D("hsvselass_yerr","",500,0,0.5)
+hsvselass_yerr.GetXaxis().SetTitle("SV y error [cm]")
+hsvselass_yerr.GetYaxis().SetTitle("Events / 0.001 cm")
+hsvselass_yerr.SetLineColor(1)
+h1d.append(hsvselass_yerr)
+
+hsvselass_zerr = ROOT.TH1D("hsvselass_zerr","",500,0,0.5)
+hsvselass_zerr.GetXaxis().SetTitle("SV z error [cm]")
+hsvselass_zerr.GetYaxis().SetTitle("Events / 0.001 cm")
+hsvselass_zerr.SetLineColor(1)
+h1d.append(hsvselass_zerr)
+
+hsvselass_lxy = ROOT.TH1D("hsvselass_lxy","",1000,0.0,100.0)
+hsvselass_lxy.GetXaxis().SetTitle("l_{xy} (from PV) [cm]")
+hsvselass_lxy.GetYaxis().SetTitle("Events / 0.1 cm")
+hsvselass_lxy.SetLineColor(1)
+h1d.append(hsvselass_lxy)
+
+hsvselass_l3d = ROOT.TH1D("hsvselass_l3d","",1000,0,100)
+hsvselass_l3d.GetXaxis().SetTitle("l_{3D} (from PV) [cm]")
+hsvselass_l3d.GetYaxis().SetTitle("Events / 0.1 cm")
+hsvselass_l3d.SetLineColor(4)
+h1d.append(hsvselass_l3d)
+
+hsvselass_mindx = ROOT.TH1D("hsvselass_mindx","",100,0,1)
+hsvselass_mindx.GetXaxis().SetTitle("min D_{x} (SV_{i}, SV_{j}) [cm]")
+hsvselass_mindx.GetYaxis().SetTitle("Events / 0.01 cm")
+hsvselass_mindx.SetLineColor(4)
+h1d.append(hsvselass_mindx)
+
+hsvselass_mindy = ROOT.TH1D("hsvselass_mindy","",100,0,1)
+hsvselass_mindy.GetXaxis().SetTitle("min D_{y} (SV_{i}, SV_{j}) [cm]")
+hsvselass_mindy.GetYaxis().SetTitle("Events / 0.01 cm")
+hsvselass_mindy.SetLineColor(4)
+h1d.append(hsvselass_mindy)
+
+hsvselass_mindz = ROOT.TH1D("hsvselass_mindz","",100,0,1)
+hsvselass_mindz.GetXaxis().SetTitle("min D_{z} (SV_{i}, SV_{j}) [cm]")
+hsvselass_mindz.GetYaxis().SetTitle("Events / 0.01 cm")
+hsvselass_mindz.SetLineColor(4)
+h1d.append(hsvselass_mindz)
+
+hsvselass_maxdx = ROOT.TH1D("hsvselass_maxdx","",100,0,1)
+hsvselass_maxdx.GetXaxis().SetTitle("MAX D_{x} (SV_{i}, SV_{j}) [cm]")
+hsvselass_maxdx.GetYaxis().SetTitle("Events / 0.01 cm")
+hsvselass_maxdx.SetLineColor(4)
+h1d.append(hsvselass_maxdx)
+
+hsvselass_maxdy = ROOT.TH1D("hsvselass_maxdy","",100,0,1)
+hsvselass_maxdy.GetXaxis().SetTitle("MAX D_{y} (SV_{i}, SV_{j}) [cm]")
+hsvselass_maxdy.GetYaxis().SetTitle("Events / 0.01 cm")
+hsvselass_maxdy.SetLineColor(4)
+h1d.append(hsvselass_maxdy)
+
+hsvselass_maxdz = ROOT.TH1D("hsvselass_maxdz","",100,0,1)
+hsvselass_maxdz.GetXaxis().SetTitle("MAX D_{z} (SV_{i}, SV_{j}) [cm]")
+hsvselass_maxdz.GetYaxis().SetTitle("Events / 0.01 cm")
+hsvselass_maxdz.SetLineColor(4)
+h1d.append(hsvselass_maxdz)
+
+hsvselass_yvsx = ROOT.TH2D("hsvselass_yvsx","",2000,-100.0,100.0,2000,-100.0,100.0)
+hsvselass_yvsx.GetXaxis().SetTitle("x (from PV) [cm]")
+hsvselass_yvsx.GetYaxis().SetTitle("y (from PV) [cm]")
+hsvselass_yvsx.GetZaxis().SetTitle("Number of SVs")
+h2d.append(hsvselass_yvsx)
 
 # Muons
 h_nmuonsass = ROOT.TH1D("h_nmuonsass","",10,0,10)
@@ -536,7 +617,7 @@ hdimuon_mass.GetYaxis().SetTitle("Events / 0.5 GeV")
 hdimuon_mass.SetLineColor(2)
 h1d.append(hdimuon_mass)
 
-hdimuon_lxy = ROOT.TH1D("hdimuon_lxy","",500,0.0,50.0)
+hdimuon_lxy = ROOT.TH1D("hdimuon_lxy","",1000,0.0,100.0)
 hdimuon_lxy.GetXaxis().SetTitle("l_{xy} (from PV) [cm]")
 hdimuon_lxy.GetYaxis().SetTitle("Events / 0.1 cm")
 hdimuon_lxy.SetLineColor(2)
@@ -572,7 +653,7 @@ hdimuon_detaOverdphi.GetYaxis().SetTitle("Events / 0.1")
 hdimuon_detaOverdphi.SetLineColor(2)
 h1d.append(hdimuon_detaOverdphi)
 
-hdimuon_3dangle = ROOT.TH1D("hdimuon_3dangle","",64,0.0,6.4)
+hdimuon_3dangle = ROOT.TH1D("hdimuon_3dangle","",32,0.0,3.2)
 hdimuon_3dangle.GetXaxis().SetTitle("|3D angle(#mu, #mu)|")
 hdimuon_3dangle.GetYaxis().SetTitle("Events / 0.1")
 hdimuon_3dangle.SetLineColor(2)
@@ -596,7 +677,7 @@ hdimuon_detasvodphisv.GetYaxis().SetTitle("Events / 0.5")
 hdimuon_detasvodphisv.SetLineColor(2)
 h1d.append(hdimuon_detasvodphisv)
 
-hdimuon_3danglesv = ROOT.TH1D("hdimuon_3danglesv","",64,0.0,6.4)
+hdimuon_3danglesv = ROOT.TH1D("hdimuon_3danglesv","",32,0.0,3.2)
 hdimuon_3danglesv.GetXaxis().SetTitle("|3D angle(#vec{(#mu, #mu)}, #vec{SV})|")
 hdimuon_3danglesv.GetYaxis().SetTitle("Events / 0.1")
 hdimuon_3danglesv.SetLineColor(2)
@@ -825,7 +906,7 @@ hfourmuon_osv_mass.GetYaxis().SetTitle("Events / 0.5 GeV")
 hfourmuon_osv_mass.SetLineColor(2)
 h1d.append(hfourmuon_osv_mass)
 
-hfourmuon_osv_lxy = ROOT.TH1D("hfourmuon_osv_lxy","",500,0.0,50.0)
+hfourmuon_osv_lxy = ROOT.TH1D("hfourmuon_osv_lxy","",1000,0.0,100.0)
 hfourmuon_osv_lxy.GetXaxis().SetTitle("l_{xy} (from PV) [cm]")
 hfourmuon_osv_lxy.GetYaxis().SetTitle("Events / 0.1 cm")
 hfourmuon_osv_lxy.SetLineColor(2)
@@ -897,13 +978,13 @@ hfourmuon_osv_maxdetaOvermaxdphi.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_osv_maxdetaOvermaxdphi.SetLineColor(2)
 h1d.append(hfourmuon_osv_maxdetaOvermaxdphi)
 
-hfourmuon_osv_min3dangle = ROOT.TH1D("hfourmuon_osv_min3dangle","",64,0.0,6.4)
+hfourmuon_osv_min3dangle = ROOT.TH1D("hfourmuon_osv_min3dangle","",32,0.0,3.2)
 hfourmuon_osv_min3dangle.GetXaxis().SetTitle("min |3D angle(#mu, #mu)|")
 hfourmuon_osv_min3dangle.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_osv_min3dangle.SetLineColor(2)
 h1d.append(hfourmuon_osv_min3dangle)
 
-hfourmuon_osv_max3dangle = ROOT.TH1D("hfourmuon_osv_max3dangle","",64,0.0,6.4)
+hfourmuon_osv_max3dangle = ROOT.TH1D("hfourmuon_osv_max3dangle","",32,0.0,3.2)
 hfourmuon_osv_max3dangle.GetXaxis().SetTitle("max |3D angle(#mu, #mu)|")
 hfourmuon_osv_max3dangle.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_osv_max3dangle.SetLineColor(2)
@@ -927,7 +1008,7 @@ hfourmuon_osv_detasvodphisv.GetYaxis().SetTitle("Events / 0.5")
 hfourmuon_osv_detasvodphisv.SetLineColor(2)
 h1d.append(hfourmuon_osv_detasvodphisv)
 
-hfourmuon_osv_3danglesv = ROOT.TH1D("hfourmuon_osv_3danglesv","",64,0.0,6.4)
+hfourmuon_osv_3danglesv = ROOT.TH1D("hfourmuon_osv_3danglesv","",32,0.0,3.2)
 hfourmuon_osv_3danglesv.GetXaxis().SetTitle("|3D angle(#vec{(4#mu)}, #vec{SV})|")
 hfourmuon_osv_3danglesv.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_osv_3danglesv.SetLineColor(2)
@@ -941,13 +1022,13 @@ hfourmuon_mass.GetYaxis().SetTitle("Events / 0.5 GeV")
 hfourmuon_mass.SetLineColor(2)
 h1d.append(hfourmuon_mass)
 
-hfourmuon_minlxy = ROOT.TH1D("hfourmuon_minlxy","",500,0.0,50.0)
+hfourmuon_minlxy = ROOT.TH1D("hfourmuon_minlxy","",1000,0.0,100.0)
 hfourmuon_minlxy.GetXaxis().SetTitle("min(l_{xy}) (from PV) [cm]")
 hfourmuon_minlxy.GetYaxis().SetTitle("Events / 0.1 cm")
 hfourmuon_minlxy.SetLineColor(2)
 h1d.append(hfourmuon_minlxy)
 
-hfourmuon_maxlxy = ROOT.TH1D("hfourmuon_maxlxy","",500,0.0,50.0)
+hfourmuon_maxlxy = ROOT.TH1D("hfourmuon_maxlxy","",1000,0.0,100.0)
 hfourmuon_maxlxy.GetXaxis().SetTitle("max(l_{xy}) (from PV) [cm]")
 hfourmuon_maxlxy.GetYaxis().SetTitle("Events / 0.1 cm")
 hfourmuon_maxlxy.SetLineColor(2)
@@ -1019,13 +1100,13 @@ hfourmuon_maxdetaOvermaxdphi.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_maxdetaOvermaxdphi.SetLineColor(2)
 h1d.append(hfourmuon_maxdetaOvermaxdphi)
 
-hfourmuon_min3dangle = ROOT.TH1D("hfourmuon_min3dangle","",64,0.0,6.4)
+hfourmuon_min3dangle = ROOT.TH1D("hfourmuon_min3dangle","",32,0.0,3.2)
 hfourmuon_min3dangle.GetXaxis().SetTitle("min |3D angle(#mu, #mu)|")
 hfourmuon_min3dangle.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_min3dangle.SetLineColor(2)
 h1d.append(hfourmuon_min3dangle)
 
-hfourmuon_max3dangle = ROOT.TH1D("hfourmuon_max3dangle","",64,0.0,6.4)
+hfourmuon_max3dangle = ROOT.TH1D("hfourmuon_max3dangle","",32,0.0,3.2)
 hfourmuon_max3dangle.GetXaxis().SetTitle("max |3D angle(#mu, #mu)|")
 hfourmuon_max3dangle.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_max3dangle.SetLineColor(2)
@@ -1043,7 +1124,7 @@ hfourmuon_mindetasv.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_mindetasv.SetLineColor(2)
 h1d.append(hfourmuon_mindetasv)
 
-hfourmuon_min3danglesv = ROOT.TH1D("hfourmuon_min3danglesv","",64,0.0,6.4)
+hfourmuon_min3danglesv = ROOT.TH1D("hfourmuon_min3danglesv","",32,0.0,3.2)
 hfourmuon_min3danglesv.GetXaxis().SetTitle("min(|3D angle(#vec{(4#mu)}, #vec{SV})|)")
 hfourmuon_min3danglesv.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_min3danglesv.SetLineColor(2)
@@ -1061,7 +1142,7 @@ hfourmuon_maxdetasv.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_maxdetasv.SetLineColor(2)
 h1d.append(hfourmuon_maxdetasv)
 
-hfourmuon_max3danglesv = ROOT.TH1D("hfourmuon_max3danglesv","",64,0.0,6.4)
+hfourmuon_max3danglesv = ROOT.TH1D("hfourmuon_max3danglesv","",32,0.0,3.2)
 hfourmuon_max3danglesv.GetXaxis().SetTitle("max(|3D angle(#vec{(4#mu)}, #vec{SV})|)")
 hfourmuon_max3danglesv.GetYaxis().SetTitle("Events / 0.1")
 hfourmuon_max3danglesv.SetLineColor(2)
@@ -1140,20 +1221,16 @@ for e in range(firste,laste):
     nSV = len(t.SV_index)
     if nSV<1:
         continue
-    h_nsv.Fill(nSV)
-
     nSVsel = 0
     for v in range(nSV):
-        hsv_chi2ndof.Fill(t.SV_chi2Ndof[v])
-        hsv_chi2prob.Fill(t.SV_prob[v])
-        hsv_xerr.Fill(t.SV_xe[v])
-        hsv_yerr.Fill(t.SV_ye[v])
-        hsv_zerr.Fill(t.SV_ze[v])
-        hsv_lxy.Fill(t.SV_lxy[v])
-        hsv_l3d.Fill(t.SV_l3d[v])
         if not t.SV_selected[v]:
             continue
         nSVsel = nSVsel+1
+        hsvsel_chi2ndof.Fill(t.SV_chi2Ndof[v])
+        hsvsel_chi2prob.Fill(t.SV_prob[v])
+        hsvsel_xerr.Fill(t.SV_xe[v])
+        hsvsel_yerr.Fill(t.SV_ye[v])
+        hsvsel_zerr.Fill(t.SV_ze[v])
         hsvsel_lxy.Fill(t.SV_lxy[v])
         hsvsel_l3d.Fill(t.SV_l3d[v])
         hsvsel_mindx.Fill(t.SV_mindx[v])
@@ -1162,6 +1239,7 @@ for e in range(firste,laste):
         hsvsel_maxdy.Fill(t.SV_maxdy[v])
         hsvsel_mindz.Fill(t.SV_mindz[v])
         hsvsel_maxdz.Fill(t.SV_maxdz[v])
+        hsvsel_yvsx.Fill(t.SV_x[v],t.SV_y[v])
     h_nsvsel.Fill(nSVsel)
 
     nMu = len(t.Muon_selected)
@@ -1322,6 +1400,7 @@ for e in range(firste,laste):
     dmuvec_all = dmuvec_osv+dmuvec
     svidx_all = osvidx+svidx
     svvec_all = osvvec+svvec
+
     if len(dmuidxs_all)>=4:
         for m in range(len(dmuidxs_all)):
             if m%2>0:
@@ -1359,6 +1438,7 @@ for e in range(firste,laste):
                         svvecmaxlxy_qmu.append(svvec_all[int(m/2)])
                         svidxmaxlxy_qmu.append(svidx_all[int(m/2)])
     seldmuidxs = []
+    seldmusvidxs = []
     for vn,v in enumerate(dmuvec):
         if not applyDiMuonSelection(v):
             continue
@@ -1367,6 +1447,7 @@ for e in range(firste,laste):
             continue
         seldmuidxs.append(dmuidxs[int(vn*2)])
         seldmuidxs.append(dmuidxs[int(vn*2)+1])
+        seldmusvidxs.append(svidx[vn])
         mass = v.M()
         pt   = v.Pt()
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
@@ -1396,6 +1477,7 @@ for e in range(firste,laste):
         hdimuon_3danglesv.Fill(a3dsv)
 
     seldmuidxs_osv = []
+    seldmusvidxs_osv = []
     for vn,v in enumerate(dmuvec_osv):
         if not applyDiMuonSelection(v):
             continue
@@ -1404,6 +1486,7 @@ for e in range(firste,laste):
             continue
         seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)])
         seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)+1])
+        seldmusvidxs_osv.append(t.SVOverlap_vtxIdxs[osvidx[vn]][0])
         mass = v.M()
         pt   = v.Pt()
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
@@ -1431,6 +1514,26 @@ for e in range(firste,laste):
         hdimuon_detasv.Fill(detasv)
         hdimuon_detasvodphisv.Fill(detasvodphisv)
         hdimuon_3danglesv.Fill(a3dsv)
+
+    seldmusvidxs_all = seldmusvidxs_osv+seldmusvidxs
+    nSVselass = 0
+    for v in set(seldmusvidxs_all):
+        nSVselass = nSVselass+1
+        hsvselass_chi2ndof.Fill(t.SV_chi2Ndof[v])
+        hsvselass_chi2prob.Fill(t.SV_prob[v])
+        hsvselass_xerr.Fill(t.SV_xe[v])
+        hsvselass_yerr.Fill(t.SV_ye[v])
+        hsvselass_zerr.Fill(t.SV_ze[v])
+        hsvselass_lxy.Fill(t.SV_lxy[v])
+        hsvselass_l3d.Fill(t.SV_l3d[v])
+        hsvselass_mindx.Fill(t.SV_mindx[v])
+        hsvselass_maxdx.Fill(t.SV_maxdx[v])
+        hsvselass_mindy.Fill(t.SV_mindy[v])
+        hsvselass_maxdy.Fill(t.SV_maxdy[v])
+        hsvselass_mindz.Fill(t.SV_mindz[v])
+        hsvselass_maxdz.Fill(t.SV_maxdz[v])
+        hsvselass_yvsx.Fill(t.SV_x[v],t.SV_y[v])
+    h_nsvselass.Fill(nSVselass)
 
     mindrmm, mindpmm, mindemm, mina3dmm = 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxa3dmm = -1., -1., -1., -1

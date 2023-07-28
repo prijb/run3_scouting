@@ -26,9 +26,13 @@ using namespace fwlite;
 #include "tools/goodrun.h"
 #include "tools/tqdm.h"
 
-
+// Partial unblinding
+bool doPartialUnblinding = true;
 float partialUnblindingPercentage = 0.1; // 10% of each era
 
+// SV selection
+float maxXerr=0.05, maxYerr=0.05, maxZerr=0.10, maxChi2=5.0;
+float maxDXYerr=0.05, maxD3Derr=0.10; // for identification of overlapping SVs
 
 template<class T>
 const T getObject(const Event& ev, const char* prodLabel, const char* outLabel = "") {
@@ -544,7 +548,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         duplicate_removal::DorkyEventIdentifier id(run, evtn, lumi);
         if ( is_duplicate(id) )
           continue;
-        if ( rndm_partialUnblinding.Rndm() > partialUnblindingPercentage )
+        if ( doPartialUnblinding && rndm_partialUnblinding.Rndm() > partialUnblindingPercentage )
           continue;
       }
 
@@ -707,7 +711,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         SVs.maxdxy.push_back(maxdxy);
         SVs.maxd3d.push_back(maxd3d);
 
-        SVs.selected.push_back( (xe<0.05 && ye<0.05 && ze<0.10 && chi2/ndof<5.0) );
+        SVs.selected.push_back( (xe<maxXerr && ye<maxYerr && ze<maxZerr && chi2/ndof<maxChi2) );
       }
       SVs.sort();
 
@@ -733,6 +737,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           continue;
 
         float x=SVs.x[iSV], y=SVs.y[iSV], z=SVs.z[iSV];
+        float xe=SVs.xe[iSV], ye=SVs.ye[iSV], ze=SVs.ze[iSV];
         for (unsigned int jSV=iSV+1; jSV<SVs.x.size(); ++jSV) {
           if (SVs.selected[jSV]==0)
             continue;
@@ -741,9 +746,15 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           float dx = x - xOther;
           float dy = y - yOther;
           float dz = z - zOther;
+	  float xeOther=SVs.xe[jSV], yeOther=SVs.ye[jSV], zeOther=SVs.ze[jSV];
           float dxy = dx*dx + dy*dy;
           float d3d = dxy*dxy + dz*dz;
-          if ( fabs(dx)<0.05 && fabs(dy)<0.05 && fabs(dz)<0.1 && TMath::Sqrt(dxy)<0.05 && TMath::Sqrt(d3d)<0.1 ) {
+	  float xeOverlap = std::max(xe, xeOther);
+	  float yeOverlap = std::max(ye, yeOther);
+	  float zeOverlap = std::max(ze, zeOther);
+	  float dxyeOverlap = TMath::Sqrt(xeOverlap*xeOverlap+yeOverlap*yeOverlap);
+	  float d3deOverlap = TMath::Sqrt(dxyeOverlap*dxyeOverlap+zeOverlap*zeOverlap);
+          if ( fabs(dx)<xeOverlap && fabs(dy)<yeOverlap && fabs(dz)<zeOverlap && TMath::Sqrt(dxy)<std::min(dxyeOverlap, maxDXYerr) && TMath::Sqrt(d3d)<std::min(d3deOverlap, maxD3Derr) ) {
             vtxIdxs_temp.push_back(jSV);
             sumOfProb += SVs.prob[jSV];
           }
