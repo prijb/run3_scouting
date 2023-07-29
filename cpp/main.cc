@@ -48,53 +48,53 @@ int main(int argc, char **argv) {
   TString process;
   // Sample list: Data
   if ( sampleArg=="DataB" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Data/2022B/", startFile, nFiles);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022B/", startFile, nFiles);
     process = "DataB";
   }
   if ( sampleArg=="DataC" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Data/2022C/", startFile, nFiles);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022C/", startFile, nFiles);
     process = "DataC";
   }
   if ( sampleArg=="DataD" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Data/2022D/", startFile, nFiles);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022D/", startFile, nFiles);
     process = "DataD";
   }
   if ( sampleArg=="DataE" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Data/2022E/", startFile, nFiles);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022E/", startFile, nFiles);
     process = "DataE";
   }
   if ( sampleArg=="DataF" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Data/2022F/", startFile, nFiles);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022F/", startFile, nFiles);
     process = "DataF";
   }
   if ( sampleArg=="DataG" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Data/2022G/", startFile, nFiles);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022G/", startFile, nFiles);
     process = "DataG";
   }
   //
   // Sample list: Signal
   if ( sampleArg=="Signal_ScenA_v0p30" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Signal/Signal_ScenA_v0p30/", startFile, nFiles); // 61 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v0p30/", startFile, nFiles); // 61 files
     process = "Signal_ScenA_v0p30";
   }
   if ( sampleArg=="Signal_ScenA_v1p3" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Signal/Signal_ScenA_v1p3/", startFile, nFiles); // 69 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v1p3/", startFile, nFiles); // 69 files
     process = "Signal_ScenA_v1p3";
   }
   if ( sampleArg=="Signal_ScenA_v1p4" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Signal/Signal_ScenA_v1p4/", startFile, nFiles); // 95 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v1p4/", startFile, nFiles); // 95 files
     process = "Signal_ScenA_v1p4";
   }
   if ( sampleArg=="Signal_ScenA_v1p5" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Signal/Signal_ScenA_v1p5", startFile, nFiles); // 93 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v1p5", startFile, nFiles); // 93 files
     process = "Signal_ScenA_v1p5";
   }
   if ( sampleArg=="Signal_ScenB_v0p32" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Signal/Signal_ScenB_v0p32/", startFile, nFiles); // 48 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenB_v0p32/", startFile, nFiles); // 48 files
     process = "Signal_ScenB_v0p32";
   }
   if ( sampleArg=="Signal_ScenC_v0p34" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Signal/Signal_ScenC_v0p34/", startFile, nFiles); // 46 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenC_v0p34/", startFile, nFiles); // 46 files
     process = "Signal_ScenC_v0p34";
   }
 
