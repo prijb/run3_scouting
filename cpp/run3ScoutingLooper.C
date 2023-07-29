@@ -31,8 +31,10 @@ bool doPartialUnblinding = true;
 float partialUnblindingPercentage = 0.1; // 10% of each era
 
 // SV selection
-float maxXerr=0.05, maxYerr=0.05, maxZerr=0.10, maxChi2=5.0;
-float maxDXYerr=0.05, maxD3Derr=0.10; // for identification of overlapping SVs
+bool relaxedSVSel = false;
+float sfSVsel = (relaxedSVSel) ? 5.0 : 1.0;
+float maxXerr=0.05*sfSVsel, maxYerr=0.05*sfSVsel, maxZerr=0.10*sfSVsel, maxChi2=5.0*sfSVsel;
+float maxDXYerr=0.05*sfSVsel, maxD3Derr=0.10*sfSVsel; // for identification of overlapping SVs
 
 template<class T>
 const T getObject(const Event& ev, const char* prodLabel, const char* outLabel = "") {

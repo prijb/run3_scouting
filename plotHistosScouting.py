@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--inDir", default=os.environ.get("PWD")+"/outputHistograms_"+today, help="Choose output directory. Default: '"+os.environ.get("PWD")+"/outputHistograms_"+today+"'")
 parser.add_argument("--inSamples", default=[], nargs="+", help="Choose sample(s); for all data samples in input directory, choose 'Data'")
 parser.add_argument("--outDir", default=os.environ.get("PWD")+"/plots_"+today, help="Choose output directory. Default: '"+os.environ.get("PWD")+"/plots_"+today+"'")
+parser.add_argument("--outSuffix", default="", help="Choose output directory. Default: ''")
 parser.add_argument("--data", default=False, action="store_true", help="Plot data")
 parser.add_argument("--signal", default=False, action="store_true", help="Plot signal")
 parser.add_argument("--generator", default=False, action="store_true", help="Plot GEN-level histograms")
@@ -33,7 +34,7 @@ parser.add_argument("--dimuonMassSelForFourMuonOSV", default=[], nargs="+", help
 parser.add_argument("--dimuonMassDiffSelForFourMuonOSV", default=["0.05"], nargs="+", help="Selection on dimuon mass difference / mean in four-muon system from overlapping SV: first (or only) value is *upper* cut, second (optional) value is *lower* cut")
 parser.add_argument("--dimuonPtSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon pT in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
-parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--relaxedSVSel", default=False, action="store_true", help="Extend range for 1D histograms of SV selection variables")
 parser.add_argument("--doRatio", default=False, action="store_true", help="Plot ratios for 1D histograms")
 parser.add_argument("--shape", default=False, action="store_true", help="Shape normalization")
 parser.add_argument("--logY", default=False, action="store_true", help="Log-scale for Y axis")
@@ -63,6 +64,47 @@ roff = 0.0
 if not doRatio:
     roff=0.01
 
+skimFraction = float(args.partialUnblindingFraction)
+skimEvents = args.partialUnblinding
+if not isData:
+    skimEvents = False
+luminosity = 35.144834218
+luminosity2022B = 0.085456340
+luminosity2022C = 5.070714851
+luminosity2022D = 3.006332096
+luminosity2022E = 5.866801170
+luminosity2022F = 18.006671456
+luminosity2022G = 3.108858306
+if samples[0]!="Data" and len(samples)==1:
+    ts = samples[0]
+    if ts=="DataB":
+        luminosity = luminosity2022B
+    elif ts=="DataC":
+        luminosity = luminosity2022C
+    elif ts=="DataD":
+        luminosity = luminosity2022D
+    elif ts=="DataE":
+        luminosity = luminosity2022E
+    elif ts=="DataF":
+        luminosity = luminosity2022F
+    elif ts=="DataG":
+        luminosity = luminosity2022G
+luminosity      = 0.1*luminosity
+luminosity2022B = 0.1*luminosity2022B
+luminosity2022C = 0.1*luminosity2022C
+luminosity2022D = 0.1*luminosity2022D
+luminosity2022E = 0.1*luminosity2022E
+luminosity2022F = 0.1*luminosity2022F
+luminosity2022G = 0.1*luminosity2022G
+if skimEvents and skimFraction>0.0:
+    luminosity      = skimFraction*luminosity
+    luminosity2022B = skimFraction*luminosity2022B
+    luminosity2022C = skimFraction*luminosity2022C
+    luminosity2022D = skimFraction*luminosity2022D
+    luminosity2022E = skimFraction*luminosity2022E
+    luminosity2022F = skimFraction*luminosity2022F
+    luminosity2022G = skimFraction*luminosity2022G
+
 colors = dict()
 colors["Data"]  = ROOT.kBlack
 colors["DataB"] = ROOT.kYellow+1
@@ -75,12 +117,12 @@ colors["signal"] = [ROOT.kBlue+1, ROOT.kAzure+1, ROOT.kCyan+1, ROOT.kTeal+1, ROO
 
 legnames = dict()
 legnames["Data"]  = "Data"
-legnames["DataB"] = "Run2022B"
-legnames["DataC"] = "Run2022C"
-legnames["DataD"] = "Run2022D"
-legnames["DataE"] = "Run2022E"
-legnames["DataF"] = "Run2022F"
-legnames["DataG"] = "Run2022G"
+legnames["DataB"] = "Run2022B (%.2f fb^{-1})"%luminosity2022B
+legnames["DataC"] = "Run2022C (%.2f fb^{-1})"%luminosity2022C
+legnames["DataD"] = "Run2022D (%.2f fb^{-1})"%luminosity2022D
+legnames["DataE"] = "Run2022E (%.2f fb^{-1})"%luminosity2022E
+legnames["DataF"] = "Run2022F (%.2f fb^{-1})"%luminosity2022F
+legnames["DataG"] = "Run2022G (%.2f fb^{-1})"%luminosity2022G
 
 for s in samples:
     if "Signal" in s:
@@ -95,6 +137,10 @@ for s in samples:
 
 indir  = args.inDir
 outdir = args.outDir
+if args.relaxedSVSel:
+    outdir = outdir+"_relaxedSVselection"
+if args.outSuffix!="":
+    outdir = outdir+"_"+args.outSuffix
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
@@ -164,29 +210,6 @@ for fn,f in enumerate(infiles):
 unityArea = args.shape
 doLogy = args.logY
 
-skimFraction = float(args.partialUnblindingFraction)
-skimEvents = args.partialUnblinding
-if not isData:
-    skimEvents = False
-luminosity = 35.144834218
-if samples[0]!="Data" and len(samples)==1:
-    ts = samples[0]
-    if ts=="DataB":
-        luminosity = 0.085456340
-    elif ts=="DataC":
-        luminosity = 5.070714851
-    elif ts=="DataD":
-        luminosity = 3.006332096
-    elif ts=="DataE":
-        luminosity = 5.866801170
-    elif ts=="DataF":
-        luminosity = 18.006671456
-    elif ts=="DataG":
-        luminosity = 3.108858306
-luminosity = 0.1*luminosity
-if skimEvents and skimFraction>0.0:
-    luminosity = skimFraction*luminosity
-
 # Labels
 yearenergy = "%.2f fb^{-1} (%s, 13.6 TeV)"%(luminosity,args.year)
 cmsExtra = "Preliminary"
@@ -222,6 +245,9 @@ for fn in range(len(infiles)):
     h1dr.append([])
 for hn,hnn in enumerate(h1dn):
     for fn in range(len(infiles)):
+        sfSVrange = 1.0
+        if args.relaxedSVSel:
+            sfSVrange = 5.0
         if "_type" not in hnn:
             xmin=None
             xmax=None
@@ -234,11 +260,11 @@ for hn,hnn in enumerate(h1dn):
                 if len(args.zoomLxy)>1:
                     xmin=float(args.zoomMass[1])
             if "sv" in hnn and ("xerr" in hnn or "yerr" in hnn):
-                xmax=0.05
+                xmax=0.05*sfSVrange
             if "sv" in hnn and "zerr" in hnn:
-                xmax=0.10
+                xmax=0.10*sfSVrange
             if "sv" in hnn and "chi2ndof" in hnn:
-                xmax=5.0
+                xmax=5.0*sfSVrange
             if not ( ("lxy" in hnn and len(args.zoomLxy)>0) or ("mass" in hnn and len(args.zoomMass)>0) ):
                 plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
                 plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
