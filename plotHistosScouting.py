@@ -117,12 +117,12 @@ colors["signal"] = [ROOT.kBlue+1, ROOT.kAzure+1, ROOT.kCyan+1, ROOT.kTeal+1, ROO
 
 legnames = dict()
 legnames["Data"]  = "Data"
-legnames["DataB"] = "Run2022B (%.2f fb^{-1})"%luminosity2022B
-legnames["DataC"] = "Run2022C (%.2f fb^{-1})"%luminosity2022C
-legnames["DataD"] = "Run2022D (%.2f fb^{-1})"%luminosity2022D
-legnames["DataE"] = "Run2022E (%.2f fb^{-1})"%luminosity2022E
-legnames["DataF"] = "Run2022F (%.2f fb^{-1})"%luminosity2022F
-legnames["DataG"] = "Run2022G (%.2f fb^{-1})"%luminosity2022G
+legnames["DataB"] = "Run2022B (%.2f/fb)"%luminosity2022B
+legnames["DataC"] = "Run2022C (%.2f/fb)"%luminosity2022C
+legnames["DataD"] = "Run2022D (%.2f/fb)"%luminosity2022D
+legnames["DataE"] = "Run2022E (%.2f/fb)"%luminosity2022E
+legnames["DataF"] = "Run2022F (%.2f/fb)"%luminosity2022F
+legnames["DataG"] = "Run2022G (%.2f/fb)"%luminosity2022G
 
 for s in samples:
     if "Signal" in s:
@@ -172,7 +172,16 @@ h1d = []
 h2d = []
 inf = []
 
-leg = ROOT.TLegend(0.6, 0.875-0.06*len(samples), 0.875, 0.875)
+ncl = 1
+xol = 0.0
+if len(samples)>1:
+    ncl=2
+    xol=0.25
+if len(samples)>2:
+    ncl=3
+    xol=0.5
+leg = ROOT.TLegend(0.69-xol, 0.89-0.06*len(samples)/ncl, 0.89, 0.89)
+leg.SetNColumns(ncl)
 leg.SetFillColor(0)
 leg.SetFillStyle(0)
 leg.SetLineWidth(0)
@@ -239,12 +248,17 @@ h1dr     = []
 h1dr_den = []
 h_axis       = []
 h_axis_ratio = []
+minX         = []
 maxX         = []
+minY         = []
+maxY         = []
 line         = []
 for fn in range(len(infiles)):
     h1dr.append([])
 for hn,hnn in enumerate(h1dn):
     isZoom = False
+    tminY = 1e100
+    tmaxY = 0.0
     for fn in range(len(infiles)):
         sfSVrange = 1.0
         if args.relaxedSVSel:
@@ -284,13 +298,12 @@ for hn,hnn in enumerate(h1dn):
                 xmax=0.05*sfSVrange
             if "sv" in hnn and "zerr" in hnn:
                 xmax=0.10*sfSVrange
-            if "sv" in hnn and "chi2ndof" in hnn:
+            if "sv" in hnn and "chi2ndof" in hnn and not "muon" in hnn:
                 xmax=5.0*sfSVrange
             if not isZoom:
                 plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
                 plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
-        maxY = 0.0
         if fn==0:
             h1dr_den.append(h1d[fn][hn].Clone("%s_denominator"%hnn))
             if samples[fn]=="Data":
@@ -318,39 +331,33 @@ for hn,hnn in enumerate(h1dn):
                 h1dr[fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
             h1d[fn][hn].GetYaxis().SetLabelSize(0.025)
             h1d[fn][hn].GetYaxis().SetMaxDigits(3)
-            maxY = h1d[fn][hn].GetMaximum()
-            if ("hits" in hnn) or ("layers" in hnn) or h1d[fn][hn].GetXaxis().GetBinLowEdge(1)<0.0:
-                maxY = 1.25*maxY
-                if doLogy:
-                    maxY = 5.0*maxY
-            h1d[fn][hn].GetYaxis().SetRangeUser(0.0, 1.1*maxY)
             h1d[fn][hn].SetLineWidth(2)
             ytitle = h1d[fn][hn].GetYaxis().GetTitle()
-            if doLogy:
-                h1d[fn][hn].GetYaxis().SetRangeUser(0.9, 2.0*maxY)
-        h1dr[fn][hn].Divide(h1dr_den[hn])
+            if not unityArea:
+                tmaxY = max(tmaxY, h1d[fn][hn].GetMaximum())
+                tminY = 0.0
+                if doLogy:
+                    tminY = 0.9
         if unityArea:
             ytitle = ytitle.replace("Events", "Fraction of events")
             integral = h1d[fn][hn].Integral(0,-1)
-            if h1d[fn][hn].Integral(0,-1)>0:
-                h1d[fn][hn].Scale(1.0/h1d[fn][hn].Integral(0,-1))
-            maxY = h1d[fn][hn].GetMaximum()
-            if ("hits" in hnn) or ("layers" in hnn) or h1d[fn][hn].GetXaxis().GetBinLowEdge(1)<0.0:
-                maxY = 1.25*maxY
-                if doLogy:
-                    maxY = 5.0*maxY
-            h1d[fn][hn].GetYaxis().SetRangeUser(0.0,1.1*maxY)
+            if integral>0.0:
+                h1d[fn][hn].Scale(1.0/integral)
+                h1dr[fn][hn].Scale(1.0/integral)
+                if fn==0:
+                    h1dr_den[hn].Scale(1.0/integral)
+            tmaxY = max(tmaxY, h1d[fn][hn].GetMaximum())
             if doLogy:
-                minb = 1e9
+                minb = 1e100
                 for b in range(1,h1d[fn][hn].GetNbinsX()+1):
-                    if h1d[fn][hn].GetBinContent(b)<minb:
+                    if h1d[fn][hn].GetBinContent(b)<minb and h1d[fn][hn].GetBinContent(b)>0.0:
                         minb = h1d[fn][hn].GetBinContent(b)
                 if integral>0.0:
-                    h1d[fn][hn].GetYaxis().SetRangeUser(max(0.9*minb,0.9/integral), 2.0*maxY)
+                    tminY = min(tminY, max(0.1*minb,0.1/integral))
                 else:
-                    h1d[fn][hn].GetYaxis().SetRangeUser(1e-1, 1.0)
-                    h1d[fn][hn].SetMinimum(1e-1)
-                    h1d[fn][hn].SetMaximum(1.0)
+                    tminY = min(tminY, 0.1)
+                    tmaxY = max(tmaxY, 1.0)
+        h1dr[fn][hn].Divide(h1dr_den[hn])
         if "hsv" in hnn and not "mind" in hnn and not "maxd" in hnn:
             ytitle = ytitle.replace("Events", "Number of SVs")
             ytitle = ytitle.replace("events", "SVs")
@@ -368,8 +375,22 @@ for hn,hnn in enumerate(h1dn):
             h_axis[hn].GetXaxis().SetLabelSize(0.035)
             h_axis[hn].GetYaxis().SetLabelSize(0.035)
             h_axis_ratio.append(h_axis[hn].Clone("axis_ratio_%s"%hnn))
-            maxX.append(h_axis[hn].GetXaxis().GetBinUpEdge(plotUtils.GetLastBin(h_axis[hn])))
-            line.append(ROOT.TLine(h_axis[hn].GetXaxis().GetBinLowEdge(1), 1.0, maxX[hn], 1.0))
+            if xmax==None:
+                maxX.append(h_axis[hn].GetXaxis().GetBinUpEdge(plotUtils.GetLastBin(h_axis[hn])))
+            else:
+                maxX.append(min(xmax, h_axis[hn].GetXaxis().GetBinUpEdge(plotUtils.GetLastBin(h_axis[hn]))))
+            if xmin==None:
+                minX.append(h_axis[hn].GetXaxis().GetBinLowEdge(plotUtils.GetFirstBin(h_axis[hn])))
+            else:
+                minX.append(max(xmin, h_axis[hn].GetXaxis().GetBinLowEdge(plotUtils.GetFirstBin(h_axis[hn]))))
+            line.append(ROOT.TLine(minX[hn], 1.0, maxX[hn], 1.0))
+            minY.append(tminY)
+            maxY.append(tmaxY)
+        else:
+            if tminY<minY[hn]:
+                minY[hn]=tminY
+            if tmaxY>maxY[hn]:
+                maxY[hn]=tmaxY
 
 ROOT.gStyle.SetOptStat(0)
 can = ROOT.TCanvas("can","",600, 600)
@@ -427,6 +448,7 @@ for hn,hnn in enumerate(h1dn):
         if maxR[hn]>5.0:
             pads[1].SetLogy()
         pads[1].SetTickx()
+        pads[1].SetTicky()
         h_axis_ratio[hn].Draw("")
         for fn in range(1,len(infiles)):
             if "Data" in samples[fn]:
@@ -444,8 +466,22 @@ for hn,hnn in enumerate(h1dn):
         pads[0].Draw()
 
     pads[0].cd()
+    pads[0].SetTicky()
     if doLogy:
         pads[0].SetLogy()
+    #h_axis[hn].GetYaxis().SetMoreLogLabels()
+    if ("hits" in hnn) or ("layers" in hnn) or ("nmu" in hnn) or h1d[0][hn].GetXaxis().GetBinLowEdge(1)<0.0:
+        maxY[hn] = 1.25*maxY[hn]
+        if doLogy:
+            maxY[hn] = 5.0*maxY[hn]
+    if doLogy:
+        maxY[hn] = 10.0*maxY[hn]
+    else:
+        maxY[hn] = 2.0*maxY[hn]
+    print(minY[hn], maxY[hn])
+    h_axis[hn].GetYaxis().SetRangeUser(minY[hn], maxY[hn])
+    h_axis[hn].SetMinimum(minY[hn])
+    h_axis[hn].SetMaximum(maxY[hn])
     h_axis[hn].Draw("")
     for fn in range(len(infiles)):
         if "Data" in samples[fn]:
@@ -486,9 +522,16 @@ for hn,hnn in enumerate(h1dn):
 for hn,hnn in enumerate(h2dn):
     for fn in range(len(infiles)):
         h = h2d[fn][hn].Clone()
+        maxc = 100.0
         if args.zoomPixel2D:
-            h.GetXaxis().SetRangeUser(-20.0,20.0)
-            h.GetYaxis().SetRangeUser(-20.0,20.0)
+            maxc =  20.0
+        if len(args.lxySel)>1 and float(args.lxySel[1])<maxc:
+            maxc = float(args.lxySel[1])
+        if len(args.zoomLxy)>0 and float(args.zoomLxy[0])<maxc:
+            maxc = float(args.zoomLxy[0])
+        minc = -1.0*maxc
+        h.GetXaxis().SetRangeUser(minc, maxc)
+        h.GetYaxis().SetRangeUser(minc, maxc)
         can.cd()
         ROOT.gPad.SetLogy(0)
         if doLogy:
@@ -528,7 +571,7 @@ for hn,hnn in enumerate(h2dn):
         if not doLogy:
             h.GetZaxis().SetRangeUser(0.0,1.1*h.GetMaximum())
         else:
-            if integral>0:
+            if integral>0.0:
                 h.GetZaxis().SetRangeUser(1.0/integral,2.0*h.GetMaximum())
             else:
                 h.GetZaxis().SetRangeUser(1e-1,1.1*h.GetMaximum())
