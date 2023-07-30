@@ -654,8 +654,8 @@ for e in range(firste,laste):
             continue
         if not applyFourMuonSelection(v):
             continue
-        minlxy  = svvecminlxy_qmu.Perp()
-        maxlxy  = svvecmaxlxy_qmu.Perp()
+        minlxy  = svvecminlxy_qmu[vn].Perp()
+        maxlxy  = svvecmaxlxy_qmu[vn].Perp()
         if not applyFourMuonLxySelection(minlxy,maxlxy):
             continue
         qmuidxs_sel.append(qmuidxs[vn*4])
