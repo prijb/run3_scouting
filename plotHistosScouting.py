@@ -244,6 +244,7 @@ line         = []
 for fn in range(len(infiles)):
     h1dr.append([])
 for hn,hnn in enumerate(h1dn):
+    isZoom = False
     for fn in range(len(infiles)):
         sfSVrange = 1.0
         if args.relaxedSVSel:
@@ -251,21 +252,41 @@ for hn,hnn in enumerate(h1dn):
         if "_type" not in hnn:
             xmin=None
             xmax=None
-            if "lxy" in hnn and len(args.zoomLxy)>0:
-                xmax=float(args.zoomLxy[0])
+            if "lxy" in hnn:
+                if len(args.zoomLxy)>0:
+                    xmax=float(args.zoomLxy[0])
+                    isZoom = True
                 if len(args.zoomLxy)>1:
                     xmin=float(args.zoomLxy[1])
-            if "mass" in hnn and len(args.zoomMass)>0:
-                xmax=float(args.zoomMass[0])
-                if len(args.zoomLxy)>1:
+                    isZoom = True
+                if "selass" in hnn or "dimuon" in hnn:
+                    if len(args.lxySel)>0:
+                        xmin=float(args.lxySel[0])
+                        isZoom = True
+                    if len(args.lxySel)>1:
+                        xmax=float(args.lxySel[1])
+                        isZoom = True
+            if "mass" in hnn:
+                if len(args.zoomMass)>0:
+                    xmax=float(args.zoomMass[0])
+                    isZoom = True
+                if len(args.zoomMass)>1:
                     xmin=float(args.zoomMass[1])
+                    isZoom = True
+                if "dimuon" in hnn:
+                    if len(args.dimuonMassSel)>0:
+                        xmin=float(args.dimuonMassSel[0])
+                        isZoom = True
+                    if len(args.dimuonMassSel)>1:
+                        xmax=float(args.dimuonMassSel[1])
+                        isZoom = True
             if "sv" in hnn and ("xerr" in hnn or "yerr" in hnn):
                 xmax=0.05*sfSVrange
             if "sv" in hnn and "zerr" in hnn:
                 xmax=0.10*sfSVrange
             if "sv" in hnn and "chi2ndof" in hnn:
                 xmax=5.0*sfSVrange
-            if not ( ("lxy" in hnn and len(args.zoomLxy)>0) or ("mass" in hnn and len(args.zoomMass)>0) ):
+            if not isZoom:
                 plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
                 plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
@@ -281,10 +302,17 @@ for hn,hnn in enumerate(h1dn):
                 h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tb),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
             if xmax!=None:
                 tb = h1d[fn][hn].GetXaxis().FindBin(xmax)
-                if h1d[fn][hn].Integral(tb, -1)<=0.0:
+                if h1d[fn][hn].Integral(tb, -1)<=0.0 or (isZoom and not xmax>h1d[fn][hn].GetXaxis().GetBinLowEdge(tb)):
                     tb = tb-1
                 h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tb))
                 h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tb))
+            if xmin!=None and xmax!=None:
+                tbm = h1d[fn][hn].GetXaxis().FindBin(xmin)
+                tbM = h1d[fn][hn].GetXaxis().FindBin(xmax)
+                if h1d[fn][hn].Integral(tbM, -1)<=0.0 or (isZoom and not xmax>h1d[fn][hn].GetXaxis().GetBinLowEdge(tbM)):
+                    tbM = tbM-1
+                h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
+                h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
             if "Data" in samples[fn]:
                 h1d [fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
                 h1dr[fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
