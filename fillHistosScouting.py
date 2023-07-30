@@ -155,18 +155,36 @@ if not args.condor:
     prependtodir = "/ceph/cms"
 else:
     prependtodir = "davs://redirector.t2.ucsd.edu:1095"
-if args.inFile!="*" and args.inSample!="*":
-    thisfile="output_%s_%s_%s.root"%(args.inSample,args.year,args.inFile)
-    if os.path.isfile("/ceph/cms%s/%s"%(indir,thisfile)):
-        files.append("%s%s/%s"%(prependtodir,indir,thisfile))
-elif args.inSample!="*":
-    for f in os.listdir("/ceph/cms%s"%indir):
-        if (args.inSample in f) and (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
-            files.append("%s%s/%s"%(prependtodir,indir,f))
+if not args.condor:
+    if args.inFile!="*" and args.inSample!="*":
+        thisfile="output_%s_%s_%s.root"%(args.inSample,args.year,args.inFile)
+        if os.path.isfile("/ceph/cms%s/%s"%(indir,thisfile)):
+            files.append("%s%s/%s"%(prependtodir,indir,thisfile))
+    elif args.inSample!="*":
+        for f in os.listdir("/ceph/cms%s"%indir):
+            if (args.inSample in f) and (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
+                files.append("%s%s/%s"%(prependtodir,indir,f))
+    else:
+        for f in os.listdir("/ceph/cms%s"%indir):
+            if (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
+                files.append("%s%s/%s"%(prependtodir,indir,f))
 else:
-    for f in os.listdir("/ceph/cms%s"%indir):
-        if (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
-            files.append("%s%s/%s"%(prependtodir,indir,f))
+    os.system('xrdfs redirector.t2.ucsd.edu:1095 ls %s > filein.txt'%indir)
+    fin = open("filein.txt","r")
+    for f in fin.readlines():
+        f = f.strip("\n")
+        if args.inFile!="*" and args.inSample!="*":
+            thisfile="output_%s_%s_%s.root"%(args.inSample,args.year,args.inFile)
+            if thisfile in f:
+                files.append("%s/%s"%(prependtodir,thisfile))
+        elif args.inSample!="*":
+            if (args.inSample in f) and (args.year in f) and (".root" in f):
+                files.append("%s/%s"%(prependtodir,f))
+        else:
+            if (args.year in f) and (".root" in f):
+                files.append("%s/%s"%(prependtodir,f))
+    fin.close()
+    os.system('rm -f filein.txt')
 
 index = int(args.splitIndex)
 pace  = int(args.splitPace)
