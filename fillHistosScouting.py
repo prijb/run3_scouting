@@ -590,7 +590,7 @@ for e in range(firste,laste):
         if not applyFourMuonSelection(v):
             continue
         lxy  = t.SVOverlap_lxy[osvidx_qmu[vn]]
-        if not applyLxySelection(v):
+        if not applyLxySelection(lxy):
             continue
         qmuidxs_osv_sel.append(qmuidxs_osv[vn*4])
         qmuidxs_osv_sel.append(qmuidxs_osv[vn*4+1])
