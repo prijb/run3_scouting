@@ -478,7 +478,6 @@ for hn,hnn in enumerate(h1dn):
         maxY[hn] = 10.0*maxY[hn]
     else:
         maxY[hn] = 2.0*maxY[hn]
-    print(minY[hn], maxY[hn])
     h_axis[hn].GetYaxis().SetRangeUser(minY[hn], maxY[hn])
     h_axis[hn].SetMinimum(minY[hn])
     h_axis[hn].SetMaximum(maxY[hn])
@@ -522,22 +521,25 @@ for hn,hnn in enumerate(h1dn):
 for hn,hnn in enumerate(h2dn):
     for fn in range(len(infiles)):
         h = h2d[fn][hn].Clone()
-        maxc = 100.0
-        if args.zoomPixel2D:
-            maxc =  20.0
-        if len(args.lxySel)>1 and float(args.lxySel[1])<maxc:
-            maxc = float(args.lxySel[1])
-        if len(args.zoomLxy)>0 and float(args.zoomLxy[0])<maxc:
-            maxc = float(args.zoomLxy[0])
-        minc = -1.0*maxc
-        h.GetXaxis().SetRangeUser(minc, maxc)
-        h.GetYaxis().SetRangeUser(minc, maxc)
+        if "yvsx" in hnn:
+            maxc      = 100.0
+            maxcPixel = 17.5
+            zoomPixel2D = args.zoomPixel2D
+            if len(args.lxySel)>1 and float(args.lxySel[1])<maxcPixel and "selass" in hnn:
+                zoomPixel2D = True
+            if len(args.zoomLxy)>0 and float(args.zoomLxy[0])<maxcPixel and "selass" in hnn:
+                zoomPixel2D = True
+            if zoomPixel2D:
+                maxc = maxcPixel
+            minc = -1.0*maxc
+            h.GetXaxis().SetRangeUser(minc, maxc)
+            h.GetYaxis().SetRangeUser(minc, maxc)
         can.cd()
         ROOT.gPad.SetLogy(0)
         if doLogy:
             ROOT.gPad.SetLogz()
+        h.GetXaxis().SetLabelSize(0.025)
         h.GetYaxis().SetLabelSize(0.025)
-        h.GetYaxis().SetMaxDigits(3)
         ztitle = h.GetZaxis().GetTitle()
         integral = h.Integral(0,-1,0,-1)
         if unityArea:
@@ -555,6 +557,13 @@ for hn,hnn in enumerate(h2dn):
         if "nmuons" in h.GetName():
             ztitle = ztitle.replace("Events", "Number of muons")
             ztitle = ztitle.replace("events", "muons")
+        xtitle = h.GetXaxis().GetTitle()
+        ytitle = h.GetYaxis().GetTitle()
+        if "yvsx" in hnn:
+            xtitle = xtitle.replace("(from PV) ","")
+            ytitle = ytitle.replace("(from PV) ","")
+        h.GetXaxis().SetTitle(xtitle)
+        h.GetYaxis().SetTitle(ytitle)
         h.GetZaxis().SetTitle(ztitle)
         can.cd()
         if unityArea:

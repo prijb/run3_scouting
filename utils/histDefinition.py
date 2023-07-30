@@ -25,8 +25,8 @@ def hist2dDefinition(nbinsX, lowX, highX, xtitle2d, nbinsY, lowY, highY, ytitle2
     nbinsY     ["yvsx"] = 2000
     lowY       ["yvsx"] = -100 
     highY      ["yvsx"] = 100 
-    xtitle2d   ["yvsx"] = "x (from PV) [cm]"
-    ytitle2d   ["yvsx"] = "y (from PV) [cm]"
+    xtitle2d   ["yvsx"] = "x [cm]"
+    ytitle2d   ["yvsx"] = "y [cm]"
     ztitle2d   ["yvsx"] = "Number of SVs"
     variablesXY["yvsx"] = ["t.SV_x[v]","t.SV_y[v]"]
 
