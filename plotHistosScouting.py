@@ -304,25 +304,27 @@ for hn,hnn in enumerate(h1dn):
                 plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
                 plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
+        tbm = 1
+        tbM = h1d[fn][hn].GetNbinsX()
         if fn==0:
             h1dr_den.append(h1d[fn][hn].Clone("%s_denominator"%hnn))
             if samples[fn]=="Data":
                 for b in range(1,h1dr[fn][hn].GetNbinsX()+1):
                     h1dr_den[hn].SetBinError(b,0.0)
             if xmin!=None:
-                tb = h1d[fn][hn].GetXaxis().FindBin(xmin)
-                h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tb),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
-                h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tb),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
+                tbm = h1d[fn][hn].GetXaxis().FindBin(xmin)
+                h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
+                h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(h1d[fn][hn].GetNbinsX()))
             if xmax!=None:
-                tb = h1d[fn][hn].GetXaxis().FindBin(xmax)
-                if h1d[fn][hn].Integral(tb, -1)<=0.0 or (isZoom and not xmax>h1d[fn][hn].GetXaxis().GetBinLowEdge(tb)):
-                    tb = tb-1
-                h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tb))
-                h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tb))
+                tbM = h1d[fn][hn].GetXaxis().FindBin(xmax)
+                if (h1d[fn][hn].Integral(tbM, -1)<=0.0 and h1d[fn][hn].Integral(1, tbM-1)>0) or (isZoom and not xmax>h1d[fn][hn].GetXaxis().GetBinLowEdge(tbM)):
+                    tbM = tbM-1
+                h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
+                h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(1),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
             if xmin!=None and xmax!=None:
                 tbm = h1d[fn][hn].GetXaxis().FindBin(xmin)
                 tbM = h1d[fn][hn].GetXaxis().FindBin(xmax)
-                if h1d[fn][hn].Integral(tbM, -1)<=0.0 or (isZoom and not xmax>h1d[fn][hn].GetXaxis().GetBinLowEdge(tbM)):
+                if (h1d[fn][hn].Integral(tbM, -1)<=0.0 and h1d[fn][hn].Integral(tbm, tbM-1)>0) or (isZoom and not xmax>h1d[fn][hn].GetXaxis().GetBinLowEdge(tbM)):
                     tbM = tbM-1
                 h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
                 h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
@@ -378,11 +380,14 @@ for hn,hnn in enumerate(h1dn):
             if xmax==None:
                 maxX.append(h_axis[hn].GetXaxis().GetBinUpEdge(plotUtils.GetLastBin(h_axis[hn])))
             else:
-                maxX.append(min(xmax, h_axis[hn].GetXaxis().GetBinUpEdge(plotUtils.GetLastBin(h_axis[hn]))))
+                maxX.append(min(h_axis[hn].GetXaxis().GetBinUpEdge(tbM),
+                                h_axis[hn].GetXaxis().GetBinUpEdge(plotUtils.GetLastBin(h_axis[hn]))))
             if xmin==None:
                 minX.append(h_axis[hn].GetXaxis().GetBinLowEdge(plotUtils.GetFirstBin(h_axis[hn])))
             else:
-                minX.append(max(xmin, h_axis[hn].GetXaxis().GetBinLowEdge(plotUtils.GetFirstBin(h_axis[hn]))))
+                minX.append(max(h_axis[hn].GetXaxis().GetBinLowEdge(tbm),
+                                h_axis[hn].GetXaxis().GetBinLowEdge(plotUtils.GetFirstBin(h_axis[hn
+]))))
             line.append(ROOT.TLine(minX[hn], 1.0, maxX[hn], 1.0))
             minY.append(tminY)
             maxY.append(tmaxY)
