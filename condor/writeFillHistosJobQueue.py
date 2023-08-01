@@ -21,5 +21,5 @@ fout = open("queue.txt","w")
 for d in nes.keys():
     tj = 0
     while tj*pace < nes[d]:
-        fout.write("$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --data --partialUnblinding --inSample %s --splitIndex %d\n"%(d,tj)) 
+        fout.write("$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample %s --splitIndex %d\n"%(d,tj))
         tj = tj+1

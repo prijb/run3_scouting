@@ -37,6 +37,9 @@ parser.add_argument("--dimuonMassDiffSelForFourMuonOSV", default=[], nargs="+", 
 parser.add_argument("--dimuonPtSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon pT in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not fill dimuon histograms")
+parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems")
+parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems from overlapping SVs")
 args = parser.parse_args()
 
 # Functions for selection
@@ -200,7 +203,7 @@ variable1d = dict()
 h2d = []
 variable2d = dict()
 #
-h1d,variable1d,h2d,variable2d = histDefinition.histInitialization()
+h1d,variable1d,h2d,variable2d = histDefinition.histInitialization(not(args.noDiMuon),not(args.noFourMuon),not(args.noFourMuonOSV))
 ###
 hall = h1d+h2d
 for h in hall:
@@ -457,6 +460,8 @@ for e in range(firste,laste):
     seldmuidxs = []
     seldmusvidxs = []
     for vn,v in enumerate(dmuvec):
+        if args.noDiMuon:
+            break
         if not applyDiMuonSelection(v):
             continue
         lxy  = t.SV_lxy[svidx[vn]]
@@ -497,6 +502,8 @@ for e in range(firste,laste):
     seldmuidxs_osv = []
     seldmusvidxs_osv = []
     for vn,v in enumerate(dmuvec_osv):
+        if args.noDiMuon:
+            break
         if not applyDiMuonSelection(v):
             continue
         lxy  = t.SVOverlap_lxy[osvidx[vn]]
@@ -568,6 +575,8 @@ for e in range(firste,laste):
                     h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
     nSVs = nSVselass
     for h in h1d:
+        if args.noDiMuon:
+            break
         tn = h.GetName()
         if "h_nsvselass" not in tn:
             continue
@@ -575,6 +584,8 @@ for e in range(firste,laste):
             h.Fill(eval(variable1d[h.GetName()]))
     nSVs = nSVselass_osv
     for h in h1d:
+        if args.noDiMuon:
+            break
         tn = h.GetName()
         if "h_nsvselass_osv" not in tn:
             continue
@@ -582,9 +593,12 @@ for e in range(firste,laste):
             h.Fill(eval(variable1d[h.GetName()]))
 
     # Apply selections and fill histograms for four-muon systems from overlapping SVs
+    selqmusvidxs_osv = []
     mindrmm, mindpmm, mindemm, mindedpmm, mina3dmm = 1e6, 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxdedpmm, maxa3dmm = -1., -1., -1., -1., -1.
     for vn,v in enumerate(qmuvec_osv):
+        if args.noFourMuonOSV:
+            break
         if not applyDiMuonSelectionForFourMuonOSV(qmu_dmuvec_osv[vn*2], qmu_dmuvec_osv[vn*2+1]):
             continue
         if not applyFourMuonSelection(v):
@@ -596,6 +610,7 @@ for e in range(firste,laste):
         qmuidxs_osv_sel.append(qmuidxs_osv[vn*4+1])
         qmuidxs_osv_sel.append(qmuidxs_osv[vn*4+2])
         qmuidxs_osv_sel.append(qmuidxs_osv[vn*4+3])
+        selqmusvidxs_osv.append(t.SVOverlap_vtxIdxs[osvidx_qmu[vn]][0])
         mass = v.M()
         pt   = v.Pt()
         for m in range(vn*4,vn*4+4):
@@ -646,10 +661,40 @@ for e in range(firste,laste):
             else:
                 h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
+    # Fill histograms for selected overlapping SVs (with a selected four muon system)
+    nSVselass_qmu_osv = 0
+    for v in set(selqmusvidxs_osv):
+        nSVselass_qmu_osv = nSVselass_qmu_osv+1
+        lxy = t.SV_lxy[v]
+        for h in h1d:
+            tn = h.GetName()
+            if "hsvselass_fourmu_osv" not in tn:
+                continue
+            else:
+                h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d:
+            tn = h.GetName()
+            if "hsvselass_fourmu_osv" not in tn:
+                continue
+            else:
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+    nSVs = nSVselass_qmu_osv
+    for h in h1d:
+        if args.noFourMuonOSV:
+            break
+        tn = h.GetName()
+        if "h_nsvselass_fourmu_osv" not in tn:
+            continue
+        else:
+            h.Fill(eval(variable1d[h.GetName()]))
+
     # Apply selections and fill histograms for four-muon systems from non-overlapping SVs
+    selqmusvidxs = []
     mindrmm, mindpmm, mindemm, mindedpmm, mina3dmm = 1e6, 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxdedpmm, maxa3dmm = -1., -1., -1., -1., -1.
     for vn,v in enumerate(qmuvec):
+        if args.noFourMuon:
+            break
         if not applyDiMuonSelectionForFourMuon(qmu_dmuvecminlxy[vn], qmu_dmuvecmaxlxy[vn]):
             continue
         if not applyFourMuonSelection(v):
@@ -662,6 +707,8 @@ for e in range(firste,laste):
         qmuidxs_sel.append(qmuidxs[vn*4+1])
         qmuidxs_sel.append(qmuidxs[vn*4+2])
         qmuidxs_sel.append(qmuidxs[vn*4+3])
+        selqmusvidxs.append(svidxminlxy_qmu[vn])
+        selqmusvidxs.append(svidxmaxlxy_qmu[vn])
         mass    = v.M()
         minmass = min(qmu_dmuvecminlxy[vn].M(), qmu_dmuvecmaxlxy[vn].M())
         maxmass = max(qmu_dmuvecminlxy[vn].M(), qmu_dmuvecmaxlxy[vn].M())
@@ -723,9 +770,36 @@ for e in range(firste,laste):
             else:
                 h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
+    # Fill histograms for selected non-overlapping SVs (with a selected four muon system)
+    nSVselass_qmu = 0
+    for v in set(selqmusvidxs):
+        nSVselass_qmu = nSVselass_qmu+1
+        lxy = t.SV_lxy[v]
+        for h in h1d:
+            tn = h.GetName()
+            if "hsvselass_fourmu" not in tn or "osv" in tn:
+                continue
+            else:
+                h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d:
+            tn = h.GetName()
+            if "hsvselass_fourmu" not in tn or "osv" in tn:
+                continue
+            else:
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+    nSVs = nSVselass_qmu
+    for h in h1d:
+        if args.noFourMuon:
+            break
+        tn = h.GetName()
+        if "h_nsvselass_fourmu" not in tn or "osv" in tn:
+            continue
+        else:
+            h.Fill(eval(variable1d[h.GetName()]))
+
     # Fill histograms for muons from selected dimuon and four-muon systems
-    selmuidxs = seldmuidxs+seldmuidxs_osv
-    for m in selmuidxs:
+    selmuidxs_dmu = seldmuidxs+seldmuidxs_osv
+    for m in selmuidxs_dmu:
         for h in h1d:
             tn = h.GetName()
             if "hselmuon_" not in tn or "fourmu" in tn:
@@ -751,7 +825,9 @@ for e in range(firste,laste):
                     continue
                 else:
                     h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
-        if m in qmuidxs_sel and len(qmuidxs_sel)>3:
+
+    if len(qmuidxs_sel)>3:
+        for m in qmuidxs_sel:
             for h in h1d:
                 tn = h.GetName()
                 if "hselmuon_fourmu" not in tn or "osv" in tn:
@@ -764,7 +840,9 @@ for e in range(firste,laste):
                     continue
                 else:
                     h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
-        elif m in qmuidxs_osv_sel and len(qmuidxs_osv_sel)>3:
+
+    if len(qmuidxs_osv_sel)>3:
+        for m in qmuidxs_osv_sel:
             for h in h1d:
                 tn = h.GetName()
                 if "hselmuon_fourmu_osv" not in tn:
