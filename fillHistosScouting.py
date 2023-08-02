@@ -7,6 +7,8 @@ from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
 import histDefinition
 
+ROOT.EnableImplicitMT(2)
+
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
 
@@ -26,6 +28,7 @@ parser.add_argument("--removeDuplicates", default=False, action="store_true", he
 parser.add_argument("--splitIndex", default="-1", help="Split index")
 parser.add_argument("--splitPace", default="250000", help="Split pace")
 parser.add_argument("--dimuonMassSel", default=[], nargs="+", help="Selection on dimuon mass: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--dimuonMassSidebandSel", default=[], nargs="+", help="Selection on dimuon mass sidebands: first pair of values is left sideband, second (optional) is right sideband")
 parser.add_argument("--dimuonPtSel", default=[], nargs="+", help="Selection on dimuon pT: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--fourmuonMassSel", default=[], nargs="+", help="Selection on four-muon mass: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--fourmuonPtSel", default=[], nargs="+", help="Selection on four-muon pT: first (or only) value is lower cut, second (optional) value is upper cut")
@@ -53,6 +56,9 @@ def applyDiMuonSelection(vec):
         selected = selected and (vec.Pt() > float(args.dimuonPtSel[0]))
     if len(args.dimuonPtSel)>1:
         selected = selected and (vec.Pt() < float(args.dimuonPtSel[1]))
+    if len(args.dimuonMassSidebandSel)>3:
+        selected = selected and ((vec.M() > float(args.dimuonMassSidebandSel[0]) and vec.M() < float(args.dimuonMassSidebandSel[1])) or
+                                 (vec.M() > float(args.dimuonMassSidebandSel[2]) and vec.M() < float(args.dimuonMassSidebandSel[3])))
     return selected
 
 def applyFourMuonSelection(vec):
