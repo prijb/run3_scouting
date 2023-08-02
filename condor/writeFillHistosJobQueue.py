@@ -16,10 +16,11 @@ nes['DataE'] = 11616645
 nes['DataF'] = 43122993
 nes['DataG'] = 3669414
 
-pace = 250000
+pace = 1000000
 fout = open("queue.txt","w")
 for d in nes.keys():
+    fout.write("###%s\n"%d)
     tj = 0
     while tj*pace < nes[d]:
-        fout.write("$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample %s --splitIndex %d\n"%(d,tj))
+        fout.write("$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample %s --splitIndex %d --splitPace %d\n"%(d,tj,pace))
         tj = tj+1
