@@ -15,6 +15,8 @@ today= date.today().strftime("%b-%d-%Y")
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--inDir", default=os.environ.get("PWD")+"/outputHistograms_"+today, help="Choose output directory. Default: '"+os.environ.get("PWD")+"/outputHistograms_"+today+"'")
 parser.add_argument("--inSamples", default=[], nargs="+", help="Choose sample(s); for all data samples in input directory, choose 'Data'")
+parser.add_argument("--inMultiDir", default=[], nargs="+", help="Choose directories for one sample")
+parser.add_argument("--inMultiLeg", default=[], nargs="+", help="Choose legends for different flavors of one sample, if --inMultiDir is used")
 parser.add_argument("--outDir", default=os.environ.get("PWD")+"/plots_"+today, help="Choose output directory. Default: '"+os.environ.get("PWD")+"/plots_"+today+"'")
 parser.add_argument("--outSuffix", default="", help="Choose output directory. Default: ''")
 parser.add_argument("--data", default=False, action="store_true", help="Plot data")
@@ -41,6 +43,11 @@ parser.add_argument("--logY", default=False, action="store_true", help="Log-scal
 parser.add_argument("--zoomMass", default=[], nargs="+", help="Zoom mass [1] < mass < [0] GeV")
 parser.add_argument("--zoomLxy", default=[], nargs="+", help="Zoom lxy [1] < lxy < [0] cm")
 parser.add_argument("--zoomPixel2D", default=False, action="store_true", help="Zoom -20 <(x,y)< 20 cm")
+parser.add_argument("--removeBeampipe2D", default=False, action="store_true", help="Remove points within beampipe")
+parser.add_argument("--noPreSel", default=False, action="store_true", help="Do not plot pre-selection/association histograms")
+parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not plot dimuon histograms")
+parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not plot four-muon histograms for four-muon systems")
+parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not plot four-muon histograms for four-muon systems from overlapping SVs")
 parser.add_argument("--pdf", default=False, action="store_true", help="Output format: .pdf. Default: .png")
 args = parser.parse_args()
 
@@ -115,6 +122,18 @@ colors["DataF"] = ROOT.kMagenta+1
 colors["DataG"] = ROOT.kViolet+1
 colors["signal"] = [ROOT.kBlue+1, ROOT.kAzure+1, ROOT.kCyan+1, ROOT.kTeal+1, ROOT.kGreen+1]
 
+colorsMultiDir = [ROOT.kBlack,
+                  ROOT.kOrange+1,
+                  ROOT.kRed+1,
+                  ROOT.kPink+1,
+                  ROOT.kMagenta+1,
+                  ROOT.kViolet+1,
+                  ROOT.kBlue+1,
+                  ROOT.kAzure+1,
+                  ROOT.kCyan+1,
+                  ROOT.kTeal+1,
+                  ROOT.kGreen+1]
+
 legnames = dict()
 legnames["Data"]  = "Data"
 legnames["DataB"] = "Run2022B (%.2f/fb)"%luminosity2022B
@@ -145,14 +164,27 @@ if not os.path.exists(outdir):
     os.makedirs(outdir)
 os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
 
+isMultiDir = (len(samples)==1 and len(args.inMultiDir)>1)
+inmultidirs = []
+inmultilegs = []
+if isMultiDir:
+    inmultidirs = args.inMultiDir
+    inmultilegs = args.inMultiLeg
+
 infiles = []
 hname = "histograms"
 if args.generator:
     hname = "histograms_GEN"
-for s in samples:
-    if not os.path.isfile("%s/%s_%s_%s_all.root"%(indir,hname,s,args.year)):
-        os.system('hadd '+indir+'/'+hname+'_'+s+'_'+args.year+'_all.root $(find '+indir+' -name "'+hname+'_'+s+'*_'+args.year+'_*.root")')
-    infiles.append(indir+'/'+hname+'_'+s+'_'+args.year+'_all.root')
+if not isMultiDir:
+    for s in samples:
+        if not os.path.isfile("%s/%s_%s_%s_all.root"%(indir,hname,s,args.year)):
+            os.system('hadd '+indir+'/'+hname+'_'+s+'_'+args.year+'_all.root $(find '+indir+' -name "'+hname+'_'+s+'*_'+args.year+'_*.root")')
+        infiles.append(indir+'/'+hname+'_'+s+'_'+args.year+'_all.root')
+else:
+    for d in inmultidirs:
+        if not os.path.isfile("%s/%s_%s_%s_all.root"%(d,hname,samples[0],args.year)):
+            os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+args.year+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_'+args.year+'_*.root")')
+        infiles.append(d+'/'+hname+'_'+samples[0]+'_'+args.year+'_all.root')        
 
 if len(infiles)<1:
     print("No matching input file was found in %s."%indir)
@@ -174,10 +206,10 @@ inf = []
 
 ncl = 1
 xol = 0.0
-if len(samples)>1:
+if len(samples)>1 or len(inmultidirs)>1:
     ncl=2
     xol=0.25
-if len(samples)>2:
+if len(samples)>2 or len(inmultidirs)>2:
     ncl=3
     xol=0.5
 leg = ROOT.TLegend(0.69-xol, 0.89-0.06*len(samples)/ncl, 0.89, 0.89)
@@ -194,26 +226,55 @@ for fn,f in enumerate(infiles):
     if len(h2dn)>0:
         h2d.append([])
     for hn in h1dn:
+        if args.noPreSel:
+            if "hsvsel_" in hn or ("h_nsvsel" in hn and "ass" not in hn):
+                continue
+            if "hmuon" in hn or "h_nmuons" in hn:
+                continue
+        if args.noDiMuon:
+            if "dimuon" in hn:
+                continue
+            if "ass" in hn and not "fourmu" in hn:
+                continue
+            if "selmuon" in hn and not "fourmu" in hn:
+                continue
+        if args.noFourMuon:
+            if "fourmu" in hn and "osv" not in hn:
+                continue
+        if args.noFourMuonOSV:
+            if "fourmu" in hn and "osv" in hn:
+                continue
         ht = inf[fn].Get(hn).Clone("%s_%d"%(hn,fn))
         #ht.SetDirectory(0)
         h1d[fn].append(copy.deepcopy(ht))
-        if "signal" not in samplecol[fn]:
-            h1d[fn][len(h1d[fn])-1].SetLineColor(colors[samplecol[fn]])
-            h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]])
+        if not isMultiDir:
+            if "signal" not in samplecol[fn]:
+                h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]])
+                h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]])
+            else:
+                h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]][nSigSamples])
+                h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nSigSamples])
+                nSigSamples = nSigSamples+1
         else:
-            h1d[fn][len(h1d[fn])-1].SetLineColor(colors[samplecol[fn]][nSigSamples])
-            h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nSigSamples])
-            nSigSamples = nSigSamples+1
+            h1d[fn][len(h1d[fn])-1].SetLineColor  (colorsMultiDir[fn])
+            h1d[fn][len(h1d[fn])-1].SetMarkerColor(colorsMultiDir[fn])
     for hn in h2dn:
         ht = inf[fn].Get(hn).Clone("%s_%d"%(hn,fn))
         #ht.SetDirectory(0)
         h2d[fn].append(copy.deepcopy(ht))
 
     if len(h1d[fn])>0:
-        if "Data" in samples[fn]:
-            leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "PEL")
+        if not isMultiDir:
+            if "Data" in samples[fn]:
+                leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "PEL")
+            else:
+                leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "L")
         else:
-            leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "L")
+            leg.SetHeader(legnames[samples[0].split(" ")[0]])
+            if "Data" in samples[0]:
+                leg.AddEntry(h1d[fn][0], inmultilegs[fn], "PEL")
+            else:
+                leg.AddEntry(h1d[fn][0], inmultilegs[fn], "L")
 
 # Draw histograms
 unityArea = args.shape
@@ -308,7 +369,10 @@ for hn,hnn in enumerate(h1dn):
         tbM = h1d[fn][hn].GetNbinsX()
         if fn==0:
             h1dr_den.append(h1d[fn][hn].Clone("%s_denominator"%hnn))
-            if samples[fn]=="Data":
+            if not isMultiDir and samples[fn]=="Data":
+                for b in range(1,h1dr[fn][hn].GetNbinsX()+1):
+                    h1dr_den[hn].SetBinError(b,0.0)
+            if isMultiDir and "lxy" not in inmultidirs[fn]:
                 for b in range(1,h1dr[fn][hn].GetNbinsX()+1):
                     h1dr_den[hn].SetBinError(b,0.0)
             if xmin!=None:
@@ -328,7 +392,10 @@ for hn,hnn in enumerate(h1dn):
                     tbM = tbM-1
                 h1d [fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
                 h1dr[fn][hn].GetXaxis().SetRangeUser(h1d[fn][hn].GetXaxis().GetBinLowEdge(tbm),h1d[fn][hn].GetXaxis().GetBinUpEdge(tbM))
-            if "Data" in samples[fn]:
+            if not isMultiDir and "Data" in samples[fn]:
+                h1d [fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
+                h1dr[fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
+            if isMultiDir and "Data" in samples[0]:
                 h1d [fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
                 h1dr[fn][hn].SetBinErrorOption(ROOT.TH1.kPoisson)
             h1d[fn][hn].GetYaxis().SetLabelSize(0.025)
@@ -456,12 +523,15 @@ for hn,hnn in enumerate(h1dn):
         pads[1].SetTicky()
         h_axis_ratio[hn].Draw("")
         for fn in range(1,len(infiles)):
-            if "Data" in samples[fn]:
+            if (not isMultiDir and "Data" in samples[fn]) or (isMultiDir and "Data" in samples[0]):
                 h1dr[fn][hn].Draw("SAME,P,E")
             else:
                 h1dr[fn][hn].Draw("SAME,HIST,E")
         line[hn].SetLineStyle(2)
-        line[hn].SetLineColor(colors[samplecol[0]])
+        if not isMultiDir:
+            line[hn].SetLineColor(colors[samplecol[0]])
+        else:
+            line[hn].SetLineColor(colorsMultiDir[0])
         line[hn].SetLineWidth(1)
         line[hn].Draw("SAME")
         pads[1].Modified()
@@ -488,10 +558,10 @@ for hn,hnn in enumerate(h1dn):
     h_axis[hn].SetMaximum(maxY[hn])
     h_axis[hn].Draw("")
     for fn in range(len(infiles)):
-        if "Data" in samples[fn]:
-            h1d[fn][hn].Draw("PE,same")
+        if (not isMultiDir and "Data" in samples[fn]) or (isMultiDir and "Data" in samples[0]):
+            h1d[fn][hn].Draw("SAME,P,E")
         else:
-            h1d[fn][hn].Draw("hist,same")
+            h1d[fn][hn].Draw("SAME,HIST")
     leg.Draw("same")
     pads[0].RedrawAxis()
     pads[0].Update()
@@ -539,6 +609,25 @@ for hn,hnn in enumerate(h2dn):
             minc = -1.0*maxc
             h.GetXaxis().SetRangeUser(minc, maxc)
             h.GetYaxis().SetRangeUser(minc, maxc)
+        if args.removeBeampipe2D:
+            maxbp = 1.0
+            for b in range(1,h.GetNbinsX()+1):
+                if h.GetXaxis().GetBinLowEdge(b)<=0.0 and h.GetXaxis().GetBinLowEdge(b)>-1.0*maxbp:
+                    for bb in range(1,h.GetNbinsY()+1):
+                        if h.GetYaxis().GetBinLowEdge(bb)<=0.0 and h.GetYaxis().GetBinLowEdge(bb)>-1.0*maxbp:
+                            h.SetBinContent(b,bb,0.0)
+                            h.SetBinError  (b,bb,0.0)
+                        elif h.GetYaxis().GetBinUpEdge(bb)>0.0 and h.GetYaxis().GetBinUpEdge(bb)<maxbp:
+                            h.SetBinContent(b,bb,0.0)
+                            h.SetBinError  (b,bb,0.0)
+                elif h.GetXaxis().GetBinLowEdge(b)>=0.0 and h.GetXaxis().GetBinUpEdge(b)<maxbp:
+                    for bb in range(1,h.GetNbinsY()+1):
+                        if h.GetYaxis().GetBinLowEdge(bb)<=0.0 and h.GetYaxis().GetBinLowEdge(bb)>-1.0*maxbp:
+                            h.SetBinContent(b,bb,0.0)
+                            h.SetBinError  (b,bb,0.0)                
+                        elif h.GetYaxis().GetBinUpEdge(bb)>0.0 and h.GetYaxis().GetBinUpEdge(bb)<maxbp:
+                            h.SetBinContent(b,bb,0.0)
+                            h.SetBinError  (b,bb,0.0)
         can.cd()
         ROOT.gPad.SetLogy(0)
         if doLogy:
@@ -570,6 +659,8 @@ for hn,hnn in enumerate(h2dn):
         h.GetXaxis().SetTitle(xtitle)
         h.GetYaxis().SetTitle(ytitle)
         h.GetZaxis().SetTitle(ztitle)
+        if isMultiDir:
+            h.SetTitle(inmultilegs[fn])
         can.cd()
         if unityArea:
             ROOT.gStyle.SetPaintTextFormat(".2f");
@@ -597,11 +688,19 @@ for hn,hnn in enumerate(h2dn):
             latexCMS.DrawLatex(0.13,0.86,"CMS");
             latexCMSExtra.DrawLatex(0.13,0.815, cmsExtra);
         ROOT.gPad.RedrawAxis()
-        outname = "%s_%s"%(hnn,samples[fn])
+        outname = ""
+        if not isMultiDir:
+            outname = "%s_%s"%(hnn,samples[fn])
+        else:
+            outname = "%s_dir%d"%(hnn,fnn)
         if "h_" in outname:
             outname = outname.replace("h_","")
         elif "hsv" in outname:
             outname = outname.replace("hsv","sv")
+        if args.zoomPixel2D:
+            outname = outname+"_zoomPixel"
+        if args.removeBeampipe2D:
+            outname = outname+"_noBeampipe"
         if unityArea:
             outname = outname+"_unitArea"
         if doLogy:

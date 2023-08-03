@@ -40,6 +40,7 @@ parser.add_argument("--dimuonMassDiffSelForFourMuonOSV", default=[], nargs="+", 
 parser.add_argument("--dimuonPtSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon pT in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--noPreSel", default=False, action="store_true", help="Do not fill pre-selection/association histograms")
 parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not fill dimuon histograms")
 parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems")
 parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems from overlapping SVs")
@@ -209,7 +210,7 @@ variable1d = dict()
 h2d = []
 variable2d = dict()
 #
-h1d,variable1d,h2d,variable2d = histDefinition.histInitialization(not(args.noDiMuon),not(args.noFourMuon),not(args.noFourMuonOSV))
+h1d,variable1d,h2d,variable2d = histDefinition.histInitialization(not(args.noPreSel),not(args.noDiMuon),not(args.noFourMuon),not(args.noFourMuonOSV))
 ###
 hall = h1d+h2d
 for h in hall:
@@ -258,6 +259,8 @@ for e in range(firste,laste):
         continue
     nSVsel = 0
     for v in range(nSV):
+        if args.noPreSel:
+            break
         if not t.SV_selected[v]:
             continue
         nSVsel = nSVsel+1
@@ -276,6 +279,8 @@ for e in range(firste,laste):
                 h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
     nSVs = nSVsel
     for h in h1d:
+        if args.noPreSel:
+            break
         tn = h.GetName()
         if "h_nsvsel" not in tn or "ass" in tn:
             continue
@@ -300,19 +305,27 @@ for e in range(firste,laste):
         else:
             continue
         muselidxs.append(m)
+        if args.noPreSel:
+            continue
         for h in h1d:
+            if args.noPreSel:
+                break
             tn = h.GetName()
             if "hmuon_" not in tn:
                 continue
             else:
                 h.Fill(eval(variable1d[h.GetName()]))
         for h in h2d:
+            if args.noPreSel:
+                break
             tn = h.GetName()
             if "hmuon_" not in tn:
                 continue
             else:
                 h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
     for h in h1d:
+        if args.noPreSel:
+            break
         tn = h.GetName()
         if "h_nmuons" not in tn:
             continue

@@ -738,7 +738,7 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
 # Histogram booking
 ### Add your histograms here
 
-def histBooking(dimuon=True, fourmuon=True, fourmuonosv=True):
+def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
     #
     histname = []
     histtype = dict()
@@ -746,53 +746,55 @@ def histBooking(dimuon=True, fourmuon=True, fourmuonosv=True):
     histname2d = []
     histtype2d = dict()
     #
+    ##
     # Displaced vertices
-    #
-    histname.append("h_nsvsel")
-    histtype[histname[-1]]="nsv"
-    #
-    histname.append("hsvsel_chi2ndof")
-    histtype[histname[-1]]="svchi2"
-    #
-    histname.append("hsvsel_chi2prob")
-    histtype[histname[-1]]="svchi2prob"
-    #
-    histname.append("hsvsel_xerr")
-    histtype[histname[-1]]="svxerr"
-    #
-    histname.append("hsvsel_yerr")
-    histtype[histname[-1]]="svyerr"
-    #
-    histname.append("hsvsel_zerr")
-    histtype[histname[-1]]="svzerr"
-    #
-    histname.append("hsvsel_lxy")
-    histtype[histname[-1]]="lxy"
-    #
-    histname.append("hsvsel_l3d")
-    histtype[histname[-1]]="l3d"
-    #
-    histname.append("hsvsel_mindx")
-    histtype[histname[-1]]="mindx"
-    #
-    histname.append("hsvsel_mindy")
-    histtype[histname[-1]]="mindy"
-    #
-    histname.append("hsvsel_mindz")
-    histtype[histname[-1]]="mindz"
-    #
-    histname.append("hsvsel_maxdx")
-    histtype[histname[-1]]="maxdx"
-    #
-    histname.append("hsvsel_maxdy")
-    histtype[histname[-1]]="maxdy"
-    #
-    histname.append("hsvsel_maxdz")
-    histtype[histname[-1]]="maxdz"
-    #
-    histname2d.append("hsvsel_yvsx")
-    histtype2d[histname2d[-1]]="yvsx"
-    #
+    if presel:
+        #
+        histname.append("h_nsvsel")
+        histtype[histname[-1]]="nsv"
+        #
+        histname.append("hsvsel_chi2ndof")
+        histtype[histname[-1]]="svchi2"
+        #
+        histname.append("hsvsel_chi2prob")
+        histtype[histname[-1]]="svchi2prob"
+        #
+        histname.append("hsvsel_xerr")
+        histtype[histname[-1]]="svxerr"
+        #
+        histname.append("hsvsel_yerr")
+        histtype[histname[-1]]="svyerr"
+        #
+        histname.append("hsvsel_zerr")
+        histtype[histname[-1]]="svzerr"
+        #
+        histname.append("hsvsel_lxy")
+        histtype[histname[-1]]="lxy"
+        #
+        histname.append("hsvsel_l3d")
+        histtype[histname[-1]]="l3d"
+        #
+        histname.append("hsvsel_mindx")
+        histtype[histname[-1]]="mindx"
+        #
+        histname.append("hsvsel_mindy")
+        histtype[histname[-1]]="mindy"
+        #
+        histname.append("hsvsel_mindz")
+        histtype[histname[-1]]="mindz"
+        #
+        histname.append("hsvsel_maxdx")
+        histtype[histname[-1]]="maxdx"
+        #
+        histname.append("hsvsel_maxdy")
+        histtype[histname[-1]]="maxdy"
+        #
+        histname.append("hsvsel_maxdz")
+        histtype[histname[-1]]="maxdz"
+        #
+        histname2d.append("hsvsel_yvsx")
+        histtype2d[histname2d[-1]]="yvsx"
+        #
     ##
     if dimuon:
         #
@@ -985,130 +987,131 @@ def histBooking(dimuon=True, fourmuon=True, fourmuonosv=True):
         #
     ##
     # Muons
-    #
-    histname.append("h_nmuonssel")
-    histtype[histname[-1]]="nmusel"
-    #
-    histname.append("h_nmuonsass")
-    histtype[histname[-1]]="nmusv"
-    #
-    histname.append("h_nmuonsassoverlap")
-    histtype[histname[-1]]="nmuosv"
-    #
-    histname.append("hmuon_pt")
-    histtype[histname[-1]]="mupt"
-    #
-    histname.append("hmuon_eta")
-    histtype[histname[-1]]="mueta"
-    #
-    histname.append("hmuon_phi")
-    histtype[histname[-1]]="muphi"
-    #
-    histname.append("hmuon_ch")
-    histtype[histname[-1]]="much"
-    #
-    histname.append("hmuon_mindr")
-    histtype[histname[-1]]="mumindr"
-    #
-    histname.append("hmuon_maxdr")
-    histtype[histname[-1]]="mumaxdr"
-    #
-    histname.append("hmuon_chi2ndof")
-    histtype[histname[-1]]="muchi2ndof"
-    #
-    histname.append("hmuon_type")
-    histtype[histname[-1]]="mutype"
-    #
-    histname.append("hmuon_ecaliso")
-    histtype[histname[-1]]="muecaliso"
-    #
-    histname.append("hmuon_ecalreliso")
-    histtype[histname[-1]]="muecalreliso"
-    #
-    histname.append("hmuon_hcaliso")
-    histtype[histname[-1]]="muhcaliso"
-    #
-    histname.append("hmuon_hcalreliso")
-    histtype[histname[-1]]="muhcalreliso"
-    #
-    histname.append("hmuon_trackiso")
-    histtype[histname[-1]]="mutrkiso"
-    #
-    histname.append("hmuon_trackreliso")
-    histtype[histname[-1]]="mutrkreliso"
-    #
-    histname.append("hmuon_pfiso0p3all")
-    histtype[histname[-1]]="mupfalliso"
-    #
-    histname.append("hmuon_pfreliso0p3all")
-    histtype[histname[-1]]="mupfallreliso"
-    #
-    histname.append("hmuon_pfiso0p3chg")
-    histtype[histname[-1]]="mupfchgiso"
-    #
-    histname.append("hmuon_pfreliso0p3chg")
-    histtype[histname[-1]]="mupfchgreliso"
-    #
-    histname.append("hmuon_mindrjet")
-    histtype[histname[-1]]="mumindrjet"
-    #
-    histname.append("hmuon_mindrpfc")
-    histtype[histname[-1]]="mumindrpfc"
-    #
-    histname.append("hmuon_dxy")
-    histtype[histname[-1]]="mudxy"
-    #
-    histname.append("hmuon_dxysig")
-    histtype[histname[-1]]="mudxysig"
-    #
-    histname.append("hmuon_dz")
-    histtype[histname[-1]]="mudz"
-    #
-    histname.append("hmuon_dzsig")
-    histtype[histname[-1]]="mudzsig"
-    #
-    histname.append("hmuon_nsahits")
-    histtype[histname[-1]]="musahits"
-    #
-    histname.append("hmuon_nsamatchedstats")
-    histtype[histname[-1]]="musamatchedstats"
-    #
-    histname.append("hmuon_nmuhits")
-    histtype[histname[-1]]="muhits"
-    #
-    histname.append("hmuon_nmuchambs")
-    histtype[histname[-1]]="muchambs"
-    #
-    histname.append("hmuon_nmuCSCorDT")
-    histtype[histname[-1]]="mucscdt"
-    #
-    histname.append("hmuon_nmumatches")
-    histtype[histname[-1]]="mumatches"
-    #
-    histname.append("hmuon_nmumatchedstats")
-    histtype[histname[-1]]="mumatchedstats"
-    #
-    histname.append("hmuon_nmuexpmatchedstats")
-    histtype[histname[-1]]="muexpmatchedstats"
-    #
-    histname.append("hmuon_nmumatchedstatsmexp")
-    histtype[histname[-1]]="mumatchedstatsmexp"
-    #
-    histname.append("hmuon_nmumatchedRPC")
-    histtype[histname[-1]]="mumatchedrpc"
-    #
-    histname.append("hmuon_npixelhits")
-    histtype[histname[-1]]="mupixelhits"
-    #
-    histname.append("hmuon_npixellayers")
-    histtype[histname[-1]]="mupixellayers"
-    #
-    histname.append("hmuon_nstriphits")
-    histtype[histname[-1]]="mustriphits"
-    #
-    histname.append("hmuon_ntrackerlayers")
-    histtype[histname[-1]]="mutrackerlayers"
-    #
+    if presel:
+        #
+        histname.append("h_nmuonssel")
+        histtype[histname[-1]]="nmusel"
+        #
+        histname.append("h_nmuonsass")
+        histtype[histname[-1]]="nmusv"
+        #
+        histname.append("h_nmuonsassoverlap")
+        histtype[histname[-1]]="nmuosv"
+        #
+        histname.append("hmuon_pt")
+        histtype[histname[-1]]="mupt"
+        #
+        histname.append("hmuon_eta")
+        histtype[histname[-1]]="mueta"
+        #
+        histname.append("hmuon_phi")
+        histtype[histname[-1]]="muphi"
+        #
+        histname.append("hmuon_ch")
+        histtype[histname[-1]]="much"
+        #
+        histname.append("hmuon_mindr")
+        histtype[histname[-1]]="mumindr"
+        #
+        histname.append("hmuon_maxdr")
+        histtype[histname[-1]]="mumaxdr"
+        #
+        histname.append("hmuon_chi2ndof")
+        histtype[histname[-1]]="muchi2ndof"
+        #
+        histname.append("hmuon_type")
+        histtype[histname[-1]]="mutype"
+        #
+        histname.append("hmuon_ecaliso")
+        histtype[histname[-1]]="muecaliso"
+        #
+        histname.append("hmuon_ecalreliso")
+        histtype[histname[-1]]="muecalreliso"
+        #
+        histname.append("hmuon_hcaliso")
+        histtype[histname[-1]]="muhcaliso"
+        #
+        histname.append("hmuon_hcalreliso")
+        histtype[histname[-1]]="muhcalreliso"
+        #
+        histname.append("hmuon_trackiso")
+        histtype[histname[-1]]="mutrkiso"
+        #
+        histname.append("hmuon_trackreliso")
+        histtype[histname[-1]]="mutrkreliso"
+        #
+        histname.append("hmuon_pfiso0p3all")
+        histtype[histname[-1]]="mupfalliso"
+        #
+        histname.append("hmuon_pfreliso0p3all")
+        histtype[histname[-1]]="mupfallreliso"
+        #
+        histname.append("hmuon_pfiso0p3chg")
+        histtype[histname[-1]]="mupfchgiso"
+        #
+        histname.append("hmuon_pfreliso0p3chg")
+        histtype[histname[-1]]="mupfchgreliso"
+        #
+        histname.append("hmuon_mindrjet")
+        histtype[histname[-1]]="mumindrjet"
+        #
+        histname.append("hmuon_mindrpfc")
+        histtype[histname[-1]]="mumindrpfc"
+        #
+        histname.append("hmuon_dxy")
+        histtype[histname[-1]]="mudxy"
+        #
+        histname.append("hmuon_dxysig")
+        histtype[histname[-1]]="mudxysig"
+        #
+        histname.append("hmuon_dz")
+        histtype[histname[-1]]="mudz"
+        #
+        histname.append("hmuon_dzsig")
+        histtype[histname[-1]]="mudzsig"
+        #
+        histname.append("hmuon_nsahits")
+        histtype[histname[-1]]="musahits"
+        #
+        histname.append("hmuon_nsamatchedstats")
+        histtype[histname[-1]]="musamatchedstats"
+        #
+        histname.append("hmuon_nmuhits")
+        histtype[histname[-1]]="muhits"
+        #
+        histname.append("hmuon_nmuchambs")
+        histtype[histname[-1]]="muchambs"
+        #
+        histname.append("hmuon_nmuCSCorDT")
+        histtype[histname[-1]]="mucscdt"
+        #
+        histname.append("hmuon_nmumatches")
+        histtype[histname[-1]]="mumatches"
+        #
+        histname.append("hmuon_nmumatchedstats")
+        histtype[histname[-1]]="mumatchedstats"
+        #
+        histname.append("hmuon_nmuexpmatchedstats")
+        histtype[histname[-1]]="muexpmatchedstats"
+        #
+        histname.append("hmuon_nmumatchedstatsmexp")
+        histtype[histname[-1]]="mumatchedstatsmexp"
+        #
+        histname.append("hmuon_nmumatchedRPC")
+        histtype[histname[-1]]="mumatchedrpc"
+        #
+        histname.append("hmuon_npixelhits")
+        histtype[histname[-1]]="mupixelhits"
+        #
+        histname.append("hmuon_npixellayers")
+        histtype[histname[-1]]="mupixellayers"
+        #
+        histname.append("hmuon_nstriphits")
+        histtype[histname[-1]]="mustriphits"
+        #
+        histname.append("hmuon_ntrackerlayers")
+        histtype[histname[-1]]="mutrackerlayers"
+        #
     ##
     if dimuon:
         #
@@ -1813,7 +1816,7 @@ def histBooking(dimuon=True, fourmuon=True, fourmuonosv=True):
         #
     return histname,histtype,histname2d,histtype2d
 
-def histInitialization(dimuon,fourmuon,fourmuonosv):
+def histInitialization(presel,dimuon,fourmuon,fourmuonosv):
     nbins    = dict()
     low      = dict()
     high     = dict()
@@ -1839,7 +1842,7 @@ def histInitialization(dimuon,fourmuon,fourmuonosv):
     histtype = dict()
     histname2d = []
     histtype2d = dict()
-    histname, histtype, histname2d, histtype2d = histBooking(dimuon, fourmuon, fourmuonosv)
+    histname, histtype, histname2d, histtype2d = histBooking(presel,dimuon, fourmuon, fourmuonosv)
 
     hists1d     = []
     variables1d = dict()
