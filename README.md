@@ -24,12 +24,16 @@ Condor submission is set up in `condor/`.
 
 ## Histograms:
 
+### Histogram filling:
+
 Histograms are filled by `fillHistosScouting.py`, and written in a ROOT output file.
 This PyROOT looper optionally applies selections on multi-muon system kinematics and displacement.
 Condor submission is set up in `condor/`.
 
 Histograms are defined in `utils/histDefinition.py`:
 please, add your histograms there, following the existing structure.
+
+### Histogram plotting:
 
 For plotting output histograms: `plotHistosScouting.py`.
 E.g.:
@@ -47,7 +51,7 @@ In order to get help with all (optional and required) arguments, just execute th
 python3 plotHistosScouting.py
 ```
 
-### Other scripts:
+### Other histogram manipulation scripts:
 Other scripts to `hadd` histogram files from a directory, or to merge histograms with different selections (i.e., in different directories) are available in `scripts/`:
 - `addHistosScouting.py`: to `hadd` histogram files from a directory;
 - `mergeHistograms.py`: to merge histograms with different selections.
