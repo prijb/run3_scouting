@@ -5,8 +5,9 @@ CMSSWVERSION=CMSSW_12_6_0_patch1
 
 INDIR=$1
 OUTDIR=$2
-INDEX=$3
-PACE=$4
+while ! [ -z "$3" ]; do
+    FLAGS="$FLAGS $3"; shift;
+done
 
 function stageout {
     COPY_SRC=$1
@@ -50,14 +51,14 @@ cd ${CMSSWVERSION}/src
 cmsenv
 
 cd ../.. # Get back to ScoutingRun3/
-echo $INDIR $INDEX $PACE $OUTDIR
-python3 plotScouting.py $INDIR $INDEX $PACE $OUTDIR
+echo "python3 fillHistosScouting.py --inDir ${INDIR} --outDir ${OUTDIR} ${FLAGS}"
+python3 fillHistosScouting.py --inDir ${INDIR} --outDir ${OUTDIR} ${FLAGS}
 
 for FILE in $(ls $OUTDIR);
 do
   echo "File $FILE to be copied..."
   echo ""
   COPY_SRC="file://`pwd`/${OUTDIR}/$FILE"
-  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/ScoutingRun3Output/${OUTDIR}/$FILE"
+  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
   stageout $COPY_SRC $COPY_DEST
-done;
+done
