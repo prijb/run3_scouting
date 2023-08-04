@@ -48,6 +48,7 @@ parser.add_argument("--noPreSel", default=False, action="store_true", help="Do n
 parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not plot dimuon histograms")
 parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not plot four-muon histograms for four-muon systems")
 parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not plot four-muon histograms for four-muon systems from overlapping SVs")
+parser.add_argument("--plotOSV", default=False, action="store_true", help="Plot histograms for (di-/four-) muons from overlapping SVs")
 parser.add_argument("--pdf", default=False, action="store_true", help="Output format: .pdf. Default: .png")
 args = parser.parse_args()
 
@@ -62,14 +63,6 @@ for s in samples:
     if "Data" in s:
         isData = True
         break
-
-doRatio = args.doRatio
-if len(samples)<=1:
-    doRatio = False
-
-roff = 0.0
-if not doRatio:
-    roff=0.01
 
 skimFraction = float(args.partialUnblindingFraction)
 skimEvents = args.partialUnblinding
@@ -170,6 +163,17 @@ inmultilegs = []
 if isMultiDir:
     inmultidirs = args.inMultiDir
     inmultilegs = args.inMultiLeg
+if len(inmultilegs)<len(inmultidirs):
+    for i in range(len(inmultilegs),len(inmultidirs)):
+        inmultilegs.append("Unknown")
+
+doRatio = args.doRatio
+if len(samples)<=1 and not isMultiDir:
+    doRatio = False
+
+roff = 0.0
+if not doRatio:
+    roff=0.01
 
 infiles = []
 hname = "histograms"
@@ -212,7 +216,7 @@ if len(samples)>1 or len(inmultidirs)>1:
 if len(samples)>2 or len(inmultidirs)>2:
     ncl=3
     xol=0.5
-leg = ROOT.TLegend(0.69-xol, 0.89-0.06*len(samples)/ncl, 0.89, 0.89)
+leg = ROOT.TLegend(0.69-xol, 0.89-0.06*max(len(samples),len(inmultidirs)+1)/ncl, 0.89, 0.89)
 leg.SetNColumns(ncl)
 leg.SetFillColor(0)
 leg.SetFillStyle(0)
@@ -226,17 +230,22 @@ for fn,f in enumerate(infiles):
     if len(h2dn)>0:
         h2d.append([])
     for hn in h1dn:
+        if not args.plotOSV:
+            if "osv" in hn:
+                continue
         if args.noPreSel:
-            if "hsvsel_" in hn or ("h_nsvsel" in hn and "ass" not in hn):
+            if "hsvsel_" in hn:
+                continue
+            if "h_nsvsel" in hn and "ass" not in hn:
                 continue
             if "hmuon" in hn or "h_nmuons" in hn:
                 continue
         if args.noDiMuon:
             if "dimuon" in hn:
                 continue
-            if "ass" in hn and not "fourmu" in hn:
+            if "ass" in hn and "fourmu" not in hn:
                 continue
-            if "selmuon" in hn and not "fourmu" in hn:
+            if "selmuon" in hn and "fourmu" not in hn:
                 continue
         if args.noFourMuon:
             if "fourmu" in hn and "osv" not in hn:
@@ -259,6 +268,15 @@ for fn,f in enumerate(infiles):
             h1d[fn][len(h1d[fn])-1].SetLineColor  (colorsMultiDir[fn])
             h1d[fn][len(h1d[fn])-1].SetMarkerColor(colorsMultiDir[fn])
     for hn in h2dn:
+        if args.noPreSel:
+            if "hsvsel_" in hn:
+                continue
+        if args.noDiMuon:
+            if "hsvselass_" in hn:
+                continue
+        else:
+            if "hsvselass_" in hn and "osv" in hn:
+                continue
         ht = inf[fn].Get(hn).Clone("%s_%d"%(hn,fn))
         #ht.SetDirectory(0)
         h2d[fn].append(copy.deepcopy(ht))
@@ -316,6 +334,26 @@ maxY         = []
 line         = []
 for fn in range(len(infiles)):
     h1dr.append([])
+
+if not args.plotOSV:
+    h1dn = [h for h in h1dn if not ("osv" in h)]
+    h2dn = [h for h in h2dn if not ("osv" in h)]
+if args.noPreSel:
+    h1dn = [h for h in h1dn if not ("hsvsel_" in h)]
+    h1dn = [h for h in h1dn if not ("h_nsvsel" in h and "ass" not in h)]
+    h1dn = [h for h in h1dn if not ("hmuon" in h)]
+    h1dn = [h for h in h1dn if not ("h_nmuons" in h)]
+    h2dn = [h for h in h2dn if not ("hsvsel_" in h)]
+if args.noDiMuon:
+    h1dn = [h for h in h1dn if not ("dimuon" in h)]
+    h1dn = [h for h in h1dn if not ("ass" in h and "fourmu" not in h)]
+    h1dn = [h for h in h1dn if not ("semuon" in h and "fourmu" not in h)]
+    h2dn = [h for h in h2dn if not ("hsvselass_" in h)]
+if args.noFourMuon:
+    h1dn = [h for h in h1dn if not ("fourmu" in h and "osv" not in h)]
+if args.noFourMuonOSV:
+    h1dn = [h for h in h1dn if not ("fourmu" in h and "osv" in h)]
+
 for hn,hnn in enumerate(h1dn):
     isZoom = False
     tminY = 1e100
@@ -692,7 +730,7 @@ for hn,hnn in enumerate(h2dn):
         if not isMultiDir:
             outname = "%s_%s"%(hnn,samples[fn])
         else:
-            outname = "%s_dir%d"%(hnn,fnn)
+            outname = "%s_dir%d"%(hnn,fn)
         if "h_" in outname:
             outname = outname.replace("h_","")
         elif "hsv" in outname:

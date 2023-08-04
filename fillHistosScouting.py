@@ -568,13 +568,13 @@ for e in range(firste,laste):
         lxy = t.SV_lxy[v]
         for h in h1d:
             tn = h.GetName()
-            if "hsvselass_" not in tn:
+            if "hsvselass_" not in tn or "osv" in hn:
                 continue
             else:
                 h.Fill(eval(variable1d[h.GetName()]))
         for h in h2d:
             tn = h.GetName()
-            if "hsvselass_" not in tn:
+            if "hsvselass_" not in tn or "osv" in hn:
                 continue
             else:
                 h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
@@ -597,7 +597,7 @@ for e in range(firste,laste):
         if args.noDiMuon:
             break
         tn = h.GetName()
-        if "h_nsvselass" not in tn:
+        if "h_nsvselass" not in tn or "osv" in tn:
             continue
         else:
             h.Fill(eval(variable1d[h.GetName()]))
@@ -821,13 +821,13 @@ for e in range(firste,laste):
     for m in selmuidxs_dmu:
         for h in h1d:
             tn = h.GetName()
-            if "hselmuon_" not in tn or "fourmu" in tn:
+            if "hselmuon_" not in tn or "fourmu" in tn or "osv" in tn:
                 continue
             else:
                 h.Fill(eval(variable1d[h.GetName()]))
         for h in h2d:
             tn = h.GetName()
-            if "hselmuon_" not in tn or "fourmu" in tn:
+            if "hselmuon_" not in tn or "fourmu" in tn or "osv" in tn:
                 continue
             else:
                 h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
