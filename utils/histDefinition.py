@@ -191,6 +191,13 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["muphi"] = "Events / 0.1"
     variable["muphi"] = "t.Muon_phiCorr[m]"
 
+    nbins   ["muuphi"] = 64
+    low     ["muuphi"] = -3.2
+    high    ["muuphi"] = 3.2
+    xtitle  ["muuphi"] = "Muon #phi (uncorrected)"
+    ytitle  ["muuphi"] = "Events / 0.1"
+    variable["muuphi"] = "t.Muon_phi[m]"
+
     nbins   ["much"] = 3
     low     ["much"] = -1.5
     high    ["much"] = 1.5
@@ -325,9 +332,9 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["mudxysig"] = "Events / 0.5"
     variable["mudxysig"] = "abs(t.Muon_dxyCorr[m]/t.Muon_dxye[m])"
 
-    nbins   ["mudxyscaled"] = 1000
+    nbins   ["mudxyscaled"] = 500
     low     ["mudxyscaled"] = 0
-    high    ["mudxyscaled"] = 10
+    high    ["mudxyscaled"] = 5
     xtitle  ["mudxyscaled"] = "Muon |d_{xy}|/(l_{xy}m_{#mu#mu}/p_{T}^{#mu#mu})"
     ytitle  ["mudxyscaled"] = "Events / 0.01"
     variable["mudxyscaled"] = "abs(t.Muon_dxyCorr[m])/(lxy*mass/pt)"
@@ -481,7 +488,7 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["dimudeta"] = "Events / 0.1"
     variable["dimudeta"] = "demm"
 
-    nbins   ["dimudetadphiratio"] = 20
+    nbins   ["dimudetadphiratio"] = 100
     low     ["dimudetadphiratio"] = -5
     high    ["dimudetadphiratio"] = 5
     xtitle  ["dimudetadphiratio"] = "log_{10}|#Delta#eta(#mu, #mu) / #Delta#phi(#mu, #mu)|"
@@ -509,7 +516,7 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["dimudetasv"] = "Events / 0.1"
     variable["dimudetasv"] = "detasv"
 
-    nbins   ["dimudetadphisvratio"] = 20
+    nbins   ["dimudetadphisvratio"] = 100
     low     ["dimudetadphisvratio"] = -5
     high    ["dimudetadphisvratio"] = 5
     xtitle  ["dimudetadphisvratio"] = "log_{10}(|#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|/|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})|)"
@@ -522,6 +529,71 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     xtitle  ["dimu3danglesv"] = "|3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
     ytitle  ["dimu3danglesv"] = "Events / 0.1"
     variable["dimu3danglesv"] = "a3dsv"
+
+    #
+
+    nbins   ["dimuupdr"] = 100
+    low     ["dimuupdr"] = 0
+    high    ["dimuupdr"] = 5
+    xtitle  ["dimuupdr"] = "#DeltaR(#mu, #mu)"
+    ytitle  ["dimuupdr"] = "Events / 0.05"
+    variable["dimuupdr"] = "drmmu"
+
+    nbins   ["dimuupdphi"] = 32
+    low     ["dimuupdphi"] = 0
+    high    ["dimuupdphi"] = 3.2
+    xtitle  ["dimuupdphi"] = "|#Delta#phi(#mu, #mu)| [rad]"
+    ytitle  ["dimuupdphi"] = "Events / 0.1 rad"
+    variable["dimuupdphi"] = "dpmmu"
+
+    nbins   ["dimuupdeta"] = 50
+    low     ["dimuupdeta"] = 0
+    high    ["dimuupdeta"] = 5
+    xtitle  ["dimuupdeta"] = "|#Delta#eta(#mu, #mu)|"
+    ytitle  ["dimuupdeta"] = "Events / 0.1"
+    variable["dimuupdeta"] = "demmu"
+
+    nbins   ["dimuupdetadphiratio"] = 100
+    low     ["dimuupdetadphiratio"] = -5
+    high    ["dimuupdetadphiratio"] = 5
+    xtitle  ["dimuupdetadphiratio"] = "log_{10}|#Delta#eta(#mu, #mu) / #Delta#phi(#mu, #mu)|"
+    ytitle  ["dimuupdetadphiratio"] = "Events / 0.1"
+    variable["dimuupdetadphiratio"] = "ROOT.TMath.Log10(dedpmmu)"
+
+    nbins   ["dimuup3dangle"] = 32
+    low     ["dimuup3dangle"] = 0
+    high    ["dimuup3dangle"] = 3.2
+    xtitle  ["dimuup3dangle"] = "|3D angle(#mu, #mu)|"
+    ytitle  ["dimuup3dangle"] = "Events / 0.1"
+    variable["dimuup3dangle"] = "a3dmmu"
+
+    nbins   ["dimuupdphisv"] = 32
+    low     ["dimuupdphisv"] = 0
+    high    ["dimuupdphisv"] = 3.2
+    xtitle  ["dimuupdphisv"] = "|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
+    ytitle  ["dimuupdphisv"] = "Events / 0.1 rad"
+    variable["dimuupdphisv"] = "dphisvu"
+
+    nbins   ["dimuupdetasv"] = 50
+    low     ["dimuupdetasv"] = 0
+    high    ["dimuupdetasv"] = 5
+    xtitle  ["dimuupdetasv"] = "|#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|"
+    ytitle  ["dimuupdetasv"] = "Events / 0.1"
+    variable["dimuupdetasv"] = "detasvu"
+
+    nbins   ["dimuupdetadphisvratio"] = 100
+    low     ["dimuupdetadphisvratio"] = -5
+    high    ["dimuupdetadphisvratio"] = 5
+    xtitle  ["dimuupdetadphisvratio"] = "log_{10}(|#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|/|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})|)"
+    ytitle  ["dimuupdetadphisvratio"] = "Events / 0.1"
+    variable["dimuupdetadphisvratio"] = "ROOT.TMath.Log10(detadphisvu)"
+
+    nbins   ["dimuup3danglesv"] = 32
+    low     ["dimuup3danglesv"] = 0
+    high    ["dimuup3danglesv"] = 3.2
+    xtitle  ["dimuup3danglesv"] = "|3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
+    ytitle  ["dimuup3danglesv"] = "Events / 0.1"
+    variable["dimuup3danglesv"] = "a3dsvu"
 
     # Four-muon
 
@@ -623,14 +695,14 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["fourmumaxdeta"] = "Events / 0.1"
     variable["fourmumaxdeta"] = "maxdemm"
 
-    nbins   ["fourmumindetadphiratio"] = 20
+    nbins   ["fourmumindetadphiratio"] = 100
     low     ["fourmumindetadphiratio"] = -5
     high    ["fourmumindetadphiratio"] = 5
     xtitle  ["fourmumindetadphiratio"] = "log_{10}(min(|#Delta#eta(#mu, #mu) / #Delta#phi(#mu, #mu)|))"
     ytitle  ["fourmumindetadphiratio"] = "Events / 0.1"
     variable["fourmumindetadphiratio"] = "ROOT.TMath.Log10(mindedpmm)"
 
-    nbins   ["fourmumaxdetadphiratio"] = 20
+    nbins   ["fourmumaxdetadphiratio"] = 100
     low     ["fourmumaxdetadphiratio"] = -5
     high    ["fourmumaxdetadphiratio"] = 5
     xtitle  ["fourmumaxdetadphiratio"] = "log_{10}(max(|#Delta#eta(#mu, #mu) / #Delta#phi(#mu, #mu)|))"
@@ -693,21 +765,21 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["fourmumaxdetasv"] = "Events / 0.1"
     variable["fourmumaxdetasv"] = "maxdetasv"
 
-    nbins   ["fourmudetadphisvratio"] = 20
+    nbins   ["fourmudetadphisvratio"] = 100
     low     ["fourmudetadphisvratio"] = -5
     high    ["fourmudetadphisvratio"] = 5
     xtitle  ["fourmudetadphisvratio"] = "log_{10}(|#Delta#eta(#vec{4#mu}, #vec{SV})|/|#Delta#phi(#vec{4#mu}, #vec{SV})|)"
     ytitle  ["fourmudetadphisvratio"] = "Events / 0.1"
     variable["fourmudetadphisvratio"] = "ROOT.TMath.Log10(detadphisv)"
 
-    nbins   ["fourmumindetadphisvratio"] = 20
+    nbins   ["fourmumindetadphisvratio"] = 100
     low     ["fourmumindetadphisvratio"] = -5
     high    ["fourmumindetadphisvratio"] = 5
     xtitle  ["fourmumindetadphisvratio"] = "log_{10}(min(|#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|/|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})|))"
     ytitle  ["fourmumindetadphisvratio"] = "Events / 0.1"
     variable["fourmumindetadphisvratio"] = "ROOT.TMath.Log10(mindetadphisv)"
 
-    nbins   ["fourmumaxdetadphisvratio"] = 20
+    nbins   ["fourmumaxdetadphisvratio"] = 100
     low     ["fourmumaxdetadphisvratio"] = -5
     high    ["fourmumaxdetadphisvratio"] = 5
     xtitle  ["fourmumaxdetadphisvratio"] = "log_{10}(max(|#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|/|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})|))"
@@ -734,6 +806,162 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     xtitle  ["fourmumax3danglesv"] = "max |3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
     ytitle  ["fourmumax3danglesv"] = "Events / 0.1"
     variable["fourmumax3danglesv"] = "mina3dsv"
+
+    #
+
+    nbins   ["fourmuupmindr"] = 100
+    low     ["fourmuupmindr"] = 0
+    high    ["fourmuupmindr"] = 5
+    xtitle  ["fourmuupmindr"] = "min #DeltaR(#mu, #mu)"
+    ytitle  ["fourmuupmindr"] = "Events / 0.05"
+    variable["fourmuupmindr"] = "mindrmmu"
+
+    nbins   ["fourmuupmaxdr"] = 100
+    low     ["fourmuupmaxdr"] = 0
+    high    ["fourmuupmaxdr"] = 5
+    xtitle  ["fourmuupmaxdr"] = "max #DeltaR(#mu, #mu)"
+    ytitle  ["fourmuupmaxdr"] = "Events / 0.05"
+    variable["fourmuupmaxdr"] = "maxdrmmu"
+
+    nbins   ["fourmuupmindphi"] = 32
+    low     ["fourmuupmindphi"] = 0
+    high    ["fourmuupmindphi"] = 3.2
+    xtitle  ["fourmuupmindphi"] = "min |#Delta#phi(#mu, #mu)| [rad]"
+    ytitle  ["fourmuupmindphi"] = "Events / 0.1 rad"
+    variable["fourmuupmindphi"] = "mindpmmu"
+
+    nbins   ["fourmuupmaxdphi"] = 32
+    low     ["fourmuupmaxdphi"] = 0
+    high    ["fourmuupmaxdphi"] = 3.2
+    xtitle  ["fourmuupmaxdphi"] = "max |#Delta#phi(#mu, #mu)| [rad]"
+    ytitle  ["fourmuupmaxdphi"] = "Events / 0.1 rad"
+    variable["fourmuupmaxdphi"] = "maxdpmmu"
+
+    nbins   ["fourmuupmindeta"] = 50
+    low     ["fourmuupmindeta"] = 0
+    high    ["fourmuupmindeta"] = 5
+    xtitle  ["fourmuupmindeta"] = "min |#Delta#eta(#mu, #mu)|"
+    ytitle  ["fourmuupmindeta"] = "Events / 0.1"
+    variable["fourmuupmindeta"] = "mindemmu"
+
+    nbins   ["fourmuupmaxdeta"] = 50
+    low     ["fourmuupmaxdeta"] = 0
+    high    ["fourmuupmaxdeta"] = 5
+    xtitle  ["fourmuupmaxdeta"] = "max |#Delta#eta(#mu, #mu)|"
+    ytitle  ["fourmuupmaxdeta"] = "Events / 0.1"
+    variable["fourmuupmaxdeta"] = "maxdemmu"
+
+    nbins   ["fourmuupmindetadphiratio"] = 100
+    low     ["fourmuupmindetadphiratio"] = -5
+    high    ["fourmuupmindetadphiratio"] = 5
+    xtitle  ["fourmuupmindetadphiratio"] = "log_{10}(min(|#Delta#eta(#mu, #mu) / #Delta#phi(#mu, #mu)|))"
+    ytitle  ["fourmuupmindetadphiratio"] = "Events / 0.1"
+    variable["fourmuupmindetadphiratio"] = "ROOT.TMath.Log10(mindedpmmu)"
+
+    nbins   ["fourmuupmaxdetadphiratio"] = 100
+    low     ["fourmuupmaxdetadphiratio"] = -5
+    high    ["fourmuupmaxdetadphiratio"] = 5
+    xtitle  ["fourmuupmaxdetadphiratio"] = "log_{10}(max(|#Delta#eta(#mu, #mu) / #Delta#phi(#mu, #mu)|))"
+    ytitle  ["fourmuupmaxdetadphiratio"] = "Events / 0.1"
+    variable["fourmuupmaxdetadphiratio"] = "ROOT.TMath.Log10(maxdedpmmu)"
+
+    nbins   ["fourmuupmin3dangle"] = 32
+    low     ["fourmuupmin3dangle"] = 0
+    high    ["fourmuupmin3dangle"] = 3.2
+    xtitle  ["fourmuupmin3dangle"] = "min |3D angle(#mu, #mu)|"
+    ytitle  ["fourmuupmin3dangle"] = "Events / 0.1"
+    variable["fourmuupmin3dangle"] = "mina3dmmu"
+
+    nbins   ["fourmuupmax3dangle"] = 32
+    low     ["fourmuupmax3dangle"] = 0
+    high    ["fourmuupmax3dangle"] = 3.2
+    xtitle  ["fourmuupmax3dangle"] = "max |3D angle(#mu, #mu)|"
+    ytitle  ["fourmuupmax3dangle"] = "Events / 0.1"
+    variable["fourmuupmax3dangle"] = "maxa3dmmu"
+
+    nbins   ["fourmuupdphisv"] = 32
+    low     ["fourmuupdphisv"] = 0
+    high    ["fourmuupdphisv"] = 3.2
+    xtitle  ["fourmuupdphisv"] = "|#Delta#phi(#vec{4#mu}, #vec{SV})| [rad]"
+    ytitle  ["fourmuupdphisv"] = "Events / 0.1 rad"
+    variable["fourmuupdphisv"] = "dphisvu"
+
+    nbins   ["fourmuupmindphisv"] = 32
+    low     ["fourmuupmindphisv"] = 0
+    high    ["fourmuupmindphisv"] = 3.2
+    xtitle  ["fourmuupmindphisv"] = "min |#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
+    ytitle  ["fourmuupmindphisv"] = "Events / 0.1 rad"
+    variable["fourmuupmindphisv"] = "mindphisvu"
+
+    nbins   ["fourmuupmaxdphisv"] = 32
+    low     ["fourmuupmaxdphisv"] = 0
+    high    ["fourmuupmaxdphisv"] = 3.2
+    xtitle  ["fourmuupmaxdphisv"] = "max |#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
+    ytitle  ["fourmuupmaxdphisv"] = "Events / 0.1 rad"
+    variable["fourmuupmaxdphisv"] = "maxdphisvu"
+
+    nbins   ["fourmuupdetasv"] = 50
+    low     ["fourmuupdetasv"] = 0
+    high    ["fourmuupdetasv"] = 5
+    xtitle  ["fourmuupdetasv"] = "|#Delta#eta(#vec{4#mu}, #vec{SV})|"
+    ytitle  ["fourmuupdetasv"] = "Events / 0.1"
+    variable["fourmuupdetasv"] = "detasvu"
+
+    nbins   ["fourmuupmindetasv"] = 50
+    low     ["fourmuupmindetasv"] = 0
+    high    ["fourmuupmindetasv"] = 5
+    xtitle  ["fourmuupmindetasv"] = "min |#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|"
+    ytitle  ["fourmuupmindetasv"] = "Events / 0.1"
+    variable["fourmuupmindetasv"] = "mindetasvu"
+
+    nbins   ["fourmuupmaxdetasv"] = 50
+    low     ["fourmuupmaxdetasv"] = 0
+    high    ["fourmuupmaxdetasv"] = 5
+    xtitle  ["fourmuupmaxdetasv"] = "max |#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|"
+    ytitle  ["fourmuupmaxdetasv"] = "Events / 0.1"
+    variable["fourmuupmaxdetasv"] = "maxdetasvu"
+
+    nbins   ["fourmuupdetadphisvratio"] = 100
+    low     ["fourmuupdetadphisvratio"] = -5
+    high    ["fourmuupdetadphisvratio"] = 5
+    xtitle  ["fourmuupdetadphisvratio"] = "log_{10}(|#Delta#eta(#vec{4#mu}, #vec{SV})|/|#Delta#phi(#vec{4#mu}, #vec{SV})|)"
+    ytitle  ["fourmuupdetadphisvratio"] = "Events / 0.1"
+    variable["fourmuupdetadphisvratio"] = "ROOT.TMath.Log10(detadphisvu)"
+
+    nbins   ["fourmuupmindetadphisvratio"] = 100
+    low     ["fourmuupmindetadphisvratio"] = -5
+    high    ["fourmuupmindetadphisvratio"] = 5
+    xtitle  ["fourmuupmindetadphisvratio"] = "log_{10}(min(|#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|/|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})|))"
+    ytitle  ["fourmuupmindetadphisvratio"] = "Events / 0.1"
+    variable["fourmuupmindetadphisvratio"] = "ROOT.TMath.Log10(mindetadphisvu)"
+
+    nbins   ["fourmuupmaxdetadphisvratio"] = 100
+    low     ["fourmuupmaxdetadphisvratio"] = -5
+    high    ["fourmuupmaxdetadphisvratio"] = 5
+    xtitle  ["fourmuupmaxdetadphisvratio"] = "log_{10}(max(|#Delta#eta(#vec{(#mu, #mu)}, #vec{SV})|/|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})|))"
+    ytitle  ["fourmuupmaxdetadphisvratio"] = "Events / 0.1"
+    variable["fourmuupmaxdetadphisvratio"] = "ROOT.TMath.Log10(maxdetadphisvu)"
+
+    nbins   ["fourmuup3danglesv"] = 32
+    low     ["fourmuup3danglesv"] = 0
+    high    ["fourmuup3danglesv"] = 3.2
+    xtitle  ["fourmuup3danglesv"] = "|3D angle(#vec{4#mu}, #vec{SV})|"
+    ytitle  ["fourmuup3danglesv"] = "Events / 0.1"
+    variable["fourmuup3danglesv"] = "a3dsvu"
+
+    nbins   ["fourmuupmin3danglesv"] = 32
+    low     ["fourmuupmin3danglesv"] = 0
+    high    ["fourmuupmin3danglesv"] = 3.2
+    xtitle  ["fourmuupmin3danglesv"] = "min |3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
+    ytitle  ["fourmuupmin3danglesv"] = "Events / 0.1"
+    variable["fourmuupmin3danglesv"] = "mina3dsvu"
+
+    nbins   ["fourmuupmax3danglesv"] = 32
+    low     ["fourmuupmax3danglesv"] = 0
+    high    ["fourmuupmax3danglesv"] = 3.2
+    xtitle  ["fourmuupmax3danglesv"] = "max |3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
+    ytitle  ["fourmuupmax3danglesv"] = "Events / 0.1"
+    variable["fourmuupmax3danglesv"] = "mina3dsvu"
 
 # Histogram booking
 ### Add your histograms here
@@ -1007,6 +1235,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hmuon_phi")
         histtype[histname[-1]]="muphi"
         #
+        histname.append("hmuon_uphi")
+        histtype[histname[-1]]="muuphi"
+        #
         histname.append("hmuon_ch")
         histtype[histname[-1]]="much"
         #
@@ -1123,6 +1354,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname.append("hselmuon_phi")
         histtype[histname[-1]]="muphi"
+        #
+        histname.append("hselmuon_uphi")
+        histtype[histname[-1]]="muuphi"
         #
         histname.append("hselmuon_ch")
         histtype[histname[-1]]="much"
@@ -1363,6 +1597,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hselmuon_fourmu_phi")
         histtype[histname[-1]]="muphi"
         #
+        histname.append("hselmuon_fourmu_uphi")
+        histtype[histname[-1]]="muuphi"
+        #
         histname.append("hselmuon_fourmu_ch")
         histtype[histname[-1]]="much"
         #
@@ -1482,6 +1719,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname.append("hselmuon_fourmu_osv_phi")
         histtype[histname[-1]]="muphi"
+        #
+        histname.append("hselmuon_fourmu_osv_uphi")
+        histtype[histname[-1]]="muuphi"
         #
         histname.append("hselmuon_fourmu_osv_ch")
         histtype[histname[-1]]="much"
@@ -1631,6 +1871,33 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hdimuon_3danglesv")
         histtype[histname[-1]]="dimu3danglesv"
         #
+        histname.append("hdimuon_uphi_dr")
+        histtype[histname[-1]]="dimuupdr"
+        #
+        histname.append("hdimuon_uphi_dphi")
+        histtype[histname[-1]]="dimuupdphi"
+        #
+        histname.append("hdimuon_uphi_deta")
+        histtype[histname[-1]]="dimuupdeta"
+        #
+        histname.append("hdimuon_uphi_detadphiratio")
+        histtype[histname[-1]]="dimuupdetadphiratio"
+        #
+        histname.append("hdimuon_uphi_3dangle")
+        histtype[histname[-1]]="dimuup3dangle"
+        #
+        histname.append("hdimuon_uphi_dphisv")
+        histtype[histname[-1]]="dimuupdphisv"
+        #
+        histname.append("hdimuon_uphi_detasv")
+        histtype[histname[-1]]="dimuupdetasv"
+        #
+        histname.append("hdimuon_uphi_detadphisvratio")
+        histtype[histname[-1]]="dimuupdetadphisvratio"
+        #
+        histname.append("hdimuon_uphi_3danglesv")
+        histtype[histname[-1]]="dimuup3danglesv"
+        #
         ##
         # Di-muon from overlapping SV
         #
@@ -1669,6 +1936,33 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname.append("hdimuon_osv_3danglesv")
         histtype[histname[-1]]="dimu3danglesv"
+        #
+        histname.append("hdimuon_osv_uphi_dr")
+        histtype[histname[-1]]="dimuupdr"
+        #
+        histname.append("hdimuon_osv_uphi_dphi")
+        histtype[histname[-1]]="dimuupdphi"
+        #
+        histname.append("hdimuon_osv_uphi_deta")
+        histtype[histname[-1]]="dimuupdeta"
+        #
+        histname.append("hdimuon_osv_uphi_detadphiratio")
+        histtype[histname[-1]]="dimuupdetadphiratio"
+        #
+        histname.append("hdimuon_osv_uphi_3dangle")
+        histtype[histname[-1]]="dimuup3dangle"
+        #
+        histname.append("hdimuon_osv_uphi_dphisv")
+        histtype[histname[-1]]="dimuupdphisv"
+        #
+        histname.append("hdimuon_osv_uphi_detasv")
+        histtype[histname[-1]]="dimuupdetasv"
+        #
+        histname.append("hdimuon_osv_uphi_detadphisvratio")
+        histtype[histname[-1]]="dimuupdetadphisvratio"
+        #
+        histname.append("hdimuon_osv_uphi_3danglesv")
+        histtype[histname[-1]]="dimuup3danglesv"
         #
 
     ##
@@ -1718,13 +2012,55 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histtype[histname[-1]]="fourmudphisv"
         #
         histname.append("hfourmuon_osv_detasv")
-        histtype[histname[-1]]="dimudetasv"
+        histtype[histname[-1]]="fourmudetasv"
         #
         histname.append("hfourmuon_osv_detadphisvratio")
         histtype[histname[-1]]="fourmudetadphisvratio"
         #
         histname.append("hfourmuon_osv_3danglesv")
         histtype[histname[-1]]="fourmu3danglesv"
+        #
+        histname.append("hfourmuon_osv_uphi_mindr")
+        histtype[histname[-1]]="fourmuupmindr"
+        #
+        histname.append("hfourmuon_osv_uphi_maxdr")
+        histtype[histname[-1]]="fourmuupmaxdr"
+        #
+        histname.append("hfourmuon_osv_uphi_mindphi")
+        histtype[histname[-1]]="fourmuupmindphi"
+        #
+        histname.append("hfourmuon_osv_uphi_maxdphi")
+        histtype[histname[-1]]="fourmuupmaxdphi"
+        #
+        histname.append("hfourmuon_osv_uphi_mindeta")
+        histtype[histname[-1]]="fourmuupmindeta"
+        #
+        histname.append("hfourmuon_osv_uphi_maxdeta")
+        histtype[histname[-1]]="fourmuupmaxdeta"
+        #
+        histname.append("hfourmuon_osv_uphi_mindetadphiratio")
+        histtype[histname[-1]]="fourmuupmindetadphiratio"
+        #
+        histname.append("hfourmuon_osv_uphi_maxdetadphiratio")
+        histtype[histname[-1]]="fourmuupmaxdetadphiratio"
+        #
+        histname.append("hfourmuon_osv_uphi_min3dangle")
+        histtype[histname[-1]]="fourmuupmin3dangle"
+        #
+        histname.append("hfourmuon_osv_uphi_max3dangle")
+        histtype[histname[-1]]="fourmuupmax3dangle"
+        #
+        histname.append("hfourmuon_osv_uphi_dphisv")
+        histtype[histname[-1]]="fourmuupdphisv"
+        #
+        histname.append("hfourmuon_osv_uphi_detasv")
+        histtype[histname[-1]]="fourmuupdetasv"
+        #
+        histname.append("hfourmuon_osv_uphi_detadphisvratio")
+        histtype[histname[-1]]="fourmuupdetadphisvratio"
+        #
+        histname.append("hfourmuon_osv_uphi_3danglesv")
+        histtype[histname[-1]]="fourmuup3danglesv"
         #
     ##
     # Four-muon
@@ -1813,6 +2149,60 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname.append("hfourmuon_max3danglesv")
         histtype[histname[-1]]="fourmumax3danglesv"
+        #
+        histname.append("hfourmuon_uphi_mindr")
+        histtype[histname[-1]]="fourmuupmindr"
+        #
+        histname.append("hfourmuon_uphi_maxdr")
+        histtype[histname[-1]]="fourmuupmaxdr"
+        #
+        histname.append("hfourmuon_uphi_mindphi")
+        histtype[histname[-1]]="fourmuupmindphi"
+        #
+        histname.append("hfourmuon_uphi_maxdphi")
+        histtype[histname[-1]]="fourmuupmaxdphi"
+        #
+        histname.append("hfourmuon_uphi_mindeta")
+        histtype[histname[-1]]="fourmuupmindeta"
+        #
+        histname.append("hfourmuon_uphi_maxdeta")
+        histtype[histname[-1]]="fourmuupmaxdeta"
+        #
+        histname.append("hfourmuon_uphi_mindetadphiratio")
+        histtype[histname[-1]]="fourmuupmindetadphiratio"
+        #
+        histname.append("hfourmuon_uphi_maxdetadphiratio")
+        histtype[histname[-1]]="fourmuupmaxdetadphiratio"
+        #
+        histname.append("hfourmuon_uphi_min3dangle")
+        histtype[histname[-1]]="fourmuupmin3dangle"
+        #
+        histname.append("hfourmuon_uphi_max3dangle")
+        histtype[histname[-1]]="fourmuupmax3dangle"
+        #
+        histname.append("hfourmuon_uphi_mindphisv")
+        histtype[histname[-1]]="fourmuupmindphisv"
+        #
+        histname.append("hfourmuon_uphi_maxdphisv")
+        histtype[histname[-1]]="fourmuupmaxdphisv"
+        #
+        histname.append("hfourmuon_uphi_mindetasv")
+        histtype[histname[-1]]="fourmuupmindetasv"
+        #
+        histname.append("hfourmuon_uphi_maxdetasv")
+        histtype[histname[-1]]="fourmuupmaxdetasv"
+        #
+        histname.append("hfourmuon_uphi_mindetadphisvratio")
+        histtype[histname[-1]]="fourmuupmindetadphisvratio"
+        #
+        histname.append("hfourmuon_uphi_maxdetadphisvratio")
+        histtype[histname[-1]]="fourmuupmaxdetadphisvratio"
+        #
+        histname.append("hfourmuon_uphi_min3danglesv")
+        histtype[histname[-1]]="fourmuupmin3danglesv"
+        #
+        histname.append("hfourmuon_uphi_max3danglesv")
+        histtype[histname[-1]]="fourmuupmax3danglesv"
         #
     return histname,histtype,histname2d,histtype2d
 

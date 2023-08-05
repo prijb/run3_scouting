@@ -365,34 +365,32 @@ for hn,hnn in enumerate(h1dn):
         if "_type" not in hnn:
             xmin=None
             xmax=None
+            if "reldmass" in hnn:
+                xmax=2.0
             if "lxy" in hnn:
                 if len(args.zoomLxy)>0:
                     xmax=float(args.zoomLxy[0])
                     isZoom = True
-                if len(args.zoomLxy)>1:
-                    xmin=float(args.zoomLxy[1])
-                    isZoom = True
+                    if len(args.zoomLxy)>1:
+                        xmin=float(args.zoomLxy[1])
                 if "selass" in hnn or "dimuon" in hnn:
                     if len(args.lxySel)>0:
                         xmin=float(args.lxySel[0])
                         isZoom = True
-                    if len(args.lxySel)>1:
-                        xmax=float(args.lxySel[1])
-                        isZoom = True
-            if "mass" in hnn:
+                        if len(args.lxySel)>1:
+                            xmax=float(args.lxySel[1])
+            if "mass" in hnn and "reld" not in hnn:
                 if len(args.zoomMass)>0:
                     xmax=float(args.zoomMass[0])
                     isZoom = True
-                if len(args.zoomMass)>1:
-                    xmin=float(args.zoomMass[1])
-                    isZoom = True
+                    if len(args.zoomMass)>1:
+                        xmin=float(args.zoomMass[1])
                 if "dimuon" in hnn:
                     if len(args.dimuonMassSel)>0:
                         xmin=float(args.dimuonMassSel[0])
                         isZoom = True
-                    if len(args.dimuonMassSel)>1:
-                        xmax=float(args.dimuonMassSel[1])
-                        isZoom = True
+                        if len(args.dimuonMassSel)>1:
+                            xmax=float(args.dimuonMassSel[1])
             if "sv" in hnn and ("xerr" in hnn or "yerr" in hnn):
                 xmax=0.05*sfSVrange
             if "sv" in hnn and "zerr" in hnn:
@@ -402,6 +400,11 @@ for hn,hnn in enumerate(h1dn):
             if not isZoom:
                 plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
                 plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
+                if "mass" in hnn and "reld" not in hnn:
+                    h1d[fn][hn].Rebin(10)
+                    ytitle = h1d[fn][hn].GetYaxis().GetTitle()
+                    ytitle = ytitle.replace("0.01","0.1")
+                    h1d[fn][hn].GetYaxis().SetTitle(ytitle)
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
         tbm = 1
         tbM = h1d[fn][hn].GetNbinsX()
