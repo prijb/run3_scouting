@@ -32,6 +32,6 @@ if args.generator:
     hname = "histograms_GEN"
 for s in samples:
     if os.path.isfile("%s/%s_%s_%s_all.root"%(indir,hname,s,args.year)):
-        os.system('rm -f '+indir+'/'+hname+'_'+s+'_'+args.year+'_all.root')
+        os.system("rm -f "+indir+"/"+hname+"_"+s+"_"+args.year+"_all.root")
     if not os.path.isfile("%s/%s_%s_%s_all.root"%(indir,hname,s,args.year)):
-        os.system('hadd '+indir+'/'+hname+'_'+s+'_'+args.year+'_all.root $(find '+indir+' -name "'+hname+'_'+s+'*_'+args.year+'_*.root")')
+        os.system("hadd "+indir+"/"+hname+"_"+s+"_"+args.year+"_all.root $(find "+indir+" -name '"+hname+"_"+s+"*_"+args.year+"_*.root' | awk '!/all/')")
