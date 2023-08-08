@@ -16,8 +16,19 @@ usage()
 
 if [ -z $1 ]; then usage; fi
 
+str=" "
+i=1;
+for arg in "$@"
+do
+    if [ $i -gt 2 ]; then
+        str="$str $arg";
+    fi
+    i=$((i + 1));
+done
+
 export SCOUTINGINPUTDIR=$1
 export SCOUTINGOUTPUTDIR=$2
+export SCOUTINGARGS=$str
 export STARTDIR=$PWD
 
 mkdir -p condor/plotting_logs
