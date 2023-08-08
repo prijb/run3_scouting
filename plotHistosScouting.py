@@ -373,7 +373,7 @@ for hn,hnn in enumerate(h1dn):
                     isZoom = True
                     if len(args.zoomLxy)>1:
                         xmin=float(args.zoomLxy[1])
-                if "selass" in hnn or "dimuon" in hnn:
+                if ("selass" in hnn or "dimuon" in hnn) and "sig" not in hnn:
                     if len(args.lxySel)>0:
                         xmin=float(args.lxySel[0])
                         isZoom = True
@@ -404,6 +404,11 @@ for hn,hnn in enumerate(h1dn):
                     h1d[fn][hn].Rebin(10)
                     ytitle = h1d[fn][hn].GetYaxis().GetTitle()
                     ytitle = ytitle.replace("0.01","0.1")
+                    h1d[fn][hn].GetYaxis().SetTitle(ytitle)
+                if "sv" in hnn and "sig" in hnn:
+                    h1d[fn][hn].Rebin(5)
+                    ytitle = h1d[fn][hn].GetYaxis().GetTitle()
+                    ytitle = ytitle.replace("0.1","0.5")
                     h1d[fn][hn].GetYaxis().SetTitle(ytitle)
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
         tbm = 1

@@ -62,28 +62,120 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     xtitle  ["svxerr"] = "SV x error [cm]"
     ytitle  ["svxerr"] = "Events / 0.001 cm"
     variable["svxerr"] = "t.SV_xe[v]"
-    
+
     nbins   ["svyerr"] = 500
     low     ["svyerr"] = 0
     high    ["svyerr"] = 0.5
     xtitle  ["svyerr"] = "SV y error [cm]"
     ytitle  ["svyerr"] = "Events / 0.001 cm"
     variable["svyerr"] = "t.SV_ye[v]"
-    
+
     nbins   ["svzerr"] = 500
     low     ["svzerr"] = 0
     high    ["svzerr"] = 0.5
     xtitle  ["svzerr"] = "SV z error [cm]"
     ytitle  ["svzerr"] = "Events / 0.001 cm"
     variable["svzerr"] = "t.SV_ze[v]"
-    
+
+    nbins   ["svxyerr"] = 500
+    low     ["svxyerr"] = 0
+    high    ["svxyerr"] = 0.5
+    xtitle  ["svxyerr"] = "SV l_{xy} error [cm]"
+    ytitle  ["svxyerr"] = "Events / 0.001 cm"
+    variable["svxyerr"] = "ROOT.TMath.Sqrt(t.SV_xe[v]*t.SV_xe[v]+t.SV_ye[v]*t.SV_ye[v])"
+
+    nbins   ["sv3derr"] = 500
+    low     ["sv3derr"] = 0
+    high    ["sv3derr"] = 0.5
+    xtitle  ["sv3derr"] = "SV l_{3D} error [cm]"
+    ytitle  ["sv3derr"] = "Events / 0.001 cm"
+    variable["sv3derr"] = "ROOT.TMath.Sqrt(t.SV_xe[v]*t.SV_xe[v]+t.SV_ye[v]*t.SV_ye[v]+t.SV_ze[v]*t.SV_ze[v])"
+
+    nbins   ["svxsig"] = 500
+    low     ["svxsig"] = 0
+    high    ["svxsig"] = 50.0
+    xtitle  ["svxsig"] = "SV x / (x error)"
+    ytitle  ["svxsig"] = "Events / 0.1"
+    variable["svxsig"] = "abs(t.SV_x[v]/t.SV_xe[v])"
+
+    nbins   ["svysig"] = 500
+    low     ["svysig"] = 0
+    high    ["svysig"] = 50.0
+    xtitle  ["svysig"] = "SV y / (y error)"
+    ytitle  ["svysig"] = "Events / 0.1"
+    variable["svysig"] = "abs(t.SV_y[v]/t.SV_ye[v])"
+
+    nbins   ["svzsig"] = 500
+    low     ["svzsig"] = 0
+    high    ["svzsig"] = 50.0
+    xtitle  ["svzsig"] = "SV z / (z error)"
+    ytitle  ["svzsig"] = "Events / 0.1"
+    variable["svzsig"] = "abs(t.SV_z[v]/t.SV_ze[v])"
+
+    nbins   ["svxpvsig"] = 500
+    low     ["svxpvsig"] = 0
+    high    ["svxpvsig"] = 50.0
+    xtitle  ["svxpvsig"] = "SV x (from PV) / (x error)"
+    ytitle  ["svxpvsig"] = "Events / 0.1"
+    variable["svxpvsig"] = "abs((t.SV_x[v]-t.PV_x)/t.SV_xe[v])"
+
+    nbins   ["svypvsig"] = 500
+    low     ["svypvsig"] = 0
+    high    ["svypvsig"] = 50.0
+    xtitle  ["svypvsig"] = "SV y (from PV) / (y error)"
+    ytitle  ["svypvsig"] = "Events / 0.1"
+    variable["svypvsig"] = "abs((t.SV_y[v]-t.PV_y)/t.SV_ye[v])"
+
+    nbins   ["svzpvsig"] = 500
+    low     ["svzpvsig"] = 0
+    high    ["svzpvsig"] = 50.0
+    xtitle  ["svzpvsig"] = "SV z (from PV) / (z error)"
+    ytitle  ["svzpvsig"] = "Events / 0.1"
+    variable["svzpvsig"] = "abs((t.SV_z[v]-t.PV_z)/t.SV_ze[v])"
+
+    nbins   ["svxysig"] = 500
+    low     ["svxysig"] = 0
+    high    ["svxysig"] = 50.0
+    xtitle  ["svxysig"] = "SV d_{xy} / (l_{xy} error)"
+    ytitle  ["svxysig"] = "Events / 0.1"
+    variable["svxysig"] = "ROOT.TMath.Sqrt(t.SV_x[v]*t.SV_x[v]+t.SV_y[v]*t.SV_y[v])/ROOT.TMath.Sqrt(t.SV_xe[v]*t.SV_xe[v]+t.SV_ye[v]*t.SV_ye[v])"
+
+    nbins   ["sv3dsig"] = 500
+    low     ["sv3dsig"] = 0
+    high    ["sv3dsig"] = 50.0
+    xtitle  ["sv3dsig"] = "SV d_{3D} / (l_{3D} error)"
+    ytitle  ["sv3dsig"] = "Events / 0.1"
+    variable["sv3dsig"] = "ROOT.TMath.Sqrt(t.SV_xe[v]*t.SV_xe[v]+t.SV_ye[v]*t.SV_ye[v]+t.SV_ze[v]*t.SV_ze[v])"
+    variable["sv3dsig"] = "ROOT.TMath.Sqrt(t.SV_x[v]*t.SV_x[v]+t.SV_y[v]*t.SV_y[v]+t.SV_z[v]*t.SV_z[v])/ROOT.TMath.Sqrt(t.SV_xe[v]*t.SV_xe[v]+t.SV_ye[v]*t.SV_ye[v]+t.SV_ze[v]*t.SV_ze[v])"
+
+    nbins   ["svdxy"] = 1100
+    low     ["svdxy"] = 0
+    high    ["svdxy"] = 110.0
+    xtitle  ["svdxy"] = "SV d_{xy} [cm]"
+    ytitle  ["svdxy"] = "Events / 0.1 cm"
+    variable["svdxy"] = "ROOT.TMath.Sqrt(t.SV_x[v]*t.SV_x[v]+t.SV_y[v]*t.SV_y[v])"
+
+    nbins   ["svd3d"] = 1500
+    low     ["svd3d"] = 0
+    high    ["svd3d"] = 150.0
+    xtitle  ["svd3d"] = "SV d_{3d} [cm]"
+    ytitle  ["svd3d"] = "Events / 0.1 cm"
+    variable["svd3d"] = "ROOT.TMath.Sqrt(t.SV_x[v]*t.SV_x[v]+t.SV_y[v]*t.SV_y[v]+t.SV_z[v]*t.SV_z[v])"
+
     nbins   ["lxy"] = 1100
     low     ["lxy"] = 0
     high    ["lxy"] = 110.0
     xtitle  ["lxy"] = "l_{xy} (from PV) [cm]"
     ytitle  ["lxy"] = "Events / 0.1 cm"
     variable["lxy"] = "lxy"
-    
+
+    nbins   ["lxysig"] = 1000
+    low     ["lxysig"] = 0
+    high    ["lxysig"] = 100.0
+    xtitle  ["lxysig"] = "l_{xy} (from PV) / (l_{xy} error)"
+    ytitle  ["lxysig"] = "Events / 0.1"
+    variable["lxysig"] = "lxy/ROOT.TMath.Sqrt(t.SV_xe[v]*t.SV_xe[v]+t.SV_ye[v]*t.SV_ye[v])"
+
     nbins   ["minlxy"] = 1100
     low     ["minlxy"] = 0
     high    ["minlxy"] = 110.0
@@ -104,6 +196,13 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     xtitle  ["l3d"] = "l_{3D} (from PV) [cm]"
     ytitle  ["l3d"] = "Events / 0.1 cm"
     variable["l3d"] = "t.SV_l3d[v]"
+
+    nbins   ["l3dsig"] = 1000
+    low     ["l3dsig"] = 0
+    high    ["l3dsig"] = 100.0
+    xtitle  ["l3dsig"] = "l_{3D} (from PV) / (l_{3D} error)"
+    ytitle  ["l3dsig"] = "Events / 0.1"
+    variable["l3dsig"] = "t.SV_l3d[v]/ROOT.TMath.Sqrt(t.SV_xe[v]*t.SV_xe[v]+t.SV_ye[v]*t.SV_ye[v]+t.SV_ze[v]*t.SV_ze[v])"
 
     nbins   ["mindx"] = 100
     low     ["mindx"] = 0
@@ -502,11 +601,11 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["dimu3dangle"] = "Events / 0.1"
     variable["dimu3dangle"] = "a3dmm"
 
-    nbins   ["dimudphisv"] = 32
+    nbins   ["dimudphisv"] = 320
     low     ["dimudphisv"] = 0
     high    ["dimudphisv"] = 3.2
     xtitle  ["dimudphisv"] = "|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
-    ytitle  ["dimudphisv"] = "Events / 0.1 rad"
+    ytitle  ["dimudphisv"] = "Events / 0.01 rad"
     variable["dimudphisv"] = "dphisv"
 
     nbins   ["dimudetasv"] = 50
@@ -523,11 +622,11 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["dimudetadphisvratio"] = "Events / 0.1"
     variable["dimudetadphisvratio"] = "ROOT.TMath.Log10(detadphisv)"
 
-    nbins   ["dimu3danglesv"] = 32
+    nbins   ["dimu3danglesv"] = 320
     low     ["dimu3danglesv"] = 0
     high    ["dimu3danglesv"] = 3.2
     xtitle  ["dimu3danglesv"] = "|3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
-    ytitle  ["dimu3danglesv"] = "Events / 0.1"
+    ytitle  ["dimu3danglesv"] = "Events / 0.01"
     variable["dimu3danglesv"] = "a3dsv"
 
     #
@@ -567,11 +666,11 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["dimuup3dangle"] = "Events / 0.1"
     variable["dimuup3dangle"] = "a3dmmu"
 
-    nbins   ["dimuupdphisv"] = 32
+    nbins   ["dimuupdphisv"] = 320
     low     ["dimuupdphisv"] = 0
     high    ["dimuupdphisv"] = 3.2
     xtitle  ["dimuupdphisv"] = "|#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
-    ytitle  ["dimuupdphisv"] = "Events / 0.1 rad"
+    ytitle  ["dimuupdphisv"] = "Events / 0.01 rad"
     variable["dimuupdphisv"] = "dphisvu"
 
     nbins   ["dimuupdetasv"] = 50
@@ -588,11 +687,11 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["dimuupdetadphisvratio"] = "Events / 0.1"
     variable["dimuupdetadphisvratio"] = "ROOT.TMath.Log10(detadphisvu)"
 
-    nbins   ["dimuup3danglesv"] = 32
+    nbins   ["dimuup3danglesv"] = 320
     low     ["dimuup3danglesv"] = 0
     high    ["dimuup3danglesv"] = 3.2
     xtitle  ["dimuup3danglesv"] = "|3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
-    ytitle  ["dimuup3danglesv"] = "Events / 0.1"
+    ytitle  ["dimuup3danglesv"] = "Events / 0.01"
     variable["dimuup3danglesv"] = "a3dsvu"
 
     # Four-muon
@@ -723,25 +822,25 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["fourmumax3dangle"] = "Events / 0.1"
     variable["fourmumax3dangle"] = "maxa3dmm"
 
-    nbins   ["fourmudphisv"] = 32
+    nbins   ["fourmudphisv"] = 320
     low     ["fourmudphisv"] = 0
     high    ["fourmudphisv"] = 3.2
     xtitle  ["fourmudphisv"] = "|#Delta#phi(#vec{4#mu}, #vec{SV})| [rad]"
-    ytitle  ["fourmudphisv"] = "Events / 0.1 rad"
+    ytitle  ["fourmudphisv"] = "Events / 0.01 rad"
     variable["fourmudphisv"] = "dphisv"
 
-    nbins   ["fourmumindphisv"] = 32
+    nbins   ["fourmumindphisv"] = 320
     low     ["fourmumindphisv"] = 0
     high    ["fourmumindphisv"] = 3.2
     xtitle  ["fourmumindphisv"] = "min |#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
-    ytitle  ["fourmumindphisv"] = "Events / 0.1 rad"
+    ytitle  ["fourmumindphisv"] = "Events / 0.01 rad"
     variable["fourmumindphisv"] = "mindphisv"
 
-    nbins   ["fourmumaxdphisv"] = 32
+    nbins   ["fourmumaxdphisv"] = 320
     low     ["fourmumaxdphisv"] = 0
     high    ["fourmumaxdphisv"] = 3.2
     xtitle  ["fourmumaxdphisv"] = "max |#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
-    ytitle  ["fourmumaxdphisv"] = "Events / 0.1 rad"
+    ytitle  ["fourmumaxdphisv"] = "Events / 0.01 rad"
     variable["fourmumaxdphisv"] = "maxdphisv"
 
     nbins   ["fourmudetasv"] = 50
@@ -786,25 +885,25 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["fourmumaxdetadphisvratio"] = "Events / 0.1"
     variable["fourmumaxdetadphisvratio"] = "ROOT.TMath.Log10(maxdetadphisv)"
 
-    nbins   ["fourmu3danglesv"] = 32
+    nbins   ["fourmu3danglesv"] = 320
     low     ["fourmu3danglesv"] = 0
     high    ["fourmu3danglesv"] = 3.2
     xtitle  ["fourmu3danglesv"] = "|3D angle(#vec{4#mu}, #vec{SV})|"
-    ytitle  ["fourmu3danglesv"] = "Events / 0.1"
+    ytitle  ["fourmu3danglesv"] = "Events / 0.01"
     variable["fourmu3danglesv"] = "a3dsv"
 
-    nbins   ["fourmumin3danglesv"] = 32
+    nbins   ["fourmumin3danglesv"] = 320
     low     ["fourmumin3danglesv"] = 0
     high    ["fourmumin3danglesv"] = 3.2
     xtitle  ["fourmumin3danglesv"] = "min |3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
-    ytitle  ["fourmumin3danglesv"] = "Events / 0.1"
+    ytitle  ["fourmumin3danglesv"] = "Events / 0.01"
     variable["fourmumin3danglesv"] = "mina3dsv"
 
-    nbins   ["fourmumax3danglesv"] = 32
+    nbins   ["fourmumax3danglesv"] = 320
     low     ["fourmumax3danglesv"] = 0
     high    ["fourmumax3danglesv"] = 3.2
     xtitle  ["fourmumax3danglesv"] = "max |3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
-    ytitle  ["fourmumax3danglesv"] = "Events / 0.1"
+    ytitle  ["fourmumax3danglesv"] = "Events / 0.01"
     variable["fourmumax3danglesv"] = "mina3dsv"
 
     #
@@ -879,25 +978,25 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["fourmuupmax3dangle"] = "Events / 0.1"
     variable["fourmuupmax3dangle"] = "maxa3dmmu"
 
-    nbins   ["fourmuupdphisv"] = 32
+    nbins   ["fourmuupdphisv"] = 320
     low     ["fourmuupdphisv"] = 0
     high    ["fourmuupdphisv"] = 3.2
     xtitle  ["fourmuupdphisv"] = "|#Delta#phi(#vec{4#mu}, #vec{SV})| [rad]"
-    ytitle  ["fourmuupdphisv"] = "Events / 0.1 rad"
+    ytitle  ["fourmuupdphisv"] = "Events / 0.01 rad"
     variable["fourmuupdphisv"] = "dphisvu"
 
-    nbins   ["fourmuupmindphisv"] = 32
+    nbins   ["fourmuupmindphisv"] = 320
     low     ["fourmuupmindphisv"] = 0
     high    ["fourmuupmindphisv"] = 3.2
     xtitle  ["fourmuupmindphisv"] = "min |#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
-    ytitle  ["fourmuupmindphisv"] = "Events / 0.1 rad"
+    ytitle  ["fourmuupmindphisv"] = "Events / 0.01 rad"
     variable["fourmuupmindphisv"] = "mindphisvu"
 
-    nbins   ["fourmuupmaxdphisv"] = 32
+    nbins   ["fourmuupmaxdphisv"] = 320
     low     ["fourmuupmaxdphisv"] = 0
     high    ["fourmuupmaxdphisv"] = 3.2
     xtitle  ["fourmuupmaxdphisv"] = "max |#Delta#phi(#vec{(#mu, #mu)}, #vec{SV})| [rad]"
-    ytitle  ["fourmuupmaxdphisv"] = "Events / 0.1 rad"
+    ytitle  ["fourmuupmaxdphisv"] = "Events / 0.01 rad"
     variable["fourmuupmaxdphisv"] = "maxdphisvu"
 
     nbins   ["fourmuupdetasv"] = 50
@@ -942,25 +1041,25 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["fourmuupmaxdetadphisvratio"] = "Events / 0.1"
     variable["fourmuupmaxdetadphisvratio"] = "ROOT.TMath.Log10(maxdetadphisvu)"
 
-    nbins   ["fourmuup3danglesv"] = 32
+    nbins   ["fourmuup3danglesv"] = 320
     low     ["fourmuup3danglesv"] = 0
     high    ["fourmuup3danglesv"] = 3.2
     xtitle  ["fourmuup3danglesv"] = "|3D angle(#vec{4#mu}, #vec{SV})|"
-    ytitle  ["fourmuup3danglesv"] = "Events / 0.1"
+    ytitle  ["fourmuup3danglesv"] = "Events / 0.01"
     variable["fourmuup3danglesv"] = "a3dsvu"
 
-    nbins   ["fourmuupmin3danglesv"] = 32
+    nbins   ["fourmuupmin3danglesv"] = 320
     low     ["fourmuupmin3danglesv"] = 0
     high    ["fourmuupmin3danglesv"] = 3.2
     xtitle  ["fourmuupmin3danglesv"] = "min |3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
-    ytitle  ["fourmuupmin3danglesv"] = "Events / 0.1"
+    ytitle  ["fourmuupmin3danglesv"] = "Events / 0.01"
     variable["fourmuupmin3danglesv"] = "mina3dsvu"
 
-    nbins   ["fourmuupmax3danglesv"] = 32
+    nbins   ["fourmuupmax3danglesv"] = 320
     low     ["fourmuupmax3danglesv"] = 0
     high    ["fourmuupmax3danglesv"] = 3.2
     xtitle  ["fourmuupmax3danglesv"] = "max |3D angle(#vec{(#mu, #mu)}, #vec{SV})|"
-    ytitle  ["fourmuupmax3danglesv"] = "Events / 0.1"
+    ytitle  ["fourmuupmax3danglesv"] = "Events / 0.01"
     variable["fourmuupmax3danglesv"] = "mina3dsvu"
 
 # Histogram booking
@@ -996,11 +1095,53 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hsvsel_zerr")
         histtype[histname[-1]]="svzerr"
         #
+        histname.append("hsvsel_xsig")
+        histtype[histname[-1]]="svxsig"
+        #
+        histname.append("hsvsel_ysig")
+        histtype[histname[-1]]="svysig"
+        #
+        histname.append("hsvsel_zsig")
+        histtype[histname[-1]]="svzsig"
+        #
+        histname.append("hsvsel_xpvsig")
+        histtype[histname[-1]]="svxpvsig"
+        #
+        histname.append("hsvsel_ypvsig")
+        histtype[histname[-1]]="svypvsig"
+        #
+        histname.append("hsvsel_zpvsig")
+        histtype[histname[-1]]="svzpvsig"
+        #
+        histname.append("hsvsel_dxy")
+        histtype[histname[-1]]="svdxy"
+        #
+        histname.append("hsvsel_d3d")
+        histtype[histname[-1]]="svd3d"
+        #
+        histname.append("hsvsel_dxyerr")
+        histtype[histname[-1]]="svxyerr"
+        #
+        histname.append("hsvsel_d3derr")
+        histtype[histname[-1]]="sv3derr"
+        #
+        histname.append("hsvsel_dxysig")
+        histtype[histname[-1]]="svxysig"
+        #
+        histname.append("hsvsel_d3dsig")
+        histtype[histname[-1]]="sv3dsig"
+        #
         histname.append("hsvsel_lxy")
         histtype[histname[-1]]="lxy"
         #
         histname.append("hsvsel_l3d")
         histtype[histname[-1]]="l3d"
+        #
+        histname.append("hsvsel_lxysig")
+        histtype[histname[-1]]="lxysig"
+        #
+        histname.append("hsvsel_l3dsig")
+        histtype[histname[-1]]="l3dsig"
         #
         histname.append("hsvsel_mindx")
         histtype[histname[-1]]="mindx"
@@ -1044,11 +1185,53 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hsvselass_zerr")
         histtype[histname[-1]]="svzerr"
         #
+        histname.append("hsvselass_xsig")
+        histtype[histname[-1]]="svxsig"
+        #
+        histname.append("hsvselass_ysig")
+        histtype[histname[-1]]="svysig"
+        #
+        histname.append("hsvselass_zsig")
+        histtype[histname[-1]]="svzsig"
+        #
+        histname.append("hsvselass_xpvsig")
+        histtype[histname[-1]]="svxpvsig"
+        #
+        histname.append("hsvselass_ypvsig")
+        histtype[histname[-1]]="svypvsig"
+        #
+        histname.append("hsvselass_zpvsig")
+        histtype[histname[-1]]="svzpvsig"
+        #
+        histname.append("hsvselass_dxy")
+        histtype[histname[-1]]="svdxy"
+        #
+        histname.append("hsvselass_d3d")
+        histtype[histname[-1]]="svd3d"
+        #
+        histname.append("hsvselass_dxyerr")
+        histtype[histname[-1]]="svxyerr"
+        #
+        histname.append("hsvselass_d3derr")
+        histtype[histname[-1]]="sv3derr"
+        #
+        histname.append("hsvselass_dxysig")
+        histtype[histname[-1]]="svxysig"
+        #
+        histname.append("hsvselass_d3dsig")
+        histtype[histname[-1]]="sv3dsig"
+        #
         histname.append("hsvselass_lxy")
         histtype[histname[-1]]="lxy"
         #
         histname.append("hsvselass_l3d")
         histtype[histname[-1]]="l3d"
+        #
+        histname.append("hsvselass_lxysig")
+        histtype[histname[-1]]="lxysig"
+        #
+        histname.append("hsvselass_l3dsig")
+        histtype[histname[-1]]="l3dsig"
         #
         histname.append("hsvselass_mindx")
         histtype[histname[-1]]="mindx"
@@ -1090,11 +1273,53 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hsvselass_osv_zerr")
         histtype[histname[-1]]="svzerr"
         #
+        histname.append("hsvselass_osv_xsig")
+        histtype[histname[-1]]="svxsig"
+        #
+        histname.append("hsvselass_osv_ysig")
+        histtype[histname[-1]]="svysig"
+        #
+        histname.append("hsvselass_osv_zsig")
+        histtype[histname[-1]]="svzsig"
+        #
+        histname.append("hsvselass_osv_xpvsig")
+        histtype[histname[-1]]="svxpvsig"
+        #
+        histname.append("hsvselass_osv_ypvsig")
+        histtype[histname[-1]]="svypvsig"
+        #
+        histname.append("hsvselass_osv_zpvsig")
+        histtype[histname[-1]]="svzpvsig"
+        #
+        histname.append("hsvselass_osv_dxy")
+        histtype[histname[-1]]="svdxy"
+        #
+        histname.append("hsvselass_osv_d3d")
+        histtype[histname[-1]]="svd3d"
+        #
+        histname.append("hsvselass_osv_dxyerr")
+        histtype[histname[-1]]="svxyerr"
+        #
+        histname.append("hsvselass_osv_d3derr")
+        histtype[histname[-1]]="sv3derr"
+        #
+        histname.append("hsvselass_osv_dxysig")
+        histtype[histname[-1]]="svxysig"
+        #
+        histname.append("hsvselass_osv_d3dsig")
+        histtype[histname[-1]]="sv3dsig"
+        #
         histname.append("hsvselass_osv_lxy")
         histtype[histname[-1]]="lxy"
         #
         histname.append("hsvselass_osv_l3d")
         histtype[histname[-1]]="l3d"
+        #
+        histname.append("hsvselass_osv_lxysig")
+        histtype[histname[-1]]="lxysig"
+        #
+        histname.append("hsvselass_osv_l3dsig")
+        histtype[histname[-1]]="l3dsig"
         #
         histname.append("hsvselass_osv_mindx")
         histtype[histname[-1]]="mindx"
@@ -1138,11 +1363,53 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hsvselass_fourmu_zerr")
         histtype[histname[-1]]="svzerr"
         #
+        histname.append("hsvselass_fourmu_xsig")
+        histtype[histname[-1]]="svxsig"
+        #
+        histname.append("hsvselass_fourmu_ysig")
+        histtype[histname[-1]]="svysig"
+        #
+        histname.append("hsvselass_fourmu_zsig")
+        histtype[histname[-1]]="svzsig"
+        #
+        histname.append("hsvselass_fourmu_xpvsig")
+        histtype[histname[-1]]="svxpvsig"
+        #
+        histname.append("hsvselass_fourmu_ypvsig")
+        histtype[histname[-1]]="svypvsig"
+        #
+        histname.append("hsvselass_fourmu_zpvsig")
+        histtype[histname[-1]]="svzpvsig"
+        #
+        histname.append("hsvselass_fourmu_dxy")
+        histtype[histname[-1]]="svdxy"
+        #
+        histname.append("hsvselass_fourmu_d3d")
+        histtype[histname[-1]]="svd3d"
+        #
+        histname.append("hsvselass_fourmu_dxyerr")
+        histtype[histname[-1]]="svxyerr"
+        #
+        histname.append("hsvselass_fourmu_d3derr")
+        histtype[histname[-1]]="sv3derr"
+        #
+        histname.append("hsvselass_fourmu_dxysig")
+        histtype[histname[-1]]="svxysig"
+        #
+        histname.append("hsvselass_fourmu_d3dsig")
+        histtype[histname[-1]]="sv3dsig"
+        #
         histname.append("hsvselass_fourmu_lxy")
         histtype[histname[-1]]="lxy"
         #
         histname.append("hsvselass_fourmu_l3d")
         histtype[histname[-1]]="l3d"
+        #
+        histname.append("hsvselass_fourmu_lxysig")
+        histtype[histname[-1]]="lxysig"
+        #
+        histname.append("hsvselass_fourmu_l3dsig")
+        histtype[histname[-1]]="l3dsig"
         #
         histname.append("hsvselass_fourmu_mindx")
         histtype[histname[-1]]="mindx"
@@ -1186,11 +1453,53 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hsvselass_fourmu_osv_zerr")
         histtype[histname[-1]]="svzerr"
         #
+        histname.append("hsvselass_fourmu_osv_xsig")
+        histtype[histname[-1]]="svxsig"
+        #
+        histname.append("hsvselass_fourmu_osv_ysig")
+        histtype[histname[-1]]="svysig"
+        #
+        histname.append("hsvselass_fourmu_osv_zsig")
+        histtype[histname[-1]]="svzsig"
+        #
+        histname.append("hsvselass_fourmu_osv_xpvsig")
+        histtype[histname[-1]]="svxpvsig"
+        #
+        histname.append("hsvselass_fourmu_osv_ypvsig")
+        histtype[histname[-1]]="svypvsig"
+        #
+        histname.append("hsvselass_fourmu_osv_zpvsig")
+        histtype[histname[-1]]="svzpvsig"
+        #
+        histname.append("hsvselass_fourmu_osv_dxy")
+        histtype[histname[-1]]="svdxy"
+        #
+        histname.append("hsvselass_fourmu_osv_d3d")
+        histtype[histname[-1]]="svd3d"
+        #
+        histname.append("hsvselass_fourmu_osv_dxyerr")
+        histtype[histname[-1]]="svxyerr"
+        #
+        histname.append("hsvselass_fourmu_osv_d3derr")
+        histtype[histname[-1]]="sv3derr"
+        #
+        histname.append("hsvselass_fourmu_osv_dxysig")
+        histtype[histname[-1]]="svxysig"
+        #
+        histname.append("hsvselass_fourmu_osv_d3dsig")
+        histtype[histname[-1]]="sv3dsig"
+        #
         histname.append("hsvselass_fourmu_osv_lxy")
         histtype[histname[-1]]="lxy"
         #
         histname.append("hsvselass_fourmu_osv_l3d")
         histtype[histname[-1]]="l3d"
+        #
+        histname.append("hsvselass_fourmu_osv_lxysig")
+        histtype[histname[-1]]="lxysig"
+        #
+        histname.append("hsvselass_fourmu_osv_l3dsig")
+        histtype[histname[-1]]="l3dsig"
         #
         histname.append("hsvselass_fourmu_osv_mindx")
         histtype[histname[-1]]="mindx"
