@@ -354,19 +354,33 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["mutrkiso"] = "Events / 0.5 GeV"
     variable["mutrkiso"] = "t.Muon_trackIso[m]"
 
-    nbins   ["mupfalliso"] = 40
-    low     ["mupfalliso"] = 0
-    high    ["mupfalliso"] = 20
-    xtitle  ["mupfalliso"] = "Muon PF-all isolation (#delta#beta) [GeV]"
-    ytitle  ["mupfalliso"] = "Events / 0.5 GeV"
-    variable["mupfalliso"] = "t.Muon_PFIsoAll[m]"
+    nbins   ["mupfalliso0p3"] = 40
+    low     ["mupfalliso0p3"] = 0
+    high    ["mupfalliso0p3"] = 20
+    xtitle  ["mupfalliso0p3"] = "Muon PF-all isolation (#DeltaR<0.3, #delta#beta-corrected) [GeV]"
+    ytitle  ["mupfalliso0p3"] = "Events / 0.5 GeV"
+    variable["mupfalliso0p3"] = "t.Muon_PFIsoAll0p3[m]"
 
-    nbins   ["mupfchgiso"] = 40
-    low     ["mupfchgiso"] = 0
-    high    ["mupfchgiso"] = 20
-    xtitle  ["mupfchgiso"] = "Muon PF-charged isolation (#delta#beta) [GeV]"
-    ytitle  ["mupfchgiso"] = "Events / 0.5 GeV"
-    variable["mupfchgiso"] = "t.Muon_PFIsoChg[m]"
+    nbins   ["mupfchgiso0p3"] = 40
+    low     ["mupfchgiso0p3"] = 0
+    high    ["mupfchgiso0p3"] = 20
+    xtitle  ["mupfchgiso0p3"] = "Muon PF-charged isolation (#DeltaR<0.3) [GeV]"
+    ytitle  ["mupfchgiso0p3"] = "Events / 0.5 GeV"
+    variable["mupfchgiso0p3"] = "t.Muon_PFIsoChg0p3[m]"
+
+    nbins   ["mupfalliso0p4"] = 40
+    low     ["mupfalliso0p4"] = 0
+    high    ["mupfalliso0p4"] = 20
+    xtitle  ["mupfalliso0p4"] = "Muon PF-all isolation (#DeltaR<0.4, #delta#beta-corrected) [GeV]"
+    ytitle  ["mupfalliso0p4"] = "Events / 0.5 GeV"
+    variable["mupfalliso0p4"] = "t.Muon_PFIsoAll0p4[m]"
+
+    nbins   ["mupfchgiso0p4"] = 40
+    low     ["mupfchgiso0p4"] = 0
+    high    ["mupfchgiso0p4"] = 20
+    xtitle  ["mupfchgiso0p4"] = "Muon PF-charged isolation (#DeltaR<0.3, #delta#beta-corrected) [GeV]"
+    ytitle  ["mupfchgiso0p4"] = "Events / 0.5 GeV"
+    variable["mupfchgiso0p4"] = "t.Muon_PFIsoChg0p4[m]"
 
     nbins   ["muecalreliso"] = 40
     low     ["muecalreliso"] = 0
@@ -389,19 +403,33 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["mutrkreliso"] = "Events / 0.05"
     variable["mutrkreliso"] = "t.Muon_trackRelIso[m]"
 
-    nbins   ["mupfallreliso"] = 40
-    low     ["mupfallreliso"] = 0
-    high    ["mupfallreliso"] = 2
-    xtitle  ["mupfallreliso"] = "Muon PF-all relisolation (#delta#beta) / p_{T}"
-    ytitle  ["mupfallreliso"] = "Events / 0.05"
-    variable["mupfallreliso"] = "t.Muon_PFRelIsoAll[m]"
+    nbins   ["mupfallreliso0p3"] = 40
+    low     ["mupfallreliso0p3"] = 0
+    high    ["mupfallreliso0p3"] = 2
+    xtitle  ["mupfallreliso0p3"] = "Muon PF-all relisolation (#DeltaR<0.3, #delta#beta-corrected) / p_{T}"
+    ytitle  ["mupfallreliso0p3"] = "Events / 0.05"
+    variable["mupfallreliso0p3"] = "t.Muon_PFRelIsoAll0p3[m]"
 
-    nbins   ["mupfchgreliso"] = 40
-    low     ["mupfchgreliso"] = 0
-    high    ["mupfchgreliso"] = 2
-    xtitle  ["mupfchgreliso"] = "Muon PF-charged isolation (#delta#beta) / p_{T}"
-    ytitle  ["mupfchgreliso"] = "Events / 0.05"
-    variable["mupfchgreliso"] = "t.Muon_PFRelIsoChg[m]"
+    nbins   ["mupfchgreliso0p3"] = 40
+    low     ["mupfchgreliso0p3"] = 0
+    high    ["mupfchgreliso0p3"] = 2
+    xtitle  ["mupfchgreliso0p3"] = "Muon PF-charged isolation (#DeltaR<0.3) / p_{T}"
+    ytitle  ["mupfchgreliso0p3"] = "Events / 0.05"
+    variable["mupfchgreliso0p3"] = "t.Muon_PFRelIsoChg0p3[m]"
+
+    nbins   ["mupfallreliso0p4"] = 40
+    low     ["mupfallreliso0p4"] = 0
+    high    ["mupfallreliso0p4"] = 2
+    xtitle  ["mupfallreliso0p4"] = "Muon PF-all relisolation (#DeltaR<0.4, #delta#beta-corrected) / p_{T}"
+    ytitle  ["mupfallreliso0p4"] = "Events / 0.05"
+    variable["mupfallreliso0p4"] = "t.Muon_PFRelIsoAll0p4[m]"
+
+    nbins   ["mupfchgreliso0p4"] = 40
+    low     ["mupfchgreliso0p4"] = 0
+    high    ["mupfchgreliso0p4"] = 2
+    xtitle  ["mupfchgreliso0p4"] = "Muon PF-charged isolation (#DeltaR<0.4) / p_{T}"
+    ytitle  ["mupfchgreliso0p4"] = "Events / 0.05"
+    variable["mupfchgreliso0p4"] = "t.Muon_PFRelIsoChg0p4[m]"
 
     nbins   ["mumindrjet"] = 100
     low     ["mumindrjet"] = 0
@@ -409,6 +437,20 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     xtitle  ["mumindrjet"] = "min #DeltaR(#mu, PF jet)"
     ytitle  ["mumindrjet"] = "Events / 0.05"
     variable["mumindrjet"] = "t.Muon_mindrJet[m]"
+
+    nbins   ["mumindpjet"] = 320
+    low     ["mumindpjet"] = 0
+    high    ["mumindpjet"] = 3.2
+    xtitle  ["mumindpjet"] = "#Delta#phi(#mu, nearest PF jet in #DeltaR)"
+    ytitle  ["mumindpjet"] = "Events / 0.01"
+    variable["mumindpjet"] = "t.Muon_mindphiJet[m]"
+
+    nbins   ["mumindejet"] = 500
+    low     ["mumindejet"] = 0
+    high    ["mumindejet"] = 5
+    xtitle  ["mumindejet"] = "#Delta#eta(#mu, nearest PF jet in #DeltaR)"
+    ytitle  ["mumindejet"] = "Events / 0.01"
+    variable["mumindejet"] = "t.Muon_mindetaJet[m]"
 
     nbins   ["mumindrpfc"] = 100
     low     ["mumindrpfc"] = 0
@@ -1581,19 +1623,37 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histtype[histname[-1]]="mutrkreliso"
         #
         histname.append("hmuon_pfiso0p3all")
-        histtype[histname[-1]]="mupfalliso"
+        histtype[histname[-1]]="mupfalliso0p3"
         #
         histname.append("hmuon_pfreliso0p3all")
-        histtype[histname[-1]]="mupfallreliso"
+        histtype[histname[-1]]="mupfallreliso0p3"
         #
         histname.append("hmuon_pfiso0p3chg")
-        histtype[histname[-1]]="mupfchgiso"
+        histtype[histname[-1]]="mupfchgiso0p3"
         #
         histname.append("hmuon_pfreliso0p3chg")
-        histtype[histname[-1]]="mupfchgreliso"
+        histtype[histname[-1]]="mupfchgreliso0p3"
+        #
+        histname.append("hmuon_pfiso0p4all")
+        histtype[histname[-1]]="mupfalliso0p4"
+        #
+        histname.append("hmuon_pfreliso0p4all")
+        histtype[histname[-1]]="mupfallreliso0p4"
+        #
+        histname.append("hmuon_pfiso0p4chg")
+        histtype[histname[-1]]="mupfchgiso0p4"
+        #
+        histname.append("hmuon_pfreliso0p4chg")
+        histtype[histname[-1]]="mupfchgreliso0p4"
         #
         histname.append("hmuon_mindrjet")
         histtype[histname[-1]]="mumindrjet"
+        #
+        histname.append("hmuon_dphimindrjet")
+        histtype[histname[-1]]="mumindpjet"
+        #
+        histname.append("hmuon_detamindrjet")
+        histtype[histname[-1]]="mumindejet"
         #
         histname.append("hmuon_mindrpfc")
         histtype[histname[-1]]="mumindrpfc"
@@ -1701,19 +1761,37 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histtype[histname[-1]]="mutrkreliso"
         #
         histname.append("hselmuon_pfiso0p3all")
-        histtype[histname[-1]]="mupfalliso"
+        histtype[histname[-1]]="mupfalliso0p3"
         #
         histname.append("hselmuon_pfreliso0p3all")
-        histtype[histname[-1]]="mupfallreliso"
+        histtype[histname[-1]]="mupfallreliso0p3"
         #
         histname.append("hselmuon_pfiso0p3chg")
-        histtype[histname[-1]]="mupfchgiso"
+        histtype[histname[-1]]="mupfchgiso0p3"
         #
         histname.append("hselmuon_pfreliso0p3chg")
-        histtype[histname[-1]]="mupfchgreliso"
+        histtype[histname[-1]]="mupfchgreliso0p3"
+        #
+        histname.append("hselmuon_pfiso0p4all")
+        histtype[histname[-1]]="mupfalliso0p4"
+        #
+        histname.append("hselmuon_pfreliso0p4all")
+        histtype[histname[-1]]="mupfallreliso0p4"
+        #
+        histname.append("hselmuon_pfiso0p4chg")
+        histtype[histname[-1]]="mupfchgiso0p4"
+        #
+        histname.append("hselmuon_pfreliso0p4chg")
+        histtype[histname[-1]]="mupfchgreliso0p4"
         #
         histname.append("hselmuon_mindrjet")
         histtype[histname[-1]]="mumindrjet"
+        #
+        histname.append("hselmuon_dphimindrjet")
+        histtype[histname[-1]]="mumindpjet"
+        #
+        histname.append("hselmuon_detamindrjet")
+        histtype[histname[-1]]="mumindejet"
         #
         histname.append("hselmuon_mindrpfc")
         histtype[histname[-1]]="mumindrpfc"
@@ -1820,19 +1898,37 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histtype[histname[-1]]="mutrkreliso"
         #
         histname.append("hselmuon_osv_pfiso0p3all")
-        histtype[histname[-1]]="mupfalliso"
+        histtype[histname[-1]]="mupfalliso0p3"
         #
         histname.append("hselmuon_osv_pfreliso0p3all")
-        histtype[histname[-1]]="mupfallreliso"
+        histtype[histname[-1]]="mupfallreliso0p3"
         #
         histname.append("hselmuon_osv_pfiso0p3chg")
-        histtype[histname[-1]]="mupfchgiso"
+        histtype[histname[-1]]="mupfchgiso0p3"
         #
         histname.append("hselmuon_osv_pfreliso0p3chg")
-        histtype[histname[-1]]="mupfchgreliso"
+        histtype[histname[-1]]="mupfchgreliso0p3"
+        #
+        histname.append("hselmuon_osv_pfiso0p4all")
+        histtype[histname[-1]]="mupfalliso0p4"
+        #
+        histname.append("hselmuon_osv_pfreliso0p4all")
+        histtype[histname[-1]]="mupfallreliso0p4"
+        #
+        histname.append("hselmuon_osv_pfiso0p4chg")
+        histtype[histname[-1]]="mupfchgiso0p4"
+        #
+        histname.append("hselmuon_osv_pfreliso0p4chg")
+        histtype[histname[-1]]="mupfchgreliso0p4"
         #
         histname.append("hselmuon_osv_mindrjet")
         histtype[histname[-1]]="mumindrjet"
+        #
+        histname.append("hselmuon_osv_dphimindrjet")
+        histtype[histname[-1]]="mumindpjet"
+        #
+        histname.append("hselmuon_osv_detamindrjet")
+        histtype[histname[-1]]="mumindejet"
         #
         histname.append("hselmuon_osv_mindrpfc")
         histtype[histname[-1]]="mumindrpfc"
@@ -1943,19 +2039,37 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histtype[histname[-1]]="mutrkreliso"
         #
         histname.append("hselmuon_fourmu_pfiso0p3all")
-        histtype[histname[-1]]="mupfalliso"
+        histtype[histname[-1]]="mupfalliso0p3"
         #
         histname.append("hselmuon_fourmu_pfreliso0p3all")
-        histtype[histname[-1]]="mupfallreliso"
+        histtype[histname[-1]]="mupfallreliso0p3"
         #
         histname.append("hselmuon_fourmu_pfiso0p3chg")
-        histtype[histname[-1]]="mupfchgiso"
+        histtype[histname[-1]]="mupfchgiso0p3"
         #
         histname.append("hselmuon_fourmu_pfreliso0p3chg")
-        histtype[histname[-1]]="mupfchgreliso"
+        histtype[histname[-1]]="mupfchgreliso0p3"
+        #
+        histname.append("hselmuon_fourmu_pfiso0p4all")
+        histtype[histname[-1]]="mupfalliso0p4"
+        #
+        histname.append("hselmuon_fourmu_pfreliso0p4all")
+        histtype[histname[-1]]="mupfallreliso0p4"
+        #
+        histname.append("hselmuon_fourmu_pfiso0p4chg")
+        histtype[histname[-1]]="mupfchgiso0p4"
+        #
+        histname.append("hselmuon_fourmu_pfreliso0p4chg")
+        histtype[histname[-1]]="mupfchgreliso0p4"
         #
         histname.append("hselmuon_fourmu_mindrjet")
         histtype[histname[-1]]="mumindrjet"
+        #
+        histname.append("hselmuon_fourmu_dphimindrjet")
+        histtype[histname[-1]]="mumindpjet"
+        #
+        histname.append("hselmuon_fourmu_detamindrjet")
+        histtype[histname[-1]]="mumindejet"
         #
         histname.append("hselmuon_fourmu_mindrpfc")
         histtype[histname[-1]]="mumindrpfc"
@@ -2066,19 +2180,37 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histtype[histname[-1]]="mutrkreliso"
         #
         histname.append("hselmuon_fourmu_osv_pfiso0p3all")
-        histtype[histname[-1]]="mupfalliso"
+        histtype[histname[-1]]="mupfalliso0p3"
         #
         histname.append("hselmuon_fourmu_osv_pfreliso0p3all")
-        histtype[histname[-1]]="mupfallreliso"
+        histtype[histname[-1]]="mupfallreliso0p3"
         #
         histname.append("hselmuon_fourmu_osv_pfiso0p3chg")
-        histtype[histname[-1]]="mupfchgiso"
+        histtype[histname[-1]]="mupfchgiso0p3"
         #
         histname.append("hselmuon_fourmu_osv_pfreliso0p3chg")
-        histtype[histname[-1]]="mupfchgreliso"
+        histtype[histname[-1]]="mupfchgreliso0p3"
+        #
+        histname.append("hselmuon_fourmu_osv_pfiso0p4all")
+        histtype[histname[-1]]="mupfalliso0p4"
+        #
+        histname.append("hselmuon_fourmu_osv_pfreliso0p4all")
+        histtype[histname[-1]]="mupfallreliso0p4"
+        #
+        histname.append("hselmuon_fourmu_osv_pfiso0p4chg")
+        histtype[histname[-1]]="mupfchgiso0p4"
+        #
+        histname.append("hselmuon_fourmu_osv_pfreliso0p4chg")
+        histtype[histname[-1]]="mupfchgreliso0p4"
         #
         histname.append("hselmuon_fourmu_osv_mindrjet")
         histtype[histname[-1]]="mumindrjet"
+        #
+        histname.append("hselmuon_fourmu_osv_dphimindrjet")
+        histtype[histname[-1]]="mumindpjet"
+        #
+        histname.append("hselmuon_fourmu_osv_detamindrjet")
+        histtype[histname[-1]]="mumindejet"
         #
         histname.append("hselmuon_fourmu_osv_mindrpfc")
         histtype[histname[-1]]="mumindrpfc"
