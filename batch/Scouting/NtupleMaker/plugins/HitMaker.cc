@@ -20,13 +20,15 @@ HitMaker::HitMaker(const edm::ParameterSet& iConfig):
 magFieldToken_(esConsumes()),
 trackingGeometryToken_(esConsumes()),
 measurementTrackerToken_(esConsumes()),
-propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
+propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial"))),
+geomToken_(esConsumes())
 {
     muonToken_ = consumes<Run3ScoutingMuonCollection>(iConfig.getParameter<InputTag>("muonInputTag"));
     dvToken_ = consumes<Run3ScoutingVertexCollection>(iConfig.getParameter<InputTag>("dvInputTag"));
     measurementTrackerEventToken_ = consumes<MeasurementTrackerEvent>(iConfig.getParameter<InputTag>("measurementTrackerEventInputTag"));
 
     produces<vector<vector<bool> > >("isbarrel").setBranchAlias("Muon_hit_barrel");
+    produces<vector<vector<bool> > >("ispixel").setBranchAlias("Muon_hit_pixel");
     produces<vector<vector<bool> > >("isactive").setBranchAlias("Muon_hit_active");
     produces<vector<vector<int> > >("layernum").setBranchAlias("Muon_hit_layer");
     produces<vector<vector<int> > >("ndet").setBranchAlias("Muon_hit_ndet");
@@ -36,9 +38,13 @@ propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
     produces<vector<int> >("nexpectedhits").setBranchAlias("Muon_nExpectedPixelHits");
     produces<vector<int> >("ncompatible").setBranchAlias("Muon_nCompatiblePixelLayers");
     produces<vector<int> >("nexpectedhitsmultiple").setBranchAlias("Muon_nExpectedPixelHitsMultiple");
+    produces<vector<int> >("ncompatibletotal").setBranchAlias("Muon_nCompatibleTrackerLayers");
+    produces<vector<int> >("nexpectedhitsmultipletotal").setBranchAlias("Muon_nExpectedTrackerHitsMultiple");
+    produces<vector<int> >("nexpectedhitstotal").setBranchAlias("Muon_nExpectedTrackerHits");
     produces<vector<float> >("pxatdv").setBranchAlias("Muon_pxatdv");
     produces<vector<float> >("pyatdv").setBranchAlias("Muon_pyatdv");
     produces<vector<float> >("pzatdv").setBranchAlias("Muon_pzatdv");
+    produces<vector<bool> >("onmodule").setBranchAlias("Muon_patdvOnModule");
 }
 
 HitMaker::~HitMaker(){
@@ -49,6 +55,79 @@ void HitMaker::beginJob(){}
 void HitMaker::endJob(){}
 
 void HitMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){}
+
+
+bool HitMaker::checkDet(const GeomDet *det, float pxatdv, float pyatdv, float pzatdv){
+
+    bool debug = 0;
+    bool ret=0;
+    float xy[4][2];
+    float dz;
+    const Bounds *b = &((det->surface()).bounds());
+
+    if (const TrapezoidalPlaneBounds *b2 = dynamic_cast<const TrapezoidalPlaneBounds *>(b)) {
+        // See sec. "TrapezoidalPlaneBounds parameters" in doc/reco-geom-notes.txt
+        std::array<const float, 4> const &par = b2->parameters();
+        xy[0][0] = -par[0];
+        xy[0][1] = -par[3];
+        xy[1][0] = -par[1];
+        xy[1][1] = par[3];
+        xy[2][0] = par[1];
+        xy[2][1] = par[3];
+        xy[3][0] = par[0];
+        xy[3][1] = -par[3];
+        dz = par[2];
+    }
+    else if (const RectangularPlaneBounds *b2 = dynamic_cast<const RectangularPlaneBounds *>(b)) {
+        // Rectangular
+        float dx = b2->width() * 0.5;   // half width
+        float dy = b2->length() * 0.5;  // half length
+        xy[0][0] = -dx;
+        xy[0][1] = -dy;
+        xy[1][0] = -dx;
+        xy[1][1] = dy;
+        xy[2][0] = dx;
+        xy[2][1] = dy;
+        xy[3][0] = dx;
+        xy[3][1] = -dy;
+        dz = b2->thickness() * 0.5;  // half thickness
+    }
+    //check compatibility
+    for (int i = 0; i < 4; ++i) {
+        Local3DPoint lp1(xy[i][0], xy[i][1], -dz);
+        Local3DPoint lp2(xy[i][0], xy[i][1], dz);
+        GlobalPoint gp1 = det->surface().toGlobal(lp1);
+        GlobalPoint gp2 = det->surface().toGlobal(lp2);
+        if (debug) {
+           std::cout << gp1.z() << " z1 " << pzatdv  << std::endl;
+           std::cout << gp2.z() << " z2 " << pzatdv  << std::endl;
+           std::cout << gp1.y() << " y1 " << pyatdv  << std::endl;
+           std::cout << gp2.y() << " y2 " << pyatdv  << std::endl;
+           std::cout << gp1.x() << " x1 " << pxatdv  << std::endl;
+           std::cout << gp2.x() << " x2 " << pxatdv  << std::endl;
+        }
+       //TO DO : check if position is compatible  
+    }
+   
+
+    return ret;
+}
+
+
+
+
+bool HitMaker::positionOnModule(const TrackerGeometry trackerGeom, float pxatdv, float pyatdv, float pzatdv){
+    bool ret = false;
+    for (auto &det : trackerGeom.detsPXB()){
+        ret = checkDet(det, pxatdv, pyatdv, pzatdv);
+        if (ret) return ret;
+    }
+    for (auto &det : trackerGeom.detsPXF()){
+        ret = checkDet(det, pxatdv, pyatdv, pzatdv);
+        if (ret) return ret;
+    }
+    return ret;
+}
 
 void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
@@ -71,6 +150,8 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     edm::Handle<Run3ScoutingVertexCollection> dvHandle;
     iEvent.getByToken(dvToken_, dvHandle);
 
+    const TrackerGeometry trackerGeom_ = iSetup.get<TrackerRecoGeometryRecord>().get(geomToken_);
+
     if (debug) {
         std::cout << std::endl;
         std::cout << "------- Run " << iEvent.id().run() << " Lumi " << iEvent.luminosityBlock() << " Event " << iEvent.id().event() << " -------" << std::endl;
@@ -79,6 +160,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     // nlohmann::json j;
 
     unique_ptr<vector<vector<bool> > > v_isbarrel(new vector<vector<bool> >);
+    unique_ptr<vector<vector<bool> > > v_ispixel(new vector<vector<bool> >);
     unique_ptr<vector<vector<bool> > > v_isactive(new vector<vector<bool> >);
     unique_ptr<vector<vector<int> > > v_layernum(new vector<vector<int> >);
     unique_ptr<vector<vector<int> > > v_ndet(new vector<vector<int> >);
@@ -88,9 +170,13 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<int> > v_nexpectedhits(new vector<int>);
     unique_ptr<vector<int> > v_ncompatible(new vector<int>);
     unique_ptr<vector<int> > v_nexpectedhitsmultiple(new vector<int>);
+    unique_ptr<vector<int> > v_nexpectedhitstotal(new vector<int>);
+    unique_ptr<vector<int> > v_ncompatibletotal(new vector<int>);
+    unique_ptr<vector<int> > v_nexpectedhitsmultipletotal(new vector<int>);
     unique_ptr<vector<float> > v_pxatdv(new vector<float>);
     unique_ptr<vector<float> > v_pyatdv(new vector<float>);
     unique_ptr<vector<float> > v_pzatdv(new vector<float>);
+    unique_ptr<vector<bool> > v_onmodule(new vector<bool>);
 
     for (auto const& muon : *muonHandle) {
         vector<int> vertex_indices = muon.vtxIndx();
@@ -241,13 +327,15 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         float pxatdv = startingStateP.globalMomentum().x();
         float pyatdv = startingStateP.globalMomentum().y();
         float pzatdv = startingStateP.globalMomentum().z();
-
+        bool onmodule = false;//positionOnModule(trackerGeom_, pxatdv, pyatdv, pzatdv);
+       
         // or could get searchGeom.allLayers() and require layer->subDetector() enum is PixelBarrel/PixelEndcap 
-        vector<DetLayer const*> layers_pixel;
-        for (auto layer : searchGeom.pixelBarrelLayers()) layers_pixel.push_back(layer);
-        for (auto layer : searchGeom.negPixelForwardLayers()) layers_pixel.push_back(layer);
-        for (auto layer : searchGeom.posPixelForwardLayers()) layers_pixel.push_back(layer);
+        //vector<DetLayer const*> layers_pixel;
+        //for (auto layer : searchGeom.pixelBarrelLayers()) layers_pixel.push_back(layer);
+        //for (auto layer : searchGeom.negPixelForwardLayers()) layers_pixel.push_back(layer);
+        //for (auto layer : searchGeom.posPixelForwardLayers()) layers_pixel.push_back(layer);
         vector<bool> isbarrel;
+        vector<bool> ispixel;
         vector<bool> isactive;
         vector<int> layernum;
         vector<int> ndet;
@@ -257,12 +345,18 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         int nexpectedhits = 0;
         int nexpectedhitsmultiple = 0;
         int nexpectedhitsmultipleraw = 0;
+        int nexpectedhitstotal = 0;
+        int nexpectedhitsmultipletotal = 0;
         auto tsos = startingStateP;
         int ncompatible = 0;
-        for (auto const& layer : layers_pixel) {
+        int ncompatibletotal = 0;
+        for (auto const& layer : searchGeom.allLayers()) {
+            if(debug) std::cout << (int)layer->subDetector() << " " << layer->subDetector() << " layers subdet" << std::endl;
+            bool pixel=((int)layer->subDetector())<2; // pixel barrel = 0, endcap = 1
             bool compatible = layer->compatible(tsos, prop, estimator).first;
             if (debug) std::cout << "compatible=" << compatible << std::endl;
-            ncompatible += compatible;
+            if (pixel) ncompatible += compatible;
+            ncompatibletotal += compatible;
             // auto tsos = startingStateP;
             // /cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw/CMSSW_10_2_5/src/TrackingTools/DetLayers/src/BarrelDetLayer.cc
             auto const& detWithState = layer->compatibleDets(tsos, prop, estimator);
@@ -288,19 +382,23 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                 auto did2 = ds.first->geographicalId();
                 auto md = measurementTracker_->idToDet(did2, *measurementTrackerEvent);
                 if (debug) std::cout << "   subhit active=" << md.isActive() << " valid=" << md.isValid() << std::endl;
-                nexpectedhitsmultiple += md.isActive()*md.isValid();
+                if (pixel) nexpectedhitsmultiple += md.isActive()*md.isValid();
+                nexpectedhitsmultipletotal += md.isActive()*md.isValid();
                 nexpectedhitsmultipleraw += 1;
             }
             isbarrel.push_back(barrel);
+            ispixel.push_back(pixel);
             isactive.push_back(active);
             layernum.push_back(seq);
             ndet.push_back(sdet);
             hitx.push_back(pos.x());
             hity.push_back(pos.y());
             hitz.push_back(pos.z());
-            nexpectedhits += active;
+            if (pixel) nexpectedhits += active;
+            nexpectedhitstotal += active;
         }
         v_isbarrel->push_back(isbarrel);
+        v_ispixel->push_back(ispixel);
         v_isactive->push_back(isactive);
         v_layernum->push_back(layernum);
         v_ndet->push_back(ndet);
@@ -310,9 +408,13 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         v_nexpectedhits->push_back(nexpectedhits);
         v_ncompatible->push_back(ncompatible);
         v_nexpectedhitsmultiple->push_back(nexpectedhitsmultiple);
+        v_nexpectedhitstotal->push_back(nexpectedhitstotal);
+        v_ncompatibletotal->push_back(ncompatibletotal);
+        v_nexpectedhitsmultipletotal->push_back(nexpectedhitsmultipletotal);
         v_pxatdv->push_back(pxatdv);
         v_pyatdv->push_back(pyatdv);
         v_pzatdv->push_back(pzatdv);
+        v_onmodule->push_back(onmodule);
 
         if (debug) {
             std::cout <<  " valid: " << nvalidpixelhits <<  " exp: " << nexpectedhits <<  " expmultiple: " << nexpectedhitsmultiple 
@@ -331,6 +433,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
 
     iEvent.put(std::move(v_isbarrel), "isbarrel");
+    iEvent.put(std::move(v_ispixel), "ispixel");
     iEvent.put(std::move(v_isactive), "isactive");
     iEvent.put(std::move(v_layernum), "layernum");
     iEvent.put(std::move(v_ndet), "ndet");
@@ -340,9 +443,13 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(v_nexpectedhits), "nexpectedhits");
     iEvent.put(std::move(v_ncompatible), "ncompatible");
     iEvent.put(std::move(v_nexpectedhitsmultiple), "nexpectedhitsmultiple");
+    iEvent.put(std::move(v_nexpectedhitstotal), "nexpectedhitstotal");
+    iEvent.put(std::move(v_ncompatibletotal), "ncompatibletotal");
+    iEvent.put(std::move(v_nexpectedhitsmultipletotal), "nexpectedhitsmultipletotal");
     iEvent.put(std::move(v_pxatdv), "pxatdv");
     iEvent.put(std::move(v_pyatdv), "pyatdv");
     iEvent.put(std::move(v_pzatdv), "pzatdv");
+    iEvent.put(std::move(v_onmodule), "onmodule");
 }
 
 DEFINE_FWK_MODULE(HitMaker);

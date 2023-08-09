@@ -50,6 +50,13 @@
 #include "TrackingTools/TransientTrack/interface/GsfTransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TrackTransientTrack.h"
 
+#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
+
+#include "RecoTracker/Record/interface/TrackerRecoGeometryRecord.h"
+#include "DataFormats/GeometrySurface/interface/RectangularPlaneBounds.h"
+#include "DataFormats/GeometrySurface/interface/TrapezoidalPlaneBounds.h"
+
 #include "TLorentzVector.h"
 
 // for quick debugging. remove later
@@ -66,7 +73,10 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob();
   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
-
+  
+  bool checkDet(const GeomDet *det, float pxatdv, float pyatdv, float pzatdv);  
+  bool positionOnModule(const TrackerGeometry trackerGeom, float pxatdv, float pyatdv, float pzatdv);
+  
   edm::EDGetToken muonToken_;
   edm::EDGetToken dvToken_;
   edm::EDGetToken measurementTrackerEventToken_;
@@ -81,6 +91,8 @@ private:
  
   edm::ESHandle<Propagator> propagatorHandle_;
   edm::ESGetToken<Propagator, TrackingComponentsRecord> propagatorToken_;
+   
+  edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> geomToken_;
 
 };
 
