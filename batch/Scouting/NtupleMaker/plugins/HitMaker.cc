@@ -20,8 +20,7 @@ HitMaker::HitMaker(const edm::ParameterSet& iConfig):
 magFieldToken_(esConsumes()),
 trackingGeometryToken_(esConsumes()),
 measurementTrackerToken_(esConsumes()),
-propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial"))),
-geomToken_(esConsumes())
+propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
 {
     muonToken_ = consumes<Run3ScoutingMuonCollection>(iConfig.getParameter<InputTag>("muonInputTag"));
     dvToken_ = consumes<Run3ScoutingVertexCollection>(iConfig.getParameter<InputTag>("dvInputTag"));
@@ -44,7 +43,6 @@ geomToken_(esConsumes())
     produces<vector<float> >("pxatdv").setBranchAlias("Muon_pxatdv");
     produces<vector<float> >("pyatdv").setBranchAlias("Muon_pyatdv");
     produces<vector<float> >("pzatdv").setBranchAlias("Muon_pzatdv");
-    produces<vector<bool> >("onmodule").setBranchAlias("Muon_patdvOnModule");
 }
 
 HitMaker::~HitMaker(){
@@ -55,79 +53,6 @@ void HitMaker::beginJob(){}
 void HitMaker::endJob(){}
 
 void HitMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){}
-
-
-bool HitMaker::checkDet(const GeomDet *det, float pxatdv, float pyatdv, float pzatdv){
-
-    bool debug = 0;
-    bool ret=0;
-    float xy[4][2];
-    float dz;
-    const Bounds *b = &((det->surface()).bounds());
-
-    if (const TrapezoidalPlaneBounds *b2 = dynamic_cast<const TrapezoidalPlaneBounds *>(b)) {
-        // See sec. "TrapezoidalPlaneBounds parameters" in doc/reco-geom-notes.txt
-        std::array<const float, 4> const &par = b2->parameters();
-        xy[0][0] = -par[0];
-        xy[0][1] = -par[3];
-        xy[1][0] = -par[1];
-        xy[1][1] = par[3];
-        xy[2][0] = par[1];
-        xy[2][1] = par[3];
-        xy[3][0] = par[0];
-        xy[3][1] = -par[3];
-        dz = par[2];
-    }
-    else if (const RectangularPlaneBounds *b2 = dynamic_cast<const RectangularPlaneBounds *>(b)) {
-        // Rectangular
-        float dx = b2->width() * 0.5;   // half width
-        float dy = b2->length() * 0.5;  // half length
-        xy[0][0] = -dx;
-        xy[0][1] = -dy;
-        xy[1][0] = -dx;
-        xy[1][1] = dy;
-        xy[2][0] = dx;
-        xy[2][1] = dy;
-        xy[3][0] = dx;
-        xy[3][1] = -dy;
-        dz = b2->thickness() * 0.5;  // half thickness
-    }
-    //check compatibility
-    for (int i = 0; i < 4; ++i) {
-        Local3DPoint lp1(xy[i][0], xy[i][1], -dz);
-        Local3DPoint lp2(xy[i][0], xy[i][1], dz);
-        GlobalPoint gp1 = det->surface().toGlobal(lp1);
-        GlobalPoint gp2 = det->surface().toGlobal(lp2);
-        if (debug) {
-           std::cout << gp1.z() << " z1 " << pzatdv  << std::endl;
-           std::cout << gp2.z() << " z2 " << pzatdv  << std::endl;
-           std::cout << gp1.y() << " y1 " << pyatdv  << std::endl;
-           std::cout << gp2.y() << " y2 " << pyatdv  << std::endl;
-           std::cout << gp1.x() << " x1 " << pxatdv  << std::endl;
-           std::cout << gp2.x() << " x2 " << pxatdv  << std::endl;
-        }
-       //TO DO : check if position is compatible  
-    }
-   
-
-    return ret;
-}
-
-
-
-
-bool HitMaker::positionOnModule(const TrackerGeometry trackerGeom, float pxatdv, float pyatdv, float pzatdv){
-    bool ret = false;
-    for (auto &det : trackerGeom.detsPXB()){
-        ret = checkDet(det, pxatdv, pyatdv, pzatdv);
-        if (ret) return ret;
-    }
-    for (auto &det : trackerGeom.detsPXF()){
-        ret = checkDet(det, pxatdv, pyatdv, pzatdv);
-        if (ret) return ret;
-    }
-    return ret;
-}
 
 void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
@@ -149,8 +74,6 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     edm::Handle<Run3ScoutingVertexCollection> dvHandle;
     iEvent.getByToken(dvToken_, dvHandle);
-
-    const TrackerGeometry trackerGeom_ = iSetup.get<TrackerRecoGeometryRecord>().get(geomToken_);
 
     if (debug) {
         std::cout << std::endl;
@@ -176,8 +99,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<float> > v_pxatdv(new vector<float>);
     unique_ptr<vector<float> > v_pyatdv(new vector<float>);
     unique_ptr<vector<float> > v_pzatdv(new vector<float>);
-    unique_ptr<vector<bool> > v_onmodule(new vector<bool>);
-
+   
     for (auto const& muon : *muonHandle) {
         vector<int> vertex_indices = muon.vtxIndx();
         int first_good_index = 0;
@@ -327,8 +249,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         float pxatdv = startingStateP.globalMomentum().x();
         float pyatdv = startingStateP.globalMomentum().y();
         float pzatdv = startingStateP.globalMomentum().z();
-        bool onmodule = false;//positionOnModule(trackerGeom_, pxatdv, pyatdv, pzatdv);
-       
+
         // or could get searchGeom.allLayers() and require layer->subDetector() enum is PixelBarrel/PixelEndcap 
         //vector<DetLayer const*> layers_pixel;
         //for (auto layer : searchGeom.pixelBarrelLayers()) layers_pixel.push_back(layer);
@@ -414,7 +335,6 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         v_pxatdv->push_back(pxatdv);
         v_pyatdv->push_back(pyatdv);
         v_pzatdv->push_back(pzatdv);
-        v_onmodule->push_back(onmodule);
 
         if (debug) {
             std::cout <<  " valid: " << nvalidpixelhits <<  " exp: " << nexpectedhits <<  " expmultiple: " << nexpectedhitsmultiple 
@@ -449,7 +369,6 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(v_pxatdv), "pxatdv");
     iEvent.put(std::move(v_pyatdv), "pyatdv");
     iEvent.put(std::move(v_pzatdv), "pzatdv");
-    iEvent.put(std::move(v_onmodule), "onmodule");
 }
 
 DEFINE_FWK_MODULE(HitMaker);
