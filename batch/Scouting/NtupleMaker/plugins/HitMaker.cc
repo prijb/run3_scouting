@@ -43,6 +43,11 @@ propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
     produces<vector<float> >("pxatdv").setBranchAlias("Muon_pxatdv");
     produces<vector<float> >("pyatdv").setBranchAlias("Muon_pyatdv");
     produces<vector<float> >("pzatdv").setBranchAlias("Muon_pzatdv");
+    produces<vector<bool> >("dvonmodule").setBranchAlias("Vertex_onModule");
+    produces<vector<bool> >("dvonmodulewithinunc").setBranchAlias("Vertex_onModule_withinUnc");
+    produces<vector<float> >("dvdetxmindr").setBranchAlias("Vertex_closestDet_x");
+    produces<vector<float> >("dvdetymindr").setBranchAlias("Vertex_closestDet_y");
+    produces<vector<float> >("dvdetzmindr").setBranchAlias("Vertex_closestDet_z");
 }
 
 HitMaker::~HitMaker(){
@@ -53,6 +58,49 @@ void HitMaker::beginJob(){}
 void HitMaker::endJob(){}
 
 void HitMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){}
+
+float HitMaker::getMinDetDistance(const GeomDet *det, Local3DPoint point, GlobalPoint& retPoint){
+
+  float mindistance=100000;
+  float xy[4][2];
+  float dz;
+  const Bounds *b = &((det->surface()).bounds());
+
+  if (const TrapezoidalPlaneBounds *b2 = dynamic_cast<const TrapezoidalPlaneBounds *>(b)) {
+    // See sec. "TrapezoidalPlaneBounds parameters" in doc/reco-geom-notes.txt
+    std::array<const float, 4> const &par = b2->parameters();
+    xy[0][0] = -par[0];
+    xy[0][1] = -par[3];
+    xy[1][0] = -par[1];
+    xy[1][1] = par[3];
+    xy[2][0] = par[1];
+    xy[2][1] = par[3];
+    xy[3][0] = par[0];
+    xy[3][1] = -par[3];
+    dz = par[2];
+  } else if (const RectangularPlaneBounds *b2 = dynamic_cast<const RectangularPlaneBounds *>(b)) {
+    // Rectangular
+    float dx = b2->width() * 0.5;   // half width
+    float dy = b2->length() * 0.5;  // half length
+    xy[0][0] = -dx;
+    xy[0][1] = -dy;
+    xy[1][0] = -dx;
+    xy[1][1] = dy;
+    xy[2][0] = dx;
+    xy[2][1] = dy;
+    xy[3][0] = dx;
+    xy[3][1] = -dy;
+    dz = b2->thickness() * 0.5;  // half thickness
+  }
+  for (int i = 0; i < 4; ++i) {
+    Local3DPoint lp1(xy[i][0], xy[i][1], -dz);
+    Local3DPoint lp2(xy[i][0], xy[i][1], dz);
+    if((point-lp1).mag()<mindistance) {mindistance=(point-lp1).mag(); retPoint=det->surface().toGlobal(lp1);}
+    if((point-lp2).mag()<mindistance) {mindistance=(point-lp2).mag(); retPoint=det->surface().toGlobal(lp2);}
+  }
+  return mindistance;
+
+}
 
 void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
@@ -99,6 +147,91 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<float> > v_pxatdv(new vector<float>);
     unique_ptr<vector<float> > v_pyatdv(new vector<float>);
     unique_ptr<vector<float> > v_pzatdv(new vector<float>);
+    unique_ptr<vector<bool> > dv_onmodule(new vector<bool>);
+    unique_ptr<vector<bool> > dv_onmodule_withinunc(new vector<bool>);
+    unique_ptr<vector<float> > dv_detxmindr(new vector<float>);
+    unique_ptr<vector<float> > dv_detymindr(new vector<float>);
+    unique_ptr<vector<float> > dv_detzmindr(new vector<float>);
+
+    if(debug){
+    GlobalPoint myPoint(0,0,0);
+    GlobalError myErr(0.1,0,0.1,0,0,0.1);
+    for (auto const& detL : searchGeom.allLayers()){
+        auto const& components = detL->basicComponents();
+        int ncomp=0;
+        for (auto const& comp: components){
+            std::cout << "component NN " << ncomp <<"/" << components.size() <<" from "<< detL->subDetector() << ", isLEAF  "<< comp->isLeaf() << std::endl;
+            std::cout <<" length "<< comp->surface().bounds().length() << " width "<< comp->surface().bounds().width() << " thickness " << comp->surface().bounds().thickness() << std::endl;
+            ncomp++;
+            if(!comp->isLeaf()){
+              std::cout << " subcomp --- " << comp->components().size() << std::endl;
+              for (auto const& subcomp: comp->components()){
+                  std::cout << "subLEAF "<<subcomp->isLeaf() << std::endl;
+                  std::cout <<" length "<< subcomp->surface().bounds().length() << " width "<< subcomp->surface().bounds().width() << " thickness " << subcomp->surface().bounds().thickness() << std::endl;
+                  Local3DPoint myLocalPoint = subcomp->surface().toLocal(myPoint);
+                  std::cout << " L_x " << myLocalPoint.x() << " L_y " << myLocalPoint.y() << " L_z "<< myLocalPoint.z() << std::endl;             
+                  std::cout << " 0_x " << subcomp->position().x() << " 0_y " << subcomp->position().y() << " 0_z "<< subcomp->position().z() << std::endl;
+                  std::cout << " inside " << subcomp->surface().bounds().inside(myLocalPoint)<< std::endl;              
+              }
+            }
+            else{
+ 
+                Local3DPoint myLocalPoint = comp->surface().toLocal(myPoint);
+                LocalError myLocalErr = ErrorFrameTransformer().transform( myErr, comp->surface());
+                std::cout << " L_x " << myLocalPoint.x() << " L_y " << myLocalPoint.y() << " L_z "<< myLocalPoint.z() << std::endl;
+                std::cout << " 0_x " << comp->position().x() << " 0_y " << comp->position().y() << " 0_z "<< comp->position().z() << std::endl;
+                std::cout << " inside " << comp->surface().bounds().inside(myLocalPoint)<< std::endl;
+                GlobalPoint refCenterG(comp->position().x(),comp->position().y(),comp->position().z());
+                Local3DPoint refCenterGL = comp->surface().toLocal(refCenterG);
+                std::cout << " L_x " << refCenterGL.x() << " L_y " << refCenterGL.y() << " L_z "<< refCenterGL.z() << std::endl;
+                std::cout << " inside GL " << comp->surface().bounds().inside(refCenterGL)<< std::endl;
+                std::cout << " inside GLE " << comp->surface().bounds().inside(refCenterGL,myLocalErr)<< std::endl;
+            }
+         }
+    }
+    }
+    
+    for (auto const& vertex : *dvHandle) {
+        bool vertex_onmodule = false;
+        bool vertex_onmodule_withinunc = false;
+        GlobalPoint closestDetV(0,0,0);
+        float mindistance=10E6;
+        GlobalPoint myPoint(vertex.x(),vertex.y(),vertex.z());
+        GlobalError myErr(vertex.xError(),0,vertex.yError(),0,0,vertex.zError()); // cov missing
+        for (auto const& detL : searchGeom.allLayers()){
+            auto const& components = detL->basicComponents();
+            for (auto const& comp: components){
+                if(!comp->isLeaf()){
+                   for (auto const& subcomp: comp->components()){ 
+                       // not going further down beacause this level should be enough to separate all components (check above)
+                       Local3DPoint myLocalPoint = subcomp->surface().toLocal(myPoint);
+                       LocalError myLocalErr = ErrorFrameTransformer().transform( myErr, subcomp->surface());
+                       vertex_onmodule=subcomp->surface().bounds().inside(myLocalPoint);
+                       vertex_onmodule_withinunc=subcomp->surface().bounds().inside(myLocalPoint,myLocalErr);
+                       GlobalPoint retPoint(0,0,0);
+                       float mindist_temp=getMinDetDistance(subcomp, myLocalPoint, retPoint);
+                       if(mindist_temp<mindistance){mindistance=mindist_temp; closestDetV=retPoint;}
+                   }
+                }
+                else{
+                   Local3DPoint myLocalPoint = comp->surface().toLocal(myPoint);
+                   LocalError myLocalErr = ErrorFrameTransformer().transform( myErr, comp->surface());
+                   vertex_onmodule=comp->surface().bounds().inside(myLocalPoint);
+                   vertex_onmodule_withinunc=comp->surface().bounds().inside(myLocalPoint,myLocalErr);
+                   GlobalPoint retPoint(0,0,0);
+                   float mindist_temp=getMinDetDistance(comp, myLocalPoint, retPoint);
+                   if(mindist_temp<mindistance){mindistance=mindist_temp; closestDetV=retPoint;}
+                }
+            }
+            if(vertex_onmodule && vertex_onmodule_withinunc) break;     
+        }
+        dv_onmodule->push_back(vertex_onmodule);
+        dv_onmodule_withinunc->push_back(vertex_onmodule_withinunc);   
+        dv_detxmindr->push_back(closestDetV.x());
+        dv_detymindr->push_back(closestDetV.y());
+        dv_detzmindr->push_back(closestDetV.z());
+        
+    }
    
     for (auto const& muon : *muonHandle) {
         vector<int> vertex_indices = muon.vtxIndx();
@@ -369,6 +502,11 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(v_pxatdv), "pxatdv");
     iEvent.put(std::move(v_pyatdv), "pyatdv");
     iEvent.put(std::move(v_pzatdv), "pzatdv");
+    iEvent.put(std::move(dv_onmodule), "dvonmodule");
+    iEvent.put(std::move(dv_onmodule_withinunc), "dvonmodulewithinunc");
+    iEvent.put(std::move(dv_detxmindr), "dvdetxmindr");
+    iEvent.put(std::move(dv_detymindr), "dvdetymindr");
+    iEvent.put(std::move(dv_detzmindr), "dvdetzmindr");
 }
 
 DEFINE_FWK_MODULE(HitMaker);

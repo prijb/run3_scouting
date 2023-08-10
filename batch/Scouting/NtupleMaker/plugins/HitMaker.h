@@ -50,6 +50,11 @@
 #include "TrackingTools/TransientTrack/interface/GsfTransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TrackTransientTrack.h"
 
+#include "DataFormats/GeometrySurface/interface/RectangularPlaneBounds.h"
+#include "DataFormats/GeometrySurface/interface/TrapezoidalPlaneBounds.h"
+
+#include "DataFormats/GeometryCommonDetAlgo/interface/ErrorFrameTransformer.h"
+
 #include "TLorentzVector.h"
 
 // for quick debugging. remove later
@@ -67,6 +72,8 @@ private:
   virtual void endJob();
   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
+  float getMinDetDistance(const GeomDet *det,  Local3DPoint point, GlobalPoint& retPoint);
+
   edm::EDGetToken muonToken_;
   edm::EDGetToken dvToken_;
   edm::EDGetToken measurementTrackerEventToken_;
@@ -81,6 +88,7 @@ private:
  
   edm::ESHandle<Propagator> propagatorHandle_;
   edm::ESGetToken<Propagator, TrackingComponentsRecord> propagatorToken_;
+
 
 };
 
