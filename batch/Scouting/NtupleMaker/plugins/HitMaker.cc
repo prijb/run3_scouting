@@ -230,24 +230,34 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         dv_detxmindr->push_back(closestDetV.x());
         dv_detymindr->push_back(closestDetV.y());
         dv_detzmindr->push_back(closestDetV.z());
-        
+        if (debug){
+            std::cout << " -- " << myPoint.x() << "  -- "<< myPoint.y() << " -- " << myPoint.z() << std::endl;
+            std::cout << " -- " << vertex_onmodule << " -- " << mindistance << std::endl;
+            std::cout << " -- " << closestDetV.x() << " -- " << closestDetV.y() <<" -- " << closestDetV.z() << std::endl;
+        }
     }
    
     for (auto const& muon : *muonHandle) {
         vector<int> vertex_indices = muon.vtxIndx();
-        int first_good_index = 0;
+        int best_index = 0;
+        float maxprob = -1.0;
         for (auto idx : vertex_indices) {
-            if (idx >= 0) {
-                first_good_index = idx;
-                break;
+            if (idx >= 0 && idx < (int)(*dvHandle).size()) {
+                float chi2_=(*dvHandle).at(idx).chi2();
+                int ndof_=(*dvHandle).at(idx).ndof();
+                float prob_ = TMath::Prob(chi2_,ndof_);
+                if (prob_ > maxprob) {
+                   maxprob = prob_;
+                   best_index = idx;
+                }
             }
         }
         int nDV = (*dvHandle).size();
         float dv_x = 0;
         float dv_y = 0;
         float dv_z = 0;
-        if (first_good_index < nDV) {
-            Run3ScoutingVertex dv = (*dvHandle).at(first_good_index);
+        if (best_index < nDV) {
+            Run3ScoutingVertex dv = (*dvHandle).at(best_index);
             dv_x = dv.x();
             dv_y = dv.y();
             dv_z = dv.z();
