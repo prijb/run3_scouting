@@ -385,12 +385,12 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                 v_hitx->push_back(vector<float>());
                 v_hity->push_back(vector<float>());
                 v_hitz->push_back(vector<float>());
-                v_nexpectedhits->push_back(0);
-                v_ncompatible->push_back(0);
-                v_nexpectedhitsmultiple->push_back(0);
-                v_nexpectedhitstotal->push_back(0);
-                v_ncompatibletotal->push_back(0);
-                v_nexpectedhitsmultipletotal->push_back(0);
+                v_nexpectedhits->push_back(-1);
+                v_ncompatible->push_back(-1);
+                v_nexpectedhitsmultiple->push_back(-1);
+                v_nexpectedhitstotal->push_back(-1);
+                v_ncompatibletotal->push_back(-1);
+                v_nexpectedhitsmultipletotal->push_back(-1);
                 v_pxatdv->push_back(0);
                 v_pyatdv->push_back(0);
                 v_pzatdv->push_back(0);
