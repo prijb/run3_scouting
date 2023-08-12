@@ -344,8 +344,6 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         // Default parameters according to https://github.com/cms-sw/cmssw/blob/master/TrackingTools/KalmanUpdators/interface/Chi2MeasurementEstimatorParams.h
         Chi2MeasurementEstimator estimator(30., 3., 0.5, 2.0, 0.5, 1.e12);
 
-
-
         GlobalVector startingMomentum(track_px, track_py, track_pz);
         GlobalPoint startingPosition;
         if (track_ref_inside_dv) {
@@ -375,8 +373,30 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
             // https://github.com/cms-sw/cmssw/blob/949a7b9d2c1bfde1458e01da1c14da0cd53a0ccf/HLTriggerOffline/Muon/src/PropagateToMuon.cc#L159
             // https://github.com/cms-sw/cmssw/blob/c9b012f3388a39f64eb05980e3732d0484539f14/DataFormats/GeometrySurface/interface/Cylinder.h
             double valid_distance = prop.propagateWithPath(startingStateP, Cylinder(dv_rho)).second;
-            //very seldom (1/500000 probably) the propagation seems to give seg faults - since this is very rare I just check the distance
-            if(valid_distance<=0) continue;
+            if(valid_distance<=0)  //rarely (test 24 muons in 105181 evts, 5893 passing filters) the propagation seems to give seg faults
+                                   //since this is very rare (0.2% of muons, assuming 2 per evt) I just check the distance and use dummy values 
+            {
+                if (debug) std::cout << "UNSUCCESFUL propagation to the starting point" << std::endl;
+                v_isbarrel->push_back(vector<bool>());
+                v_ispixel->push_back(vector<bool>());
+                v_isactive->push_back(vector<bool>());
+                v_layernum->push_back(vector<int>());
+                v_ndet->push_back(vector<int>());
+                v_hitx->push_back(vector<float>());
+                v_hity->push_back(vector<float>());
+                v_hitz->push_back(vector<float>());
+                v_nexpectedhits->push_back(0);
+                v_ncompatible->push_back(0);
+                v_nexpectedhitsmultiple->push_back(0);
+                v_nexpectedhitstotal->push_back(0);
+                v_ncompatibletotal->push_back(0);
+                v_nexpectedhitsmultipletotal->push_back(0);
+                v_pxatdv->push_back(0);
+                v_pyatdv->push_back(0);
+                v_pzatdv->push_back(0);
+                continue;//skip the rest for the given muon, it should happend very rarely
+            }
+
             startingStateP = prop.propagate(startingStateP, Cylinder(dv_rho));
             // cylx = startingStateP.globalPosition().x();
             // cyly = startingStateP.globalPosition().y();
