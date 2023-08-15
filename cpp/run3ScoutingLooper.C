@@ -215,6 +215,8 @@ struct SV {
   std::vector<float> mindx, mindy, mindz, mindxy, mind3d;
   std::vector<float> maxdx, maxdy, maxdz, maxdxy, maxd3d;
   std::vector<bool> selected;
+  std::vector<bool> onModule, onModuleWithinUnc;
+  std::vector<float> closestDet_x, closestDet_y, closestDet_z;
 
   void clear() {
     index.clear(); ndof.clear();
@@ -225,6 +227,8 @@ struct SV {
     mindx.clear(); mindy.clear(); mindz.clear(); mindxy.clear(); mind3d.clear();
     maxdx.clear(); maxdy.clear(); maxdz.clear(); maxdxy.clear(); maxd3d.clear();
     selected.clear();
+    onModule.clear(); onModuleWithinUnc.clear();
+    closestDet_x.clear(); closestDet_y.clear(); closestDet_z.clear();
   }
 
   void sort() {
@@ -254,6 +258,11 @@ struct SV {
     apply_permutation_in_place(maxdxy, comp);
     apply_permutation_in_place(maxd3d, comp);
     apply_permutation_in_place(selected, comp);
+    apply_permutation_in_place(onModule, comp);
+    apply_permutation_in_place(onModuleWithinUnc, comp);
+    apply_permutation_in_place(closestDet_x, comp);
+    apply_permutation_in_place(closestDet_y, comp);
+    apply_permutation_in_place(closestDet_z, comp);
   }
 };
 
@@ -301,7 +310,7 @@ struct Muon {
   std::vector<float> phiCorr, dxyCorr;
   std::vector<float> PFIsoChg0p3, PFIsoChg0p4, PFIsoAll0p3, PFIsoAll0p4;
   std::vector<float> PFRelIsoChg0p3, PFRelIsoChg0p4, PFRelIsoAll0p3, PFRelIsoAll0p4;
-  std::vector<float> mindrPF0p3, mindrrPF0p4;
+  std::vector<float> mindrPF0p3, mindrPF0p4;
   std::vector<float> mindr, maxdr;
   std::vector<float> mindrJet, mindphiJet, mindetaJet;
   std::vector<TLorentzVector> vec;
@@ -459,6 +468,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("SV_maxdy", &SVs.maxdy);
   tout->Branch("SV_maxdz", &SVs.maxdz);
   tout->Branch("SV_selected", &SVs.selected);
+  tout->Branch("SV_onModule", &SVs.onModule);
+  tout->Branch("SV_onModuleWithinUnc", &SVs.onModuleWithinUnc);
+  tout->Branch("SV_closestDet_x", &SVs.closestDet_x);
+  tout->Branch("SV_closestDet_y", &SVs.closestDet_y);
+  tout->Branch("SV_closestDet_z", &SVs.closestDet_z);
 
   tout->Branch("SVOverlap_vtxIdxs", &SVOverlaps.vtxIdxs);
   tout->Branch("SVOverlap_x", &SVOverlaps.x);
@@ -660,6 +674,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
       // SV selection
       auto svs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingMuonPacker", "displacedVtx");
+      auto dvonmodule = getObject<std::vector<bool>>(ev, "hitMaker", "dvonmodule");
+      auto dvonmodulewithinunc = getObject<std::vector<bool>>(ev, "hitMaker", "dvonmodulewithinunc");
+      auto dvdetxmindr = getObject<std::vector<float>>(ev, "hitMaker", "dvdetxmindr");
+      auto dvdetymindr = getObject<std::vector<float>>(ev, "hitMaker", "dvdetymindr");
+      auto dvdetzmindr = getObject<std::vector<float>>(ev, "hitMaker", "dvdetzmindr");
       SVs.clear();
 
       unsigned int nSVs = svs.size();
@@ -689,6 +708,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         float lxy = TMath::Sqrt((x-PV_x)*(x-PV_x)+(y-PV_y)*(y-PV_y));
         SVs.lxy.push_back(lxy);
         SVs.l3d.push_back(TMath::Sqrt(lxy*lxy+(z-PV_z)*(z-PV_z)));
+        SVs.onModule.push_back(dvonmodule.at(iSV));
+        SVs.onModuleWithinUnc.push_back(dvonmodulewithinunc.at(iSV));
+        SVs.closestDet_x.push_back(dvdetxmindr.at(iSV));
+        SVs.closestDet_y.push_back(dvdetymindr.at(iSV));
+        SVs.closestDet_z.push_back(dvdetzmindr.at(iSV));
 
         float mindx=1e6, mindy=1e6, mindz=1e6, mindxy=1e6, mind3d=1e6;
         float maxdx=-1, maxdy=-1, maxdz=-1, maxdxy=-1, maxd3d=-1;
@@ -902,7 +926,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
         const auto pfIsos0p3 = getPFIsolation(muVec, pfs, 0.3);
         const auto pfIsoChg0p3 = std::get<0>(pfIsos0p3);
-        const auto pfIsoAll0p3 = pfIsoChg + std::max(0.0, std::get<1>(pfIsos0p3)+std::get<2>(pfIsos0p3)-0.5*std::get<3>(pfIsos0p3));
+        const auto pfIsoAll0p3 = pfIsoChg0p3 + std::max(0.0, std::get<1>(pfIsos0p3)+std::get<2>(pfIsos0p3)-0.5*std::get<3>(pfIsos0p3));
         Muons.PFIsoChg0p3.push_back(pfIsoChg0p3);
         Muons.PFIsoAll0p3.push_back(pfIsoAll0p3);;
         Muons.PFRelIsoChg0p3.push_back(pfIsoChg0p3/pt);
@@ -911,7 +935,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
         const auto pfIsos0p4 = getPFIsolation(muVec, pfs, 0.4);
         const auto pfIsoChg0p4 = std::get<0>(pfIsos0p4);
-        const auto pfIsoAll0p4 = pfIsoChg + std::max(0.0, std::get<1>(pfIsos0p4)+std::get<2>(pfIsos0p4)-0.5*std::get<3>(pfIsos0p4));
+        const auto pfIsoAll0p4 = pfIsoChg0p4 + std::max(0.0, std::get<1>(pfIsos0p4)+std::get<2>(pfIsos0p4)-0.5*std::get<3>(pfIsos0p4));
         Muons.PFIsoChg0p4.push_back(pfIsoChg0p4);
         Muons.PFIsoAll0p4.push_back(pfIsoAll0p4);;
         Muons.PFRelIsoChg0p4.push_back(pfIsoChg0p4/pt);
@@ -948,6 +972,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.maxdr.push_back(maxdr);
 
         float mindrJet=1e6;
+        float mindphiJet=1e6;
+        float mindetaJet=1e6;
         for (auto jet : jets) {
           if (!(jet.pt()>20.0 && fabs(jet.eta())<3.0))
             continue;
