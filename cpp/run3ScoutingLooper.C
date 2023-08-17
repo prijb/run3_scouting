@@ -315,6 +315,7 @@ struct Muon {
   std::vector<float> mindrJet, mindphiJet, mindetaJet;
   std::vector<TLorentzVector> vec;
   std::vector<bool> selected;
+  std::vector<int> ncompatible, ncompatibletotal, nexpectedhits, nexpectedhitsmultiple, nexpectedhitsmultipletotal, nexpectedhitstotal;
 
   void clear() {
   vtxIdxs.clear();
@@ -341,6 +342,7 @@ struct Muon {
   mindrJet.clear(); mindphiJet.clear(); mindetaJet.clear();
   vec.clear();
   selected.clear();
+  ncompatible.clear(), ncompatibletotal.clear(), nexpectedhits.clear(), nexpectedhitsmultiple.clear(), nexpectedhitsmultipletotal.clear(), nexpectedhitstotal.clear();
   }
 
   void sort() {
@@ -401,6 +403,12 @@ struct Muon {
     apply_permutation_in_place(mindetaJet, comp);
     apply_permutation_in_place(vec, comp);
     apply_permutation_in_place(selected, comp);
+    apply_permutation_in_place(ncompatible, comp);
+    apply_permutation_in_place(ncompatibletotal, comp);
+    apply_permutation_in_place(nexpectedhits, comp);
+    apply_permutation_in_place(nexpectedhitsmultiple, comp);
+    apply_permutation_in_place(nexpectedhitsmultipletotal, comp);
+    apply_permutation_in_place(nexpectedhitstotal, comp);
   }
 };
 
@@ -537,6 +545,12 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("Muon_mindetaJet", &Muons.mindetaJet);
   tout->Branch("Muon_vec", &Muons.vec);
   tout->Branch("Muon_selected", &Muons.selected);
+  tout->Branch("Muon_ncompatible", &Muons.ncompatible);
+  tout->Branch("Muon_ncompatibletotal", &Muons.ncompatibletotal);
+  tout->Branch("Muon_nexpectedhits", &Muons.nexpectedhits);
+  tout->Branch("Muon_nexpectedhitsmultiple", &Muons.nexpectedhitsmultiple);
+  tout->Branch("Muon_nexpectedhitsmultipletotal", &Muons.nexpectedhitsmultipletotal);
+  tout->Branch("Muon_nexpectedhitstotal", &Muons.nexpectedhitstotal);
   
 
   // Event setup
@@ -829,6 +843,12 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       auto mus = getObject<std::vector<Run3ScoutingMuon>>(ev, "hltScoutingMuonPacker");
       auto jets = getObject<std::vector<Run3ScoutingPFJet>>(ev, "hltScoutingPFPacker");
       auto pfs = getObject<std::vector<Run3ScoutingParticle>>(ev, "hltScoutingPFPacker");
+      auto ncompatible = getObject<std::vector<int>>(ev, "hitMaker", "ncompatible");
+      auto ncompatibletotal = getObject<std::vector<int>>(ev, "hitMaker", "ncompatibletotal");
+      auto nexpectedhits = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhits");
+      auto nexpectedhitsmultiple = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhitsmultiple");
+      auto nexpectedhitsmultipletotal = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhitsmultipletotal");
+      auto nexpectedhitstotal = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhitstotal");
       Muons.clear();
       unsigned int nMus = mus.size();
       nMuonAssoc=0;
@@ -906,6 +926,12 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.dxysig.push_back(mu.trk_dxy()/mu.trk_dxyError());
         Muons.dzsig.push_back(mu.trk_dz()/mu.trk_dzError());
         Muons.selected.push_back(pt>3.0);
+        Muons.ncompatible.push_back(ncompatible.at(iMu));
+        Muons.ncompatibletotal.push_back(ncompatibletotal.at(iMu));
+        Muons.nexpectedhits.push_back(nexpectedhits.at(iMu));
+        Muons.nexpectedhitsmultiple.push_back(nexpectedhitsmultiple.at(iMu));
+        Muons.nexpectedhitsmultipletotal.push_back(nexpectedhitsmultipletotal.at(iMu));
+        Muons.nexpectedhitstotal.push_back(nexpectedhitstotal.at(iMu));
 
         float bestSVPosition_x, bestSVPosition_y;
         if (bestAssocSVOverlapIdx!=-1) {
