@@ -239,7 +239,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
    
     for (auto const& muon : *muonHandle) {
         vector<int> vertex_indices = muon.vtxIndx();
-        int best_index = 0;
+        int best_index = -1;
         float maxprob = -1.0;
         for (auto idx : vertex_indices) {
             if (idx >= 0 && idx < (int)(*dvHandle).size()) {
@@ -256,7 +256,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         float dv_x = 0;
         float dv_y = 0;
         float dv_z = 0;
-        if (best_index < nDV) {
+        if (best_index >= 0) {
             Run3ScoutingVertex dv = (*dvHandle).at(best_index);
             dv_x = dv.x();
             dv_y = dv.y();
