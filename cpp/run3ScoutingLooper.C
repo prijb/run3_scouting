@@ -611,26 +611,20 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           break;
         }
       }
-      if (!isMC) { // Apply only for data, keep track for MC based on passL1
-        if (!passL1)
-          continue;
+      if (!passL1)
+	continue;
+
+      // HLT selection
+      auto hlts = getObject<std::vector<bool>>(ev, "triggerMaker", "hltresult");
+      passHLT = false;
+      for (auto hlt : hlts) {
+        if (hlt==true) {
+          passHLT = true;
+          break;
+        }
       }
-
-      // HLT selection // FIXME: Buggy collection
-      //auto hlts = getObject<std::vector<bool>>(ev, "triggerMaker", "hltresult");
-      //passHLT = false;
-      //for (auto hlt : hlts) { 
-      //  if (hlt==true) {
-      //    passHLT = true;
-      //    break;
-      //  }
-      //}
-      //if (!isMC) {
-      //  if (!passHLT)
-      //    continue;
-      //}
-      passHLT = true; // Temporary pass through
-
+      if (!passHLT)
+	continue;
 
       // PV selection
       auto pvs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingPrimaryVertexPacker", "primaryVtx");
