@@ -64,7 +64,7 @@ std::vector<TString> getFiles(const std::string inputDir, const int startFile, c
       if (!TString(line.c_str()).Contains(".root"))
 	continue;
       else {
-	files.push_back(TString("redirector.t2.ucsd.edu:1095"+line));
+	files.push_back(TString("davs://redirector.t2.ucsd.edu:1095"+line));
       }
       iFile++;
       if (iFile == startFile+nFiles)
