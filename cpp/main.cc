@@ -118,9 +118,9 @@ int main(int argc, char **argv) {
   }
   //
   // Sample list: Signal
-  if ( sampleArg=="Signal_ScenA_v3p0" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenA_v3p0/", startFile, nFiles, isCondor); // 2 files
-    process = "Signal_ScenA_v3p0";
+  if ( sampleArg=="Signal_ScenA1_v3p1" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenA1_v3p1/", startFile, nFiles, isCondor); // 72 files
+    process = "Signal_ScenA_v3p1";
   }
   if ( sampleArg=="Signal_ScenB1_v3p1" ) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenB1_v3p1/", startFile, nFiles, isCondor); // 74 files
@@ -130,13 +130,21 @@ int main(int argc, char **argv) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenB2_v3p1/", startFile, nFiles, isCondor); // 99 files
     process = "Signal_ScenB2_v3p1";
   }
-  if ( sampleArg=="Signal_ScenB_v0p32" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenB_v0p32/", startFile, nFiles, isCondor); // 48 files
-    process = "Signal_ScenB_v0p32";
+  if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-06" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-06/", startFile, nFiles, isCondor); // 19 files
+    process = "Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-06";
   }
-  if ( sampleArg=="Signal_ScenC_v0p34" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenC_v0p34/", startFile, nFiles, isCondor); // 46 files
-    process = "Signal_ScenC_v0p34";
+  if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd10_Epsilon5e-07" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_HTo2ZdTo2mu2x_MZd10_Epsilon5e-07/", startFile, nFiles, isCondor); // 21 files
+    process = "Signal_HTo2ZdTo2mu2x_MZd10_Epsilon5e-07";
+  }
+  if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-07" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-07/", startFile, nFiles, isCondor); // 17 files
+    process = "Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-07";
+  }
+  if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd10_Epsilon3e-08" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_HTo2ZdTo2mu2x_MZd10_Epsilon3e-08/", startFile, nFiles, isCondor); // 18 files
+    process = "Signal_HTo2ZdTo2mu2x_MZd10_Epsilon3e-08";
   }
   std::cout << "################################## \n";
   std::cout << "Number of files to process: " << files.size() << "\n";

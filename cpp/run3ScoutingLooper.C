@@ -33,7 +33,7 @@ float partialUnblindingPercentage = 0.1; // 10% of each era
 // SV selection
 bool relaxedSVSel = false;
 float sfSVsel = (relaxedSVSel) ? 5.0 : 1.0;
-float maxXerr=0.05*sfSVsel, maxYerr=0.05*sfSVsel, maxZerr=0.10*sfSVsel, maxChi2=5.0*sfSVsel;
+float maxXerr=0.05*sfSVsel, maxYerr=0.05*sfSVsel, maxZerr=0.10*sfSVsel, maxChi2=3.0*sfSVsel;
 float maxDXYerr=0.05*sfSVsel, maxD3Derr=0.10*sfSVsel; // for identification of overlapping SVs
 
 template<class T>
@@ -917,7 +917,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.dze.push_back(mu.trk_dzError());
         Muons.dxysig.push_back(mu.trk_dxy()/mu.trk_dxyError());
         Muons.dzsig.push_back(mu.trk_dz()/mu.trk_dzError());
-        Muons.selected.push_back(pt>3.0);
+        Muons.selected.push_back(pt>3.0 && fabs(eta)<2.4 && mu.normalizedChi2()<3.0);
         Muons.ncompatible.push_back(ncompatible.at(iMu));
         Muons.ncompatibletotal.push_back(ncompatibletotal.at(iMu));
         Muons.nexpectedhits.push_back(nexpectedhits.at(iMu));

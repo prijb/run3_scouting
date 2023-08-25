@@ -40,6 +40,9 @@ parser.add_argument("--dimuonMassDiffSelForFourMuonOSV", default=[], nargs="+", 
 parser.add_argument("--dimuonPtSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon pT in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--noMaterialVeto", default=False, action="store_true", help="Do not apply material vertex veto")
+parser.add_argument("--noMuonIPSel", default=False, action="store_true", help="Do not apply selection on muon IP")
+parser.add_argument("--noDiMuonAngularSel", default=False, action="store_true", help="Do not apply selection on dimuon angular variables")
 parser.add_argument("--noPreSel", default=False, action="store_true", help="Do not fill pre-selection/association histograms")
 parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not fill dimuon histograms")
 parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems")
@@ -141,6 +144,10 @@ if args.outSuffix!="":
     outdir = outdir+"_"+args.outSuffix
 if not os.path.exists(outdir):
     os.makedirs(outdir)
+
+applyMaterialVeto = not args.noMaterialVeto
+applyMuonIPSel = not args.noMuonIPSel
+applyDiMuonAngularSel = not args.noDiMuonAngularSel
 
 isData = args.data
 if "Data" in args.inSample:
@@ -263,6 +270,8 @@ for e in range(firste,laste):
             break
         if not t.SV_selected[v]:
             continue
+        if applyMaterialVeto and t.SV_onModuleWithinUnc[v]:
+            continue
         nSVsel = nSVsel+1
         lxy = t.SV_lxy[v]
         for h in h1d:
@@ -356,6 +365,8 @@ for e in range(firste,laste):
     qmuvec = []
     qmuidxs = []
     qmuidxs_sel = []
+    qmuidxsminlxy = []
+    qmuidxsmaxlxy = []
     qmu_muvecdp = []
     qmu_muvecdpminlxy = []
     qmu_muvecdpmaxlxy = []
@@ -375,12 +386,16 @@ for e in range(firste,laste):
         vpos = -1
         # First, identify muons from overlapping SVs
         if t.Muon_bestAssocSVOverlapIdx[m]>-1:
+            if applyMaterialVeto and t.SV_onModuleWithinUnc[t.SVOverlap_vtxIdxs[t.Muon_bestAssocSVOverlapIdx[m]][0]]:
+                continue
             ovidx = t.Muon_bestAssocSVOverlapIdx[m]
             ovpos = ovidx
         # Then, identify muons from non-overlapping SVs
         elif t.Muon_bestAssocSVIdx[m]>-1:
             vidx = t.Muon_bestAssocSVIdx[m]
             for v in range(len(t.SV_index)):
+                if applyMaterialVeto and t.SV_onModuleWithinUnc[v]:
+                    continue
                 if t.SV_index[v]==vidx:
                     vpos = v
                     break
@@ -391,7 +406,7 @@ for e in range(firste,laste):
             if abs(chg+t.Muon_ch[mm])>0:
                 continue
             # First, identify muon pairs from overlapping SVs
-            if ovidx>-1 and t.Muon_bestAssocSVOverlapIdx[mm]==ovidx:
+            if ovidx>-1 and t.Muon_bestAssocSVOverlapIdx[mm]==ovidx and ovposs>-1:
                 if not (m in dmuidxs_osv or mm in dmuidxs_osv):
                     dmuvec_osv.append(t.Muon_vec[m])
                     dmuvec_osv[len(dmuvec_osv)-1] = dmuvec_osv[len(dmuvec_osv)-1] + t.Muon_vec[mm]
@@ -405,7 +420,7 @@ for e in range(firste,laste):
                     osvvec[len(osvvec)-1].SetXYZ(t.SVOverlap_x[ovpos]-t.PV_x, t.SVOverlap_y[ovpos]-t.PV_y, t.SVOverlap_z[ovpos]-t.PV_z)
                     osvidx.append(ovpos)
             # Then, identify muon pairs from non-overlapping SVs
-            elif vidx>-1 and t.Muon_bestAssocSVIdx[mm]==vidx:
+            elif vidx>-1 and t.Muon_bestAssocSVIdx[mm]==vidx and vpos>-1:
                 if not (m in dmuidxs or mm in dmuidxs):
                     dmuvec.append(t.Muon_vec[m])
                     dmuvec[len(dmuvec)-1] = dmuvec[len(dmuvec)-1] + t.Muon_vec[mm]
@@ -494,6 +509,14 @@ for e in range(firste,laste):
                         qmu_dmuvecmaxlxy.append(dmuvec_all[int(mm/2)])
                         qmu_dmuvecdpminlxy.append(dmu_muvecdp_all[m]+dmu_muvecdp_all[m+1])
                         qmu_dmuvecdpmaxlxy.append(dmu_muvecdp_all[mm]+dmu_muvecdp_all[mm+1])
+                        qmuidxsminlxy.append(dmuidxs_all[m])
+                        qmuidxsminlxy.append(dmuidxs_all[m+1])
+                        qmuidxsmaxlxy.append(dmuidxs_all[mm])
+                        qmuidxsmaxlxy.append(dmuidxs_all[mm+1])
+                        qmu_muvecdpminlxy.append(dmu_muvecdp_all[m])
+                        qmu_muvecdpminlxy.append(dmu_muvecdp_all[m+1])
+                        qmu_muvecdpmaxlxy.append(dmu_muvecdp_all[mm])
+                        qmu_muvecdpmaxlxy.append(dmu_muvecdp_all[mm+1])
                     else:
                         svvecminlxy_qmu.append(svvec_all[int(mm/2)])
                         svidxminlxy_qmu.append(svidx_all[int(mm/2)])
@@ -503,6 +526,14 @@ for e in range(firste,laste):
                         qmu_dmuvecmaxlxy.append(dmuvec_all[int(m/2)])
                         qmu_dmuvecdpminlxy.append(dmu_muvecdp_all[mm]+dmu_muvecdp_all[mm+1])
                         qmu_dmuvecdpmaxlxy.append(dmu_muvecdp_all[m]+dmu_muvecdp_all[m+1])
+                        qmuidxsminlxy.append(dmuidxs_all[mm])
+                        qmuidxsminlxy.append(dmuidxs_all[mm+1])
+                        qmuidxsmaxlxy.append(dmuidxs_all[m])
+                        qmuidxsmaxlxy.append(dmuidxs_all[m+1])
+                        qmu_muvecdpminlxy.append(dmu_muvecdp_all[mm])
+                        qmu_muvecdpminlxy.append(dmu_muvecdp_all[mm+1])
+                        qmu_muvecdpmaxlxy.append(dmu_muvecdp_all[m])
+                        qmu_muvecdpmaxlxy.append(dmu_muvecdp_all[m+1])
 
     # Apply selections and fill histograms for muon pairs from non-overlapping SVs
     seldmuidxs = []
@@ -515,11 +546,13 @@ for e in range(firste,laste):
         lxy  = t.SV_lxy[svidx[vn]]
         if not applyLxySelection(lxy):
             continue
-        seldmuidxs.append(dmuidxs[int(vn*2)])
-        seldmuidxs.append(dmuidxs[int(vn*2)+1])
-        seldmusvidxs.append(svidx[vn])
         mass = v.M()
         pt   = v.Pt()
+        #  Apply selection on muon lifetime-scaled dxy
+        if applyMuonIPSel:
+            if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
+                 abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]])/(lxy*mass/pt)<0.1 ):
+                continue
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs[int(vn*2)+1]].Eta())
@@ -543,6 +576,19 @@ for e in range(firste,laste):
             detadphisv = detasv/dphisv
         a3dsv  = abs(v.Vect().Angle(svvec[vn]))
         #
+        desvdpsvmin = 1e6
+        demmdpsvmin = 1e6
+        dpsvmin = 1e6
+        tdpsv = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Vect().DeltaPhi(svvec[vn]))
+        if tdpsv < dpsvmin:
+            dpsvmin = tdpsv
+        tdpsv = abs(t.Muon_vec[dmuidxs[int(vn*2)+1]].Vect().DeltaPhi(svvec[vn]))
+        if tdpsv < dpsvmin:
+            dpsvmin = tdpsv
+        if dpsvmin>0.0:
+            demmdpsvmin = demm/dpsvmin
+            desvdpsvmin = detasv/dpsvmin
+        #
         vu = (dmu_muvecdp[int(vn*2)]+dmu_muvecdp[int(vn*2)+1])
         dphisvu = abs(vu.Vect().DeltaPhi(svvec[vn]))
         detasvu = abs(vu.Vect().Eta()-svvec[vn].Eta())
@@ -550,6 +596,36 @@ for e in range(firste,laste):
         if dphisvu>0.0:
             detadphisvu = detasvu/dphisvu
         a3dsvu  = abs(vu.Vect().Angle(svvec[vn]))
+        #
+        desvdpsvminu = 1e6
+        demmdpsvminu = 1e6
+        dpsvminu = 1e6
+        tdpsvu = abs(dmu_muvecdp[int(vn*2)].Vect().DeltaPhi(svvec[vn]))
+        if tdpsvu < dpsvminu:
+            dpsvminu = tdpsvu
+        tdpsvu = abs(dmu_muvecdp[int(vn*2)+1].Vect().DeltaPhi(svvec[vn]))
+        if tdpsvu < dpsvminu:
+            dpsvminu = tdpsvu
+        if dpsvminu>0.0:
+            demmdpsvminu = demmu/dpsvminu
+            desvdpsvminu = detasvu/dpsvminu
+        #
+        sindpsvlxy = abs(ROOT.TMath.Sin(v.Vect().DeltaPhi(svvec[vn])))*lxy
+        sindpsvlxyu = abs(ROOT.TMath.Sin(vu.Vect().DeltaPhi(svvec[vn])))*lxy
+        sina3dsvl3d = abs(ROOT.TMath.Sin(v.Vect().Angle(svvec[vn])))*(svvec[vn].Mag())
+        sina3dsvl3du = abs(ROOT.TMath.Sin(vu.Vect().Angle(svvec[vn])))*(svvec[vn].Mag())
+        #
+        # Apply selection on angular distances
+        if applyDiMuonAngularSel:
+            if ROOT.TMath.Log10(dedpmmu)>1.25:
+                continue
+            if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
+                continue
+            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+                continue
+        seldmuidxs.append(dmuidxs[int(vn*2)])
+        seldmuidxs.append(dmuidxs[int(vn*2)+1])
+        seldmusvidxs.append(svidx[vn])        
         for h in h1d:
             tn = h.GetName()
             if "hdimuon_" not in tn or "osv" in tn:
@@ -574,11 +650,13 @@ for e in range(firste,laste):
         lxy  = t.SVOverlap_lxy[osvidx[vn]]
         if not applyLxySelection(lxy):
             continue
-        seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)])
-        seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)+1])
-        seldmusvidxs_osv.append(t.SVOverlap_vtxIdxs[osvidx[vn]][0])
         mass = v.M()
         pt   = v.Pt()
+        #  Apply selection on muon lifetime-scaled dxy
+        if applyMuonIPSel:
+            if ( abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
+                 abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)+1]])/(lxy*mass/pt)<0.1 ):
+                continue
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Eta())
@@ -602,6 +680,19 @@ for e in range(firste,laste):
             detadphisv = detasv/dphisv
         a3dsv  = abs(v.Vect().Angle(osvvec[vn]))
         #
+        desvdpsvmin = 1e6
+        demmdpsvmin = 1e6
+        dpsvmin = 1e6
+        tdpsv = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Vect().DeltaPhi(osvvec[vn]))
+        if tdpsv < dpsvmin:
+            dpsvmin = tdpsv
+        tdpsv = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Vect().DeltaPhi(osvvec[vn]))
+        if tdpsv < dpsvmin:
+            dpsvmin = tdpsv
+        if dpsvmin>0.0:
+            demmdpsvmin = demm/dpsvmin
+            desvdpsvmin = detasv/dpsvmin
+        #
         vu = (dmu_muvecdp_osv[int(vn*2)]+dmu_muvecdp_osv[int(vn*2)+1])
         dphisvu = abs(vu.Vect().DeltaPhi(osvvec[vn]))
         detasvu = abs(vu.Vect().Eta()-osvvec[vn].Eta())
@@ -609,6 +700,36 @@ for e in range(firste,laste):
         if dphisvu>0.0:
             detadphisvu = detasvu/dphisvu
         a3dsvu  = abs(vu.Vect().Angle(osvvec[vn]))
+        #
+        desvdpsvminu = 1e6
+        demmdpsvminu = 1e6
+        dpsvminu = 1e6
+        tdpsvu = abs(dmu_muvecdp_osv[int(vn*2)].Vect().DeltaPhi(osvvec[vn]))
+        if tdpsvu < dpsvminu:
+            dpsvminu = tdpsvu
+        tdpsvu = abs(dmu_muvecdp_osv[int(vn*2)+1].Vect().DeltaPhi(osvvec[vn]))
+        if tdpsvu < dpsvminu:
+            dpsvminu = tdpsvu
+        if dpsvminu>0.0:
+            demmdpsvminu = demmu/dpsvminu
+            desvdpsvminu = detasvu/dpsvminu
+        #
+        sindpsvlxy = abs(ROOT.TMath.Sin(v.Vect().DeltaPhi(osvvec[vn])))*lxy
+        sindpsvlxyu = abs(ROOT.TMath.Sin(vu.Vect().DeltaPhi(osvvec[vn])))*lxy
+        sina3dsvl3d = abs(ROOT.TMath.Sin(v.Vect().Angle(osvvec[vn])))*(osvvec[vn].Mag())
+        sina3dsvl3du = abs(ROOT.TMath.Sin(vu.Vect().Angle(osvvec[vn])))*(osvvec[vn].Mag())
+        #
+        # Apply selection on angular distances
+        if applyDiMuonAngularSel:
+            if ROOT.TMath.Log10(dedpmmu)>1.25:
+                continue
+            if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
+                continue
+            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+                continue
+        seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)])
+        seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)+1])
+        seldmusvidxs_osv.append(t.SVOverlap_vtxIdxs[osvidx[vn]][0])
         for h in h1d:
             tn = h.GetName()
             if "hdimuon_" not in tn:
@@ -762,6 +883,17 @@ for e in range(firste,laste):
             detadphisv = detasv/dphisv
         a3dsv  = abs(v.Vect().Angle(osvvec_qmu[vn]))
         #
+        desvdpsvmin = 1e6
+        demmdpsvmin = 1e6
+        dpsvmin = 1e6
+        for m in range(vn*4,vn*4+4):
+            tdpsv = abs(t.Muon_vec[qmuidxs_osv[m]].Vect().DeltaPhi(osvvec_qmu[vn]))
+            if tdpsv < dpsvmin:
+                dpsvmin = tdpsv
+        if dpsvmin>0.0:
+            demmdpsvmin = maxdemm/dpsvmin
+            desvdpsvmin = detasv/dpsvmin
+        #
         vu = qmu_muvecdp_osv[vn*4]
         for mm in range(vn*4+1,vn*4+4):
             vu = vu + qmu_muvecdp_osv[mm]
@@ -771,6 +903,23 @@ for e in range(firste,laste):
         if dphisvu>0.0:
             detadphisvu = detasvu/dphisvu
         a3dsvu  = abs(vu.Vect().Angle(osvvec_qmu[vn]))
+        #
+        desvdpsvminu = 1e6
+        demmdpsvminu = 1e6
+        dpsvminu = 1e6
+        for m in range(vn*4,vn*4+4):
+            tdpsvu = abs(qmu_muvecdp_osv[mm].Vect().DeltaPhi(osvvec_qmu[vn]))
+            if tdpsvu < dpsvminu:
+                dpsvminu = tdpsvu
+        if dpsvminu>0.0:
+            demmdpsvminu = demmu/dpsvminu
+            desvdpsvminu = detasvu/dpsvminu
+        #
+        sindpsvlxy = abs(ROOT.TMath.Sin(v.Vect().DeltaPhi(osvvec_qmu[vn])))*lxy
+        sindpsvlxyu = abs(ROOT.TMath.Sin(vu.Vect().DeltaPhi(osvvec_qmu[vn])))*lxy
+        sina3dsvl3d = abs(ROOT.TMath.Sin(v.Vect().Angle(osvvec_qmu[vn])))*(osvvec_qmu[vn].Mag())
+        sina3dsvl3du = abs(ROOT.TMath.Sin(vu.Vect().Angle(osvvec_qmu[vn])))*(osvvec_qmu[vn].Mag())
+        #
         for h in h1d:
             tn = h.GetName()
             if "hfourmuon_osv_" not in tn:
@@ -826,6 +975,8 @@ for e in range(firste,laste):
             continue
         minlxy  = svvecminlxy_qmu[vn].Perp()
         maxlxy  = svvecmaxlxy_qmu[vn].Perp()
+        minl3d  = svvecminlxy_qmu[vn].Mag()
+        maxl3d  = svvecmaxlxy_qmu[vn].Mag()
         if not applyFourMuonLxySelection(minlxy,maxlxy):
             continue
         qmuidxs_sel.append(qmuidxs[vn*4])
@@ -921,6 +1072,95 @@ for e in range(firste,laste):
                             abs(qmu_dmuvecdpmaxlxy[vn].Vect().Eta()-svvecmaxlxy_qmu[vn].Eta())/abs(qmu_dmuvecdpmaxlxy[vn].Vect().DeltaPhi(svvecmaxlxy_qmu[vn])))
         mina3dsvu = min(abs(qmu_dmuvecdpminlxy[vn].Vect().Angle(svvecminlxy_qmu[vn])),abs(qmu_dmuvecdpmaxlxy[vn].Vect().Angle(svvecmaxlxy_qmu[vn])))
         maxa3dsvu = max(abs(qmu_dmuvecdpminlxy[vn].Vect().Angle(svvecminlxy_qmu[vn])),abs(qmu_dmuvecdpmaxlxy[vn].Vect().Angle(svvecmaxlxy_qmu[vn])))
+        #
+        minlxy_desvdpsvmin = 1e6
+        minlxy_demmdpsvmin = 1e6
+        minlxy_dpsvmin = 1e6
+        minlxy_desvdpsvminu = 1e6
+        minlxy_demmdpsvminu = 1e6
+        minlxy_dpsvminu = 1e6
+        tdpsv = abs(t.Muon_vec[qmuidxsminlxy[vn*2]].Vect().DeltaPhi(svvecminlxy_qmu[vn]))
+        if tdpsv < minlxy_dpsvmin:
+            minlxy_dpsvmin = tdpsv
+        tdpsv = abs(t.Muon_vec[qmuidxsminlxy[vn*2+1]].Vect().DeltaPhi(svvecminlxy_qmu[vn]))
+        if tdpsv < minlxy_dpsvmin:
+            minlxy_dpsvmin = tdpsv
+        if minlxy_dpsvmin>0.0:
+            tdemm = abs(t.Muon_vec[qmuidxsminlxy[vn*2]].Eta()-t.Muon_vec[qmuidxsminlxy[vn*2+1]].Eta())
+            tdetasv = abs(qmu_dmuvecminlxy[vn].Vect().Eta()-svvecminlxy_qmu[vn].Eta())
+            minlxy_demmdpsvmin = tdemm/minlxy_dpsvmin
+            minlxy_desvdpsvmin = tdetasv/minlxy_dpsvmin
+        #
+        tdpsvu = abs(qmu_muvecdpminlxy[vn*2].Vect().DeltaPhi(svvecminlxy_qmu[vn]))
+        if tdpsvu < minlxy_dpsvminu:
+            minlxy_dpsvminu = tdpsvu
+        tdpsvu = abs(qmu_muvecdpminlxy[vn*2+1].Vect().DeltaPhi(svvecminlxy_qmu[vn]))
+        if tdpsvu < minlxy_dpsvminu:
+            minlxy_dpsvminu = tdpsvu
+        if minlxy_dpsvminu>0.0:
+            tdemmu = abs(qmu_muvecdpminlxy[vn*2].Eta()-qmu_muvecdpminlxy[vn*2+1].Eta())
+            tdetasvu = abs(qmu_dmuvecdpminlxy[vn].Vect().Eta()-svvecminlxy_qmu[vn].Eta())
+            minlxy_demmdpsvminu = tdemmu/minlxy_dpsvminu
+            minlxy_desvdpsvminu = tdetasvu/minlxy_dpsvminu
+        #
+        maxlxy_desvdpsvmin = 1e6
+        maxlxy_demmdpsvmin = 1e6
+        maxlxy_dpsvmin = 1e6
+        tdpsv = abs(t.Muon_vec[qmuidxsmaxlxy[vn*2]].Vect().DeltaPhi(svvecmaxlxy_qmu[vn]))
+        if tdpsv < maxlxy_dpsvmin:
+            maxlxy_dpsvmin = tdpsv
+        tdpsv = abs(t.Muon_vec[qmuidxsmaxlxy[vn*2+1]].Vect().DeltaPhi(svvecmaxlxy_qmu[vn]))
+        if tdpsv < maxlxy_dpsvmin:
+            maxlxy_dpsvmin = tdpsv
+        if maxlxy_dpsvmin>0.0:
+            tdemm = abs(t.Muon_vec[qmuidxsmaxlxy[vn*2]].Eta()-t.Muon_vec[qmuidxsmaxlxy[vn*2+1]].Eta())
+            tdetasv = abs(qmu_dmuvecmaxlxy[vn].Vect().Eta()-svvecmaxlxy_qmu[vn].Eta())
+            maxlxy_demmdpsvmin = tdemm/maxlxy_dpsvmin
+            maxlxy_desvdpsvmin = tdetasv/maxlxy_dpsvmin
+        #
+        maxlxy_desvdpsvminu = 1e6
+        maxlxy_demmdpsvminu = 1e6
+        maxlxy_dpsvminu = 1e6
+        tdpsvu = abs(qmu_muvecdpmaxlxy[vn*2].Vect().DeltaPhi(svvecmaxlxy_qmu[vn]))
+        if tdpsvu < maxlxy_dpsvminu:
+            maxlxy_dpsvminu = tdpsvu
+        tdpsvu = abs(qmu_muvecdpmaxlxy[vn*2+1].Vect().DeltaPhi(svvecmaxlxy_qmu[vn]))
+        if tdpsvu < maxlxy_dpsvminu:
+            maxlxy_dpsvminu = tdpsvu
+        if maxlxy_dpsvminu>0.0:
+            tdemmu = abs(qmu_muvecdpmaxlxy[vn*2].Eta()-qmu_muvecdpmaxlxy[vn*2+1].Eta())
+            tdetasvu = abs(qmu_dmuvecdpmaxlxy[vn].Vect().Eta()-svvecmaxlxy_qmu[vn].Eta())
+            maxlxy_demmdpsvminu = tdemmu/maxlxy_dpsvminu
+            maxlxy_desvdpsvminu = tdetasvu/maxlxy_dpsvminu
+        #
+        mindesvdpsvmin = min(minlxy_desvdpsvmin, maxlxy_desvdpsvmin)
+        maxdesvdpsvmin = max(minlxy_desvdpsvmin, maxlxy_desvdpsvmin)
+        mindesvdpsvminu = min(minlxy_desvdpsvminu, maxlxy_desvdpsvminu)
+        maxdesvdpsvminu = max(minlxy_desvdpsvminu, maxlxy_desvdpsvminu)
+        mindemmdpsvmin = min(minlxy_demmdpsvmin, maxlxy_demmdpsvmin)
+        maxdemmdpsvmin = max(minlxy_demmdpsvmin, maxlxy_demmdpsvmin)
+        mindemmdpsvminu = min(minlxy_demmdpsvminu, maxlxy_demmdpsvminu)
+        maxdemmdpsvminu = max(minlxy_demmdpsvminu, maxlxy_demmdpsvminu)
+        #
+        minlxy_sindpsvlxy = abs(ROOT.TMath.Sin(qmu_dmuvecminlxy[vn].Vect().DeltaPhi(svvecminlxy_qmu[vn])))*minlxy
+        minlxy_sindpsvlxyu = abs(ROOT.TMath.Sin(qmu_dmuvecdpminlxy[vn].Vect().DeltaPhi(svvecminlxy_qmu[vn])))*minlxy
+        minlxy_sina3dsvl3d = abs(ROOT.TMath.Sin(qmu_dmuvecminlxy[vn].Vect().Angle(svvecminlxy_qmu[vn])))*minl3d
+        minlxy_sina3dsvl3du = abs(ROOT.TMath.Sin(qmu_dmuvecdpminlxy[vn].Vect().Angle(svvecminlxy_qmu[vn])))*minl3d
+        #
+        maxlxy_sindpsvlxy = abs(ROOT.TMath.Sin(qmu_dmuvecmaxlxy[vn].Vect().DeltaPhi(svvecmaxlxy_qmu[vn])))*maxlxy
+        maxlxy_sindpsvlxyu = abs(ROOT.TMath.Sin(qmu_dmuvecdpmaxlxy[vn].Vect().DeltaPhi(svvecmaxlxy_qmu[vn])))*maxlxy
+        maxlxy_sina3dsvl3d = abs(ROOT.TMath.Sin(qmu_dmuvecmaxlxy[vn].Vect().Angle(svvecmaxlxy_qmu[vn])))*maxl3d
+        maxlxy_sina3dsvl3du = abs(ROOT.TMath.Sin(qmu_dmuvecdpmaxlxy[vn].Vect().Angle(svvecmaxlxy_qmu[vn])))*maxl3d
+        #
+        minsindpsvlxy = min(minlxy_sindpsvlxy, maxlxy_sindpsvlxy)
+        maxsindpsvlxy = max(minlxy_sindpsvlxy, maxlxy_sindpsvlxy)        
+        minsindpsvlxyu = min(minlxy_sindpsvlxyu, maxlxy_sindpsvlxyu)
+        maxsindpsvlxuy = max(minlxy_sindpsvlxyu, maxlxy_sindpsvlxyu)        
+        minsina3dsvl3d = min(minl3d_sina3dsvl3d, maxl3d_sina3dsvl3d)
+        maxsina3dsvl3d = max(minl3d_sina3dsvl3d, maxl3d_sina3dsvl3d)        
+        minsina3dsvl3du = min(minl3d_sina3dsvl3du, maxl3d_sina3dsvl3du)
+        maxsina3dsvl3du = max(minl3d_sina3dsvl3du, maxl3d_sina3dsvl3du)        
+        #
         for h in h1d:
             tn = h.GetName()
             if "hfourmuon_" not in tn or "_osv" in tn:
