@@ -87,46 +87,48 @@ int main(int argc, char **argv) {
   TString process;
   // Sample list: Data
   if ( sampleArg=="DataB" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022B/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Data/2022B/", startFile, nFiles, isCondor);
     process = "DataB";
   }
   if ( sampleArg=="DataC" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022C/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Data/2022C/", startFile, nFiles, isCondor);
     process = "DataC";
   }
   if ( sampleArg=="DataD" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022D/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Data/2022D/", startFile, nFiles, isCondor);
     process = "DataD";
   }
   if ( sampleArg=="DataE" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022E/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Data/2022E/", startFile, nFiles, isCondor);
     process = "DataE";
   }
   if ( sampleArg=="DataF" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022F/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Data/2022F/", startFile, nFiles, isCondor);
     process = "DataF";
   }
   if ( sampleArg=="DataG" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Data/2022G/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Data/2022G/", startFile, nFiles, isCondor);
     process = "DataG";
   }
   //
+  // Sample list: Monte Carlo
+  if ( sampleArg=="DileptonMinBias" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/MC/DileptonMinBias/", startFile, nFiles, isCondor);
+    process = "DileptonMinBias";
+  }
+  //
   // Sample list: Signal
-  if ( sampleArg=="Signal_ScenA_v0p30" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v0p30/", startFile, nFiles, isCondor); // 61 files
-    process = "Signal_ScenA_v0p30";
+  if ( sampleArg=="Signal_ScenA_v3p0" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenA_v3p0/", startFile, nFiles, isCondor); // 2 files
+    process = "Signal_ScenA_v3p0";
   }
-  if ( sampleArg=="Signal_ScenA_v1p3" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v1p3/", startFile, nFiles, isCondor); // 69 files
-    process = "Signal_ScenA_v1p3";
+  if ( sampleArg=="Signal_ScenB1_v3p1" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenB1_v3p1/", startFile, nFiles, isCondor); // 74 files
+    process = "Signal_ScenB1_v3p1";
   }
-  if ( sampleArg=="Signal_ScenA_v1p4" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v1p4/", startFile, nFiles, isCondor); // 95 files
-    process = "Signal_ScenA_v1p4";
-  }
-  if ( sampleArg=="Signal_ScenA_v1p5" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenA_v1p5", startFile, nFiles, isCondor); // 93 files
-    process = "Signal_ScenA_v1p5";
+  if ( sampleArg=="Signal_ScenB2_v3p1" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenB2_v3p1/", startFile, nFiles, isCondor); // 99 files
+    process = "Signal_ScenB2_v3p1";
   }
   if ( sampleArg=="Signal_ScenB_v0p32" ) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenB_v0p32/", startFile, nFiles, isCondor); // 48 files
