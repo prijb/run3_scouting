@@ -566,14 +566,13 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       set_goodrun_file_json("../data/Cert_Collisions2022_355100_362760_Golden.json");
   }
 
-  
   // File loop
   unsigned int iFile = 1;
   for (auto inputFile : inputFiles) {
     std::cout << "File number: " << iFile << "\n";
-    TFile file(inputFile);
-    auto nEventsFile = ((TTree*)file.Get("Events"))->GetEntries();
-    Event ev(&file);
+    TFile *file = TFile::Open(inputFile);
+    auto nEventsFile = ((TTree*)file->Get("Events"))->GetEntries();
+    Event ev(file);
 
     // Event loop
     unsigned int iEv = 0;
@@ -600,8 +599,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           continue;
       }
 
-
-      // L1 selection // FIXME: Buggy collection for MC
+      // L1 selection
       auto l1s = getObject<std::vector<bool>>(ev, "triggerMaker", "l1result");
       auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
       passL1 = false;

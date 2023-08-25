@@ -64,7 +64,7 @@ std::vector<TString> getFiles(const std::string inputDir, const int startFile, c
       if (!TString(line.c_str()).Contains(".root"))
 	continue;
       else {
-	files.push_back(TString("davs://redirector.t2.ucsd.edu:1095"+line));
+	files.push_back(TString("davs://redirector.t2.ucsd.edu:1095/"+line));
       }
       iFile++;
       if (iFile == startFile+nFiles)
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
   TString sampleArg       = ( argc > 3  ? argv[3]            : "DataF" );
   int startFile           = ( argc > 4  ? char2int(argv[4])  : 0 );
   int nFiles              = ( argc > 5  ? char2int(argv[5])  : 1000000 ); // Large number as default to run over all files
-  bool isCondor           = ( argc > 6  ? bool(argv[6])      : false );
+  bool isCondor           = ( argc > 6  ? char2int(argv[6])  : 0 );
   std::vector<TString> files;
   TString process;
   // Sample list: Data
@@ -136,7 +136,6 @@ int main(int argc, char **argv) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jul-29-2023/Signal/Signal_ScenC_v0p34/", startFile, nFiles, isCondor); // 46 files
     process = "Signal_ScenC_v0p34";
   }
-
   std::cout << "################################## \n";
   std::cout << "Number of files to process: " << files.size() << "\n";
   std::cout << "################################## \n";
