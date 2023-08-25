@@ -457,7 +457,7 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     high    ["mumindrpfc"] = 0.1
     xtitle  ["mumindrpfc"] = "min #DeltaR(#mu, PF candidate)"
     ytitle  ["mumindrpfc"] = "Events / 0.001"
-    variable["mumindrpfc"] = "t.Muon_mindrPF[m]"
+    variable["mumindrpfc"] = "t.Muon_mindrPF0p3[m]"
 
     nbins   ["mudxy"] = 100
     low     ["mudxy"] = 0

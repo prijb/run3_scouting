@@ -182,7 +182,7 @@ if args.generator:
 if not isMultiDir:
     for s in samples:
         if not os.path.isfile("%s/%s_%s_%s_all.root"%(indir,hname,s,args.year)):
-            os.system('hadd '+indir+'/'+hname+'_'+s+'_'+args.year+'_all.root $(find '+indir+' -name "'+hname+'_'+s+'*_'+args.year+'_*.root")')
+            os.system('hadd '+indir+'/'+hname+'_'+s+'_'+args.year+'_all.root $(find '+indir+' -name "'+hname+'_'+s+'*_'+args.year+'*.root")')
         infiles.append(indir+'/'+hname+'_'+s+'_'+args.year+'_all.root')
 else:
     for d in inmultidirs:
@@ -263,10 +263,10 @@ for fn,f in enumerate(infiles):
             else:
                 h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]][nSigSamples])
                 h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nSigSamples])
-                nSigSamples = nSigSamples+1
         else:
             h1d[fn][len(h1d[fn])-1].SetLineColor  (colorsMultiDir[fn])
             h1d[fn][len(h1d[fn])-1].SetMarkerColor(colorsMultiDir[fn])
+    nSigSamples = nSigSamples+1
     for hn in h2dn:
         if args.noPreSel:
             if "hsvsel_" in hn:
