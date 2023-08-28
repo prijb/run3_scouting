@@ -21,7 +21,7 @@ indir=""
 outdir=""
 extraflags=""
 
-if [ $# -gt 2 ]
+if [ $# -gt 1 ]
 then
     if [ "$1" == "notar" ]
     then

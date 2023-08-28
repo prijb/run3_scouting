@@ -406,7 +406,7 @@ for e in range(firste,laste):
             if abs(chg+t.Muon_ch[mm])>0:
                 continue
             # First, identify muon pairs from overlapping SVs
-            if ovidx>-1 and t.Muon_bestAssocSVOverlapIdx[mm]==ovidx and ovposs>-1:
+            if ovidx>-1 and t.Muon_bestAssocSVOverlapIdx[mm]==ovidx and ovpos>-1:
                 if not (m in dmuidxs_osv or mm in dmuidxs_osv):
                     dmuvec_osv.append(t.Muon_vec[m])
                     dmuvec_osv[len(dmuvec_osv)-1] = dmuvec_osv[len(dmuvec_osv)-1] + t.Muon_vec[mm]
@@ -1155,11 +1155,11 @@ for e in range(firste,laste):
         minsindpsvlxy = min(minlxy_sindpsvlxy, maxlxy_sindpsvlxy)
         maxsindpsvlxy = max(minlxy_sindpsvlxy, maxlxy_sindpsvlxy)        
         minsindpsvlxyu = min(minlxy_sindpsvlxyu, maxlxy_sindpsvlxyu)
-        maxsindpsvlxuy = max(minlxy_sindpsvlxyu, maxlxy_sindpsvlxyu)        
-        minsina3dsvl3d = min(minl3d_sina3dsvl3d, maxl3d_sina3dsvl3d)
-        maxsina3dsvl3d = max(minl3d_sina3dsvl3d, maxl3d_sina3dsvl3d)        
-        minsina3dsvl3du = min(minl3d_sina3dsvl3du, maxl3d_sina3dsvl3du)
-        maxsina3dsvl3du = max(minl3d_sina3dsvl3du, maxl3d_sina3dsvl3du)        
+        maxsindpsvlxyu = max(minlxy_sindpsvlxyu, maxlxy_sindpsvlxyu)
+        minsina3dsvl3d = min(minlxy_sina3dsvl3d, maxlxy_sina3dsvl3d)
+        maxsina3dsvl3d = max(minlxy_sina3dsvl3d, maxlxy_sina3dsvl3d)
+        minsina3dsvl3du = min(minlxy_sina3dsvl3du, maxlxy_sina3dsvl3du)
+        maxsina3dsvl3du = max(minlxy_sina3dsvl3du, maxlxy_sina3dsvl3du)
         #
         for h in h1d:
             tn = h.GetName()

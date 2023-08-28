@@ -114,6 +114,7 @@ colors["DataE"] = ROOT.kPink+1
 colors["DataF"] = ROOT.kMagenta+1
 colors["DataG"] = ROOT.kViolet+1
 colors["signal"] = [ROOT.kBlue+1, ROOT.kAzure+1, ROOT.kCyan+1, ROOT.kTeal+1, ROOT.kGreen+1]
+colors["mc"] = [ROOT.kRed-3]
 
 colorsMultiDir = [ROOT.kBlack,
                   ROOT.kOrange+1,
@@ -135,17 +136,25 @@ legnames["DataD"] = "Run2022D (%.2f/fb)"%luminosity2022D
 legnames["DataE"] = "Run2022E (%.2f/fb)"%luminosity2022E
 legnames["DataF"] = "Run2022F (%.2f/fb)"%luminosity2022F
 legnames["DataG"] = "Run2022G (%.2f/fb)"%luminosity2022G
+legnames["DileptonMinBias"] = "Dilepton MinBias simulation"
+legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-06"] = "h#rightarrowZ_{d}Z_{d}, #epsilon = 1x10^{-6}"
+legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon5e-07"] = "h#rightarrowZ_{d}Z_{d}, #epsilon = 5x10^{-7}"
+legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-07"] = "h#rightarrowZ_{d}Z_{d}, #epsilon = 1x10^{-7}"
+legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon3e-08"] = "h#rightarrowZ_{d}Z_{d}, #epsilon = 3x10^{-8}"
 
 for s in samples:
-    if "Signal" in s:
+    if "Signal" in s and s not in legnames.keys():
         legnames[s] = s.replace("_"," ")
 
 samplecol   = []
 for s in samples:
     if "Signal" in s:
         samplecol.append("signal")
-    else:
+    elif "Data" in s:
         samplecol.append(s)
+    else:
+        samplecol.append("mc")
+
 
 indir  = args.inDir
 outdir = args.outDir
@@ -223,6 +232,7 @@ leg.SetFillStyle(0)
 leg.SetLineWidth(0)
 
 nSigSamples = 0
+nMCSamples = 0
 for fn,f in enumerate(infiles):
     inf.append(ROOT.TFile(f))
     if len(h1dn)>0:
@@ -257,16 +267,23 @@ for fn,f in enumerate(infiles):
         #ht.SetDirectory(0)
         h1d[fn].append(copy.deepcopy(ht))
         if not isMultiDir:
-            if "signal" not in samplecol[fn]:
+            if ("signal" not in samplecol[fn]) and ("mc" not in samplecol[fn]):
                 h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]])
                 h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]])
-            else:
+            elif "mc" not in samplecol[fn]:
                 h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]][nSigSamples])
                 h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nSigSamples])
+            else:
+                h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]][nMCSamples])
+                h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nMCSamples])
+                h1d[fn][len(h1d[fn])-1].SetFillColorAlpha(colors[samplecol[fn]][nMCSamples], 0.5)
         else:
             h1d[fn][len(h1d[fn])-1].SetLineColor  (colorsMultiDir[fn])
             h1d[fn][len(h1d[fn])-1].SetMarkerColor(colorsMultiDir[fn])
-    nSigSamples = nSigSamples+1
+    if "signal" in samplecol[fn]:
+        nSigSamples = nSigSamples+1
+    if "mc" in samplecol[fn]:
+        nMCSamples = nMCSamples+1
     for hn in h2dn:
         if args.noPreSel:
             if "hsvsel_" in hn:
@@ -285,6 +302,8 @@ for fn,f in enumerate(infiles):
         if not isMultiDir:
             if "Data" in samples[fn]:
                 leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "PEL")
+            elif "mc" in samplecol[fn]:
+                leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "F")
             else:
                 leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "L")
         else:
@@ -453,6 +472,7 @@ for hn,hnn in enumerate(h1dn):
                 tminY = 0.0
                 if doLogy:
                     tminY = 0.9
+        h1d[fn][hn].SetLineWidth(2)
         if unityArea:
             ytitle = ytitle.replace("Events", "Fraction of events")
             integral = h1d[fn][hn].Integral(0,-1)
@@ -569,10 +589,7 @@ for hn,hnn in enumerate(h1dn):
         pads[1].SetTicky()
         h_axis_ratio[hn].Draw("")
         for fn in range(1,len(infiles)):
-            if (not isMultiDir and "Data" in samples[fn]) or (isMultiDir and "Data" in samples[0]):
-                h1dr[fn][hn].Draw("SAME,P,E")
-            else:
-                h1dr[fn][hn].Draw("SAME,HIST,E")
+            h1dr[fn][hn].Draw("SAME,P,E")
         line[hn].SetLineStyle(2)
         if not isMultiDir:
             line[hn].SetLineColor(colors[samplecol[0]])
@@ -603,11 +620,16 @@ for hn,hnn in enumerate(h1dn):
     h_axis[hn].SetMinimum(minY[hn])
     h_axis[hn].SetMaximum(maxY[hn])
     h_axis[hn].Draw("")
+    fnd = -1
     for fn in range(len(infiles)):
-        if (not isMultiDir and "Data" in samples[fn]) or (isMultiDir and "Data" in samples[0]):
+        if (isMultiDir and "Data" in samples[0]):
             h1d[fn][hn].Draw("SAME,P,E")
+        elif (not isMultiDir and "Data" in samples[fn]):
+            fnd = fn
         else:
             h1d[fn][hn].Draw("SAME,HIST")
+    if (fnd > -1):
+        h1d[fnd][hn].Draw("SAME,P,E")
     leg.Draw("same")
     pads[0].RedrawAxis()
     pads[0].Update()
