@@ -45,13 +45,16 @@ if opts.data:
         gtag="124X_dataRun3_Prompt_v10" # latest prompt RECO GT
         #gtag="124X_dataRun3_HLT_v7" # latest HLT GT
     else:
-        gtag="124X_dataRun3_Prompt_v4" # latest prompt RECO GT (July 2023, CMSSW>=13_0_5_patch2)
-        #gtag="130X_dataRun3_HLT_v2" # latest HLT GT (July 2023)
+        gtag="130X_dataRun3_Prompt_frozen_v3" # latest prompt RECO GT (CMSSW>=13_0_10)
+        #gtag="130X_dataRun3_HLT_frozen_v3" # latest HLT GT (CMSSW>=13_0_10)
 else:
     if '2022' in opts.era:
-        gtag="124X_mcRun3_2022_realistic_v11" # latest MC GT
+        if not 'postEE' in opts.era:
+            gtag="124X_mcRun3_2022_realistic_v12" # latest MC GT
+        else:
+            gtag="124X_mcRun3_2022_realistic_postEE_v1"
     else:
-        gtag="124X_mcRun3_2022_realistic_v11" # latest MC GT (same as for 2022, as of July 2023)
+        gtag="130X_mcRun3_2023_realistic_v9" # latest MC GT (=phase1_2023_realistic, in CMSSW_13_1_0)
 process.GlobalTag.globaltag = gtag
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(opts.nevents))
