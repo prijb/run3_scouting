@@ -72,7 +72,7 @@ private:
   virtual void endJob();
   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
-  float getMinDetDistance(const GeomDet *det,  Local3DPoint point, GlobalPoint& retPoint);
+  std::vector<float> getMinDetDistance(const GeomDet *det,  Local3DPoint point, GlobalPoint& retPoint);
 
   edm::EDGetToken muonToken_;
   edm::EDGetToken dvToken_;
