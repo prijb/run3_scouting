@@ -5,7 +5,8 @@ vpbool   = VarParsing.VarParsing.varType.bool
 vpint    = VarParsing.VarParsing.varType.int
 vpstring = VarParsing.VarParsing.varType.string
 
-opts.register('data',    True ,         mytype = vpbool)
+opts.register('data',    True,          mytype = vpbool)
+opts.register('monitor', False,         mytype = vpbool)
 opts.register('era',     "2022D",       mytype = vpstring)
 opts.register('output',  "output.root", mytype = vpstring)
 opts.register('inputs',  "",            mytype = vpstring) # comma separated list of input files
@@ -36,7 +37,6 @@ process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-
 
 gtag=""
 # from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFrontierConditions
@@ -114,18 +114,114 @@ process.countvtx = cms.EDFilter("ScoutingVertexCountFilter",
     minNumber = cms.uint32(1)
 )
 
-#from Daniel's link - https://github.com/elfontan/Run3ScoutingAnalysisTools/blob/ScoutingPaper/tree.py#L38
+# To recover trigger info: https://hlt-config-editor-confdbv3.app.cern.ch/ + https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVRun3Analysis + https://cmsoms.cern.ch/cms/triggers/report?cms_run=<run>
 L1Info  = []
 HLTInfo = []
 if '2022' in opts.era or '2023B' in opts.era or '2023C-triggerV10' in opts.era:
     L1Info = ["L1_DoubleMu_12_5","L1_DoubleMu_15_7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18","L1_DoubleMu4_SQ_OS_dR_Max1p2","L1_DoubleMu4p5_SQ_OS_dR_Max1p2"]
     HLTInfo=[ [ 'Run3_PFScouting', 'DST_Run3_PFScoutingPixelTracking_v*' ] ]
+    if opts.monitor:
+        HLTInfo = HLTInfo +
+        [
+            ['HLT_Ele115_CaloIdVT_GsfTrkIdT', 'HLT_Ele115_CaloIdVT_GsfTrkIdT_v*'],
+            ['HLT_Ele35_WPTight_Gsf', 'HLT_Ele35_WPTight_Gsf_v*'],
+            ['HLT_IsoMu27', 'HLT_IsoMu27_v*'],
+            ['HLT_Mu50', 'HLT_Mu50_v*'],
+            ['HLT_PFHT1050', 'HLT_PFHT1050_v*'],
+            ['HLT_Photon200', 'HLT_Photon200_v*']
+        ]
+        L1Info = L1Info +
+        [
+            "L1_HTT200er", "L1_HTT255er", "L1_HTT280er", "L1_HTT320er", "L1_HTT360er", "L1_HTT400er", "L1_HTT450er",
+            "L1_ETT2000",
+            "L1_SingleJet180", "L1_SingleJet200",
+            "L1_DoubleJet30er2p5_Mass_Min300_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min330_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min360_dEta_Max1p5",
+            "L1_SingleLooseIsoEG28er2p1", "L1_SingleLooseIsoEG28er1p5", "L1_SingleLooseIsoEG30er1p5", "L1_SingleIsoEG28er2p1", "L1_SingleIsoEG30er2p1", "L1_SingleIsoEG32er2p1",
+            "L1_DoubleEG_LooseIso16_LooseIso12_er1p5", "L1_DoubleEG_LooseIso18_LooseIso12_er1p5", "L1_DoubleEG_LooseIso20_LooseIso12_er1p5", "L1_DoubleEG_LooseIso22_LooseIso12_er1p5"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleJet160er2p5", "L1_SingleJet180", "L1_SingleJet200", "L1_SingleTau120er2p1", "L1_SingleTau130er2p1", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleLooseIsoEG26er2p5", "L1_SingleLooseIsoEG26er1p5", "L1_SingleLooseIsoEG28er2p5", "L1_SingleLooseIsoEG28er2p1", "L1_SingleLooseIsoEG28er1p5", "L1_SingleLooseIsoEG30er2p5", "L1_SingleLooseIsoEG30er1p5", "L1_SingleEG26er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60", "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleIsoEG24er2p1", "L1_SingleIsoEG26er2p1", "L1_SingleIsoEG28er2p1", "L1_SingleIsoEG30er2p1", "L1_SingleIsoEG32er2p1", "L1_SingleIsoEG26er2p5", "L1_SingleIsoEG28er2p5", "L1_SingleIsoEG30er2p5", "L1_SingleIsoEG32er2p5", "L1_SingleIsoEG34er2p5"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleMu22", "L1_SingleMu25"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_HTT120er", "L1_HTT160er", "L1_HTT200er", "L1_HTT255er", "L1_HTT280er", "L1_HTT280er_QuadJet_70_55_40_35_er2p5", "L1_HTT320er_QuadJet_80_60_er2p1_45_40_er2p3", "L1_HTT320er_QuadJet_80_60_er2p1_50_45_er2p3", "L1_HTT320er", "L1_HTT360er", "L1_ETT2000", "L1_HTT400er", "L1_HTT450er"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleJet160er2p5", "L1_SingleJet180", "L1_SingleJet200", "L1_SingleTau120er2p1", "L1_SingleTau130er2p1", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60"
+        ]        
+        L1Info = list(set(L1Info))
 else:
     # for run >=367621 (during era Run2023C)
     L1Info = ["L1_DoubleMu_12_5","L1_DoubleMu_15_7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18","L1_DoubleMu4_SQ_OS_dR_Max1p2","L1_DoubleMu4p5_SQ_OS_dR_Max1p2","L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4","L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4","L1_DoubleMu8_SQ"]
     HLTInfo = [ [ 'Run3_DoubleMu3_PFScouting', 'DST_Run3_DoubleMu3_PFScoutingPixelTracking_v*' ] ]
+    if opts.monitor:
+        HLTInfo = HLTInfo +
+        [
+            ['DST_Run3_EG16_EG12_PFScoutingPixelTracking', 'DST_Run3_EG16_EG12_PFScoutingPixelTracking_v*'],
+            ['DST_Run3_EG30_PFScoutingPixelTracking', 'DST_Run3_EG30_PFScoutingPixelTracking_v*'],
+            ['DST_Run3_JetHT_PFScoutingPixelTracking', 'DST_Run3_JetHT_PFScoutingPixelTracking_v*'],
+            ['HLT_Ele115_CaloIdVT_GsfTrkIdT', 'HLT_Ele115_CaloIdVT_GsfTrkIdT_v*'],
+            ['HLT_Ele115_CaloIdVT_GsfTrkIdT', 'HLT_Ele115_CaloIdVT_GsfTrkIdT_v*'],
+            ['HLT_Ele35_WPTight_Gsf', 'HLT_Ele35_WPTight_Gsf_v*'],
+            ['HLT_IsoMu27', 'HLT_IsoMu27_v*'],
+            ['HLT_Mu50', 'HLT_Mu50_v*'],
+            ['HLT_PFHT1050', 'HLT_PFHT1050_v*'],
+            ['HLT_Photon200', 'HLT_Photon200_v*']
+        ]
+        L1Info = L1Info +
+        [
+            "L1_DoubleEG_LooseIso16_LooseIso12_er1p5", "L1_DoubleEG_LooseIso18_LooseIso12_er1p5", "L1_DoubleEG_LooseIso20_LooseIso12_er1p5", "L1_DoubleEG_LooseIso22_LooseIso12_er1p5"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleLooseIsoEG28er2p1", "L1_SingleLooseIsoEG28er1p5", "L1_SingleLooseIsoEG30er1p5", "L1_SingleIsoEG28er2p1", "L1_SingleIsoEG30er2p1", "L1_SingleIsoEG32er2p1", "L1_SingleEG40er2p5", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_HTT200er", "L1_HTT255er", "L1_HTT280er", "L1_HTT320er", "L1_HTT360er", "L1_HTT400er", "L1_HTT450er", "L1_ETT2000", "L1_SingleJet180", "L1_SingleJet200", "L1_DoubleJet30er2p5_Mass_Min250_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min300_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min330_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min360_dEta_Max1p5"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_HTT200er", "L1_HTT255er", "L1_HTT280er", "L1_HTT320er", "L1_HTT360er", "L1_HTT400er", "L1_HTT450er",
+            "L1_ETT2000",
+            "L1_SingleJet180", "L1_SingleJet200",
+            "L1_DoubleJet30er2p5_Mass_Min300_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min330_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min360_dEta_Max1p5",
+            "L1_SingleLooseIsoEG28er2p1", "L1_SingleLooseIsoEG28er1p5", "L1_SingleLooseIsoEG30er1p5", "L1_SingleIsoEG28er2p1", "L1_SingleIsoEG30er2p1", "L1_SingleIsoEG32er2p1",
+            "L1_DoubleEG_LooseIso16_LooseIso12_er1p5", "L1_DoubleEG_LooseIso18_LooseIso12_er1p5", "L1_DoubleEG_LooseIso20_LooseIso12_er1p5", "L1_DoubleEG_LooseIso22_LooseIso12_er1p5"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleJet160er2p5", "L1_SingleJet180", "L1_SingleJet200", "L1_SingleTau120er2p1", "L1_SingleTau130er2p1", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleLooseIsoEG26er2p5", "L1_SingleLooseIsoEG26er1p5", "L1_SingleLooseIsoEG28er2p5", "L1_SingleLooseIsoEG28er2p1", "L1_SingleLooseIsoEG28er1p5", "L1_SingleLooseIsoEG30er2p5", "L1_SingleLooseIsoEG30er1p5", "L1_SingleEG26er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60", "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleIsoEG24er2p1", "L1_SingleIsoEG26er2p1", "L1_SingleIsoEG28er2p1", "L1_SingleIsoEG30er2p1", "L1_SingleIsoEG32er2p1", "L1_SingleIsoEG26er2p5", "L1_SingleIsoEG28er2p5", "L1_SingleIsoEG30er2p5", "L1_SingleIsoEG32er2p5", "L1_SingleIsoEG34er2p5"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleMu22", "L1_SingleMu25"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_HTT120er", "L1_HTT160er", "L1_HTT200er", "L1_HTT255er", "L1_HTT280er", "L1_HTT280er_QuadJet_70_55_40_35_er2p5", "L1_HTT320er_QuadJet_80_60_er2p1_45_40_er2p3", "L1_HTT320er_QuadJet_80_60_er2p1_50_45_er2p3", "L1_HTT320er", "L1_HTT360er", "L1_ETT2000", "L1_HTT400er", "L1_HTT450er"
+        ]
+        L1Info = L1Info +
+        [
+            "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleJet160er2p5", "L1_SingleJet180", "L1_SingleJet200", "L1_SingleTau120er2p1", "L1_SingleTau130er2p1", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60"
+        ]        
+        L1Info = list(set(L1Info))
 
-do_trigger_objects = not opts.data
+do_trigger_objects = not (opts.data or opts.monitor)
 
 process.triggerMaker = cms.EDProducer("TriggerMaker",
         triggerAlias = cms.vstring(list(zip(*HLTInfo))[0]),
