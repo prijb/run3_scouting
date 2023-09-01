@@ -423,7 +423,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   // Branch variables
   unsigned int run, lumi, evtn;
   bool passL1, passHLT;
-  float PV_x, PV_y, PV_z;
+  float nPV, PV_x, PV_y, PV_z;
   GenPart GenParts;
   SV SVs;
   SVOverlap SVOverlaps;
@@ -438,6 +438,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("passL1", &passL1);
   tout->Branch("passHLT", &passHLT);
 
+  tout->Branch("nPV", &nPV);
   tout->Branch("PV_x", &PV_x);
   tout->Branch("PV_y", &PV_y);
   tout->Branch("PV_z", &PV_z);
@@ -626,8 +627,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
       // PV selection
       auto pvs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingPrimaryVertexPacker", "primaryVtx");
-      PV_x = 0; PV_y = 0; PV_z = 0;
+      nPV = 0; PV_x = 0; PV_y = 0; PV_z = 0;
 
+      nPV = pvs.size();
       if (pvs.size() > 0 && pvs[0].isValidVtx()) {
         PV_x = pvs[0].x();
         PV_y = pvs[0].y();

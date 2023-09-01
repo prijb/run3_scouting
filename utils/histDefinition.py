@@ -33,6 +33,15 @@ def hist2dDefinition(nbinsX, lowX, highX, xtitle2d, nbinsY, lowY, highY, ytitle2
 def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     # 1D histograms
 
+    #Event
+
+    nbins   ["npv"] = 80
+    low     ["npv"] = 0
+    high    ["npv"] = 80
+    xtitle  ["npv"] = "Number of PVs"
+    ytitle  ["npv"] = "Events"
+    variable["npv"] = "t.nPV"
+
     #Displaced vertices
 
     nbins   ["nsv"] = 10
@@ -1373,6 +1382,11 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
     histtype2d = dict()
     #
     ##
+    # Event
+    histname.append("hevent_npv")
+    histtype[histname[-1]]="npv"
+    #
+    ##
     # Displaced vertices
     if presel:
         #
@@ -2122,6 +2136,18 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname.append("hselmuon_ntrackerlayers")
         histtype[histname[-1]]="mutrackerlayers"
         #
+        histname.append("hselmuon_nobsmexplayers")
+        histtype[histname[-1]]="muobsmexplayers"
+        #
+        histname.append("hselmuon_nobsmexppixellayers")
+        histtype[histname[-1]]="muobsmexppixlayers"
+        #
+        histname.append("hselmuon_nobsmexphits")
+        histtype[histname[-1]]="muobsmexphits"
+        #
+        histname.append("hselmuon_nobsmexppixelhits")
+        histtype[histname[-1]]="muobsmexppixhits"
+        #
         ##
         #
         histname.append("hselmuon_osv_pt")
@@ -2258,6 +2284,18 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname.append("hselmuon_osv_ntrackerlayers")
         histtype[histname[-1]]="mutrackerlayers"
+        #
+        histname.append("hselmuon_osv_nobsmexplayers")
+        histtype[histname[-1]]="muobsmexplayers"
+        #
+        histname.append("hselmuon_osv_nobsmexppixellayers")
+        histtype[histname[-1]]="muobsmexppixlayers"
+        #
+        histname.append("hselmuon_osv_nobsmexphits")
+        histtype[histname[-1]]="muobsmexphits"
+        #
+        histname.append("hselmuon_osv_nobsmexppixelhits")
+        histtype[histname[-1]]="muobsmexppixhits"
         #
     ##
     if fourmuon:

@@ -260,6 +260,14 @@ for e in range(firste,laste):
     if isData and t.run==359571 or t.run==359661:
             continue
 
+    # Event info
+    for h in h1d:
+        tn = h.GetName()
+        if "hevent_" not in tn:
+            continue
+        else:
+            h.Fill(eval(variable1d[h.GetName()]))
+
     # Loop over SVs
     nSV = len(t.SV_index)
     if nSV<1:
