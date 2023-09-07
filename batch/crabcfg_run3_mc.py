@@ -45,7 +45,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1 #can be larger
 
 #edit the area and user name
-config.Data.outLFNDirBase = '/store/group/Run3Scouting/testRAWScouting_'+ntuple_version # DB no
+config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_version # DB no
 config.Data.publication = False
 config.Site.storageSite = "T2_US_UCSD"
 
