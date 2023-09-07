@@ -19,11 +19,11 @@ python3 crabcfg_run3.py E
 python3 crabcfg_run3.py F
 python3 crabcfg_run3.py G
 python3 crabcfg_run3.py B /ScoutingPFMonitor/RunB-v1/RAW
-python3 crabcfg_run3.py B /ScoutingPFMonitor/RunC-v1/RAW
-python3 crabcfg_run3.py B /ScoutingPFMonitor/RunD-v1/RAW
-python3 crabcfg_run3.py B /ScoutingPFMonitor/RunE-v1/RAW
-python3 crabcfg_run3.py B /ScoutingPFMonitor/RunF-v1/RAW
-python3 crabcfg_run3.py B /ScoutingPFMonitor/RunG-v1/RAW
+python3 crabcfg_run3.py C /ScoutingPFMonitor/RunC-v1/RAW
+python3 crabcfg_run3.py D /ScoutingPFMonitor/RunD-v1/RAW
+python3 crabcfg_run3.py E /ScoutingPFMonitor/RunE-v1/RAW
+python3 crabcfg_run3.py F /ScoutingPFMonitor/RunF-v1/RAW
+python3 crabcfg_run3.py G /ScoutingPFMonitor/RunG-v1/RAW
 python3 crabcfg_run3.py X /InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8/Run3Summer22DR-Pilot_124X_mcRun3_2022_realistic_v12-v4/AODSIM
 python3 crabcfg_run3.py X1 /HTo2ZdTo2mu2x_MZd-10_Epsilon-1e-06_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEDRPremix-124X_mcRun3_2022_realistic_postEE_v1-v2/AODSIM
 #For local MC

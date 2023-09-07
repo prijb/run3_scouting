@@ -14,10 +14,20 @@ config.General.requestName = 'skim__{}_{}'.format(
         ntuple_version,
         )
 
-config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
-
+data=True
+config.JobType.pyCfgParams=["era={}".format(era),"data=True",]
 if len((sys.argv))>2:
    config.Data.inputDataset = sys.argv[2]
+   if ("SIM") in sys.argv[2]:
+      config.JobType.pyCfgParams=["era={}".format(era),"data=False",]
+      data=False
+   else: # the other data is only PFMonitor
+      config.General.requestName = 'skimPFMonitor__{}_{}'.format(
+        era,
+        ntuple_version,
+        )
+else:
+   config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
 
 import os 
 base = os.environ["CMSSW_BASE"]
@@ -27,14 +37,6 @@ config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'Scouting/NtupleMaker/test/producer_Run3.py'
-
-config.JobType.pyCfgParams=["era={}".format(era),"data=True",]
-
-data=True
-if len((sys.argv))>2:
-   if ("SIM") in sys.argv[2]:
-      config.JobType.pyCfgParams=["era={}".format(era),"data=Falsee",]
-      data=False
 
 config.Data.splitting = 'EventAwareLumiBased'
 
@@ -58,4 +60,4 @@ config.Data.publication = False
 config.Site.storageSite = "T2_US_UCSD"
 
 print(config)
-#crabCommand('submit', config = config, dryrun = False) ## dryrun = True for local test
+crabCommand('submit', config = config, dryrun = False) ## dryrun = True for local test
