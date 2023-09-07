@@ -7,7 +7,7 @@ config = config()
 import sys
 
 era = "2022"+sys.argv[1] # ABCDEFG
-ntuple_version = "2"
+ntuple_version = "4"
 
 config.General.requestName = 'skim__{}_{}'.format(
         era,
@@ -40,7 +40,7 @@ config.Data.unitsPerJob = int(10e6/2)
 config.Data.lumiMask = "data/Cert_Collisions2022_355100_362760_Golden.json"
 
 #edit the area and user name
-config.Data.outLFNDirBase = '/store/user/legianni/testRAWScouting_'+ntuple_version # DB no
+config.Data.outLFNDirBase = '/store/group/Run3Scouting/testRAWScouting_'+ntuple_version # DB no
 config.Data.publication = False
 config.Site.storageSite = "T2_US_UCSD"
 
