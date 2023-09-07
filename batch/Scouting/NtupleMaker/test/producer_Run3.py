@@ -250,6 +250,6 @@ process.load("PhysicsTools.PatAlgos.triggerLayer1.triggerProducer_cfi")
 process.patTrigger.stageL1Trigger = cms.uint32(2)
 
 #hitMaker not needed (Mario)
-if (opts.data): process.skimpath = cms.Path(process.countmu+process.countvtx+process.gtStage2Digis+process.triggerMaker+process.offlineBeamSpot+process.beamSpotMaker)#+process.MeasurementTrackerEvent+process.hitMaker)
-else: process.skimpath = cms.Path(process.gtStage2Digis+process.patTrigger+process.triggerMaker+process.offlineBeamSpot+process.beamSpotMaker)#+process.MeasurementTrackerEvent+process.hitMaker)
+if (opts.data): process.skimpath = cms.Path(process.countmu+process.countvtx+process.gtStage2Digis+process.triggerMaker+process.offlineBeamSpot+process.beamSpotMaker+process.MeasurementTrackerEvent+process.hitMaker)
+else: process.skimpath = cms.Path(process.gtStage2Digis+process.patTrigger+process.triggerMaker+process.offlineBeamSpot+process.beamSpotMaker+process.MeasurementTrackerEvent+process.hitMaker)
 
