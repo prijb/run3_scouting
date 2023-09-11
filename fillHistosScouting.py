@@ -47,6 +47,7 @@ parser.add_argument("--noPreSel", default=False, action="store_true", help="Do n
 parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not fill dimuon histograms")
 parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems")
 parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems from overlapping SVs")
+parser.add_argument("--doGen", default=False, action="store_true", help="Fill generation information histograms")
 args = parser.parse_args()
 
 # Functions for selection
@@ -138,6 +139,15 @@ def muonType(isGlobal, isTracker, isStandAlone):
     elif not isGlobal and not isTracker and not isStandAlone:
         return 4.5
 
+# Muon IP sign
+def getIPSign(mphi, dmphi):
+    dxydir = ROOT.TVector3(-ROOT.TMath.Sin(mphi), ROOT.TMath.Cos(mphi), 0.0)
+    dmudir = ROOT.TVector3(ROOT.TMath.Cos(dmphi), ROOT.TMath.Sin(dmphi), 0.0)
+    if (dxydir*dmudir > 0):
+        return 1.0
+    else:
+        return -1.0
+
 indir  = args.inDir.replace("/ceph/cms","")
 outdir = args.outDir
 if args.outSuffix!="":
@@ -211,20 +221,26 @@ for f in files:
     t.Add(f)
 
 # Histograms:
-h1d = []
+h1d = dict()
 variable1d = dict()
 #
-h2d = []
+h2d = dict()
 variable2d = dict()
 #
 h1d,variable1d,h2d,variable2d = histDefinition.histInitialization(not(args.noPreSel),not(args.noDiMuon),not(args.noFourMuon),not(args.noFourMuonOSV))
 ###
-hall = h1d+h2d
-for h in hall:
-    if isData:
-        h.Sumw2(ROOT.kFALSE)
-    else:
-        h.Sumw2()
+for cat in h1d.keys():
+    for h in h1d[cat]:
+        if isData:
+            h.Sumw2(ROOT.kFALSE)
+        else:
+            h.Sumw2()
+for cat in h2d.keys():
+    for h in h2d[cat]:
+        if isData:
+            h.Sumw2(ROOT.kFALSE)
+        else:
+            h.Sumw2()
 ###
 
 elist = [] # for duplicate removal
@@ -261,12 +277,41 @@ for e in range(firste,laste):
             continue
 
     # Event info
-    for h in h1d:
+    for h in h1d["event"]:
         tn = h.GetName()
-        if "hevent_" not in tn:
-            continue
-        else:
-            h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]))
+
+    # Gen info
+    dmugen = []
+    dmumot = []
+    if not isData:
+        nGEN = len(t.GenPart_pdgId)
+        for i in range(nGEN):
+            if abs(t.GenPart_pdgId[i]) != 13:
+                continue
+            for j in range(i+1, nGEN):
+                if i==j:
+                    continue
+                if t.GenPart_motherIndex[i] != t.GenPart_motherIndex[j] or t.GenPart_pdgId[i]*t.GenPart_pdgId[j] > 0:
+                    continue
+                dmugen.append(i)
+                dmugen.append(j)
+                for k in range(0, nGEN):
+                    if t.GenPart_index[k] == t.GenPart_motherIndex[i]:
+                        gvec = ROOT.TLorentzVector()
+                        gvec.SetPtEtaPhiM(t.GenPart_pt[k], t.GenPart_eta[k], t.GenPart_phi[k], t.GenPart_m[k])
+                        dmumot.append(gvec)
+                        break
+
+        for g,gp in enumerate(dmumot):
+            lxygen = t.GenPart_lxy[dmugen[2*g]] 
+            if t.GenPart_motherPdgId[dmugen[2*g]]==443:
+                for h in h1d["jpsi"]:
+                    tn = h.GetName()
+                    h.Fill(eval(variable1d[h.GetName()]))
+            for h in h1d["llp"]:
+                tn = h.GetName()
+                h.Fill(eval(variable1d[h.GetName()]))
 
     # Loop over SVs
     nSV = len(t.SV_index)
@@ -282,27 +327,18 @@ for e in range(firste,laste):
             continue
         nSVsel = nSVsel+1
         lxy = t.SV_lxy[v]
-        for h in h1d:
+        for h in h1d["svsel"]:
             tn = h.GetName()
-            if "hsvsel_" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["svsel"]:
             tn = h.GetName()
-            if "hsvsel_" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
     nSVs = nSVsel
-    for h in h1d:
+    for h in h1d["nsvsel"]:
         if args.noPreSel:
             break
         tn = h.GetName()
-        if "h_nsvsel" not in tn or "ass" in tn:
-            continue
-        else:
-            h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]))
 
     # Loop over muons
     nMu = len(t.Muon_selected)
@@ -324,30 +360,21 @@ for e in range(firste,laste):
         muselidxs.append(m)
         if args.noPreSel:
             continue
-        for h in h1d:
+        for h in h1d["muon"]:
             if args.noPreSel:
                 break
             tn = h.GetName()
-            if "hmuon_" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["muon"]:
             if args.noPreSel:
                 break
             tn = h.GetName()
-            if "hmuon_" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
-    for h in h1d:
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+    for h in h1d["nmuon"]:
         if args.noPreSel:
             break
         tn = h.GetName()
-        if "h_nmuons" not in tn:
-            continue
-        else:
-            h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]))
     # Select events witb at least two muons associated to a SV
     if nMuAss<2:
         continue
@@ -546,6 +573,7 @@ for e in range(firste,laste):
     # Apply selections and fill histograms for muon pairs from non-overlapping SVs
     seldmuidxs = []
     seldmusvidxs = []
+    seldmuvecs = []
     for vn,v in enumerate(dmuvec):
         if args.noDiMuon:
             break
@@ -631,25 +659,44 @@ for e in range(firste,laste):
                 continue
             if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
+        #
+        # Check if the dimuon is gen-matched
+        isgen = False
+        drgen = 9999.
+        lxygen = -999.
+        idgen = 0
+        for gn,g in enumerate(dmumot):
+            tmp_drgen = g.DeltaR(v)
+            if tmp_drgen < drgen:
+                drgen = tmp_drgen 
+        if drgen < 0.1:
+            isgen = True
+            lxygen = t.GenPart_lxy[dmugen[2*gn]]
+            idgen = t.GenPart_motherPdgId[dmugen[2*gn]]
+        #
         seldmuidxs.append(dmuidxs[int(vn*2)])
         seldmuidxs.append(dmuidxs[int(vn*2)+1])
         seldmusvidxs.append(svidx[vn])        
-        for h in h1d:
+        seldmuvecs.append(vn)        
+        for h in h1d["dimuon"]:
             tn = h.GetName()
-            if "hdimuon_" not in tn or "osv" in tn:
+            if "dimuon_gen_" in tn and not isgen:
                 continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
+                continue
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["dimuon"]:
             tn = h.GetName()
-            if "hdimuon_" not in tn or "osv" in tn:
+            if "dimuon_gen_" in tn and not isgen:
                 continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
+                continue
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
     # Apply selections and fill histograms for muon pairs from overlapping SVs
     seldmuidxs_osv = []
     seldmusvidxs_osv = []
+    seldmuvecs_osv = []
     for vn,v in enumerate(dmuvec_osv):
         if args.noDiMuon:
             break
@@ -735,21 +782,39 @@ for e in range(firste,laste):
                 continue
             if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
+        #
+        # Check if the dimuon is gen-matched
+        isgen = False
+        drgen = 9999.
+        lxygen = -999.
+        idgen = 0
+        for gn,g in enumerate(dmumot):
+            tmp_drgen = g.DeltaR(v)
+            if tmp_drgen < drgen:
+                drgen = tmp_drgen 
+        if drgen < 0.1:
+            isgen = True
+            lxygen = t.GenPart_lxy[dmugen[2*gn]]
+            idgen = t.GenPart_motherPdgId[dmugen[2*gn]]
+        #
         seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)])
         seldmuidxs_osv.append(dmuidxs_osv[int(vn*2)+1])
         seldmusvidxs_osv.append(t.SVOverlap_vtxIdxs[osvidx[vn]][0])
-        for h in h1d:
+        seldmuvecs_osv.append(vn)
+        for h in h1d["dimuon"] + h1d["dimuon_osv"]:
             tn = h.GetName()
-            if "hdimuon_" not in tn:
+            if "dimuon_gen_" in tn and not isgen:
                 continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
+                continue
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["dimuon"] + h2d["dimuon_osv"]:
             tn = h.GetName()
-            if "hdimuon_" not in tn:
+            if "dimuon_gen_" in tn and not isgen:
                 continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
+                continue
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
     # Fill histograms for selected SVs (with a selected muon pair)
     seldmusvidxs_all = seldmusvidxs_osv+seldmusvidxs
@@ -758,53 +823,36 @@ for e in range(firste,laste):
     for v in set(seldmusvidxs_all):
         nSVselass = nSVselass+1
         lxy = t.SV_lxy[v]
-        for h in h1d:
+        for h in h1d["svselass"]:
             tn = h.GetName()
-            if "hsvselass_" not in tn or "osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["svselass"]:
             tn = h.GetName()
-            if "hsvselass_" not in tn or "osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
         if v in seldmusvidxs_osv:
             nSVselass_osv = nSVselass_osv+1
-            for h in h1d:
+            for h in h1d["svselass_osv"]:
                 tn = h.GetName()
-                if "hsvselass_osv" not in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable1d[h.GetName()]))
-            for h in h2d:
+                h.Fill(eval(variable1d[h.GetName()]))
+            for h in h2d["svselass_osv"]:
                 tn = h.GetName()
-                if "hsvselass_osv" not in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
     nSVs = nSVselass
-    for h in h1d:
+    for h in h1d["nsvselass"]:
         if args.noDiMuon:
             break
         tn = h.GetName()
-        if "h_nsvselass" not in tn or "osv" in tn:
-            continue
-        else:
-            h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]))
     nSVs = nSVselass_osv
-    for h in h1d:
+    for h in h1d["nsvselass_osv"]:
         if args.noDiMuon:
             break
         tn = h.GetName()
-        if "h_nsvselass_osv" not in tn:
-            continue
-        else:
-            h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]))
 
     # Apply selections and fill histograms for four-muon systems from overlapping SVs
     selqmusvidxs_osv = []
+    selqmuvecs_osv = []
     mindrmm, mindpmm, mindemm, mindedpmm, mina3dmm = 1e6, 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxdedpmm, maxa3dmm = -1., -1., -1., -1., -1.
     mindrmmu, mindpmmu, mindemmu, mindedpmmu, mina3dmmu = 1e6, 1e6, 1e6, 1e6, 1e6
@@ -824,6 +872,7 @@ for e in range(firste,laste):
         qmuidxs_osv_sel.append(qmuidxs_osv[vn*4+2])
         qmuidxs_osv_sel.append(qmuidxs_osv[vn*4+3])
         selqmusvidxs_osv.append(t.SVOverlap_vtxIdxs[osvidx_qmu[vn]][0])
+        selqmuvecs_osv.append(vn)
         mass = v.M()
         pt   = v.Pt()
         for m in range(vn*4,vn*4+4):
@@ -928,48 +977,34 @@ for e in range(firste,laste):
         sina3dsvl3d = abs(ROOT.TMath.Sin(v.Vect().Angle(osvvec_qmu[vn])))*(osvvec_qmu[vn].Mag())
         sina3dsvl3du = abs(ROOT.TMath.Sin(vu.Vect().Angle(osvvec_qmu[vn])))*(osvvec_qmu[vn].Mag())
         #
-        for h in h1d:
+        for h in h1d["fourmuon_osv"]:
             tn = h.GetName()
-            if "hfourmuon_osv_" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["fourmuon_osv"]:
             tn = h.GetName()
-            if "hfourmuon_osv_" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
     # Fill histograms for selected overlapping SVs (with a selected four muon system)
     nSVselass_qmu_osv = 0
     for v in set(selqmusvidxs_osv):
         nSVselass_qmu_osv = nSVselass_qmu_osv+1
         lxy = t.SV_lxy[v]
-        for h in h1d:
+        for h in h1d["svselass_fourmu_osv"]:
             tn = h.GetName()
-            if "hsvselass_fourmu_osv" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["svselass_fourmu_osv"]:
             tn = h.GetName()
-            if "hsvselass_fourmu_osv" not in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
     nSVs = nSVselass_qmu_osv
-    for h in h1d:
+    for h in h1d["nsvselass_fourmu_osv"]:
         if args.noFourMuonOSV:
             break
         tn = h.GetName()
-        if "h_nsvselass_fourmu_osv" not in tn:
-            continue
-        else:
-            h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]))
 
     # Apply selections and fill histograms for four-muon systems from non-overlapping SVs
     selqmusvidxs = []
+    selqmuvecs = []
     mindrmm, mindpmm, mindemm, mindedpmm, mina3dmm = 1e6, 1e6, 1e6, 1e6, 1e6
     maxdrmm, maxdpmm, maxdemm, maxdedpmm, maxa3dmm = -1., -1., -1., -1., -1.
     mindrmmu, mindpmmu, mindemmu, mindedpmmu, mina3dmmu = 1e6, 1e6, 1e6, 1e6, 1e6
@@ -993,6 +1028,7 @@ for e in range(firste,laste):
         qmuidxs_sel.append(qmuidxs[vn*4+3])
         selqmusvidxs.append(svidxminlxy_qmu[vn])
         selqmusvidxs.append(svidxmaxlxy_qmu[vn])
+        selqmuvecs.append(vn)
         mass    = v.M()
         minmass = min(qmu_dmuvecminlxy[vn].M(), qmu_dmuvecmaxlxy[vn].M())
         maxmass = max(qmu_dmuvecminlxy[vn].M(), qmu_dmuvecmaxlxy[vn].M())
@@ -1169,104 +1205,91 @@ for e in range(firste,laste):
         minsina3dsvl3du = min(minlxy_sina3dsvl3du, maxlxy_sina3dsvl3du)
         maxsina3dsvl3du = max(minlxy_sina3dsvl3du, maxlxy_sina3dsvl3du)
         #
-        for h in h1d:
+        for h in h1d["fourmuon"]:
             tn = h.GetName()
-            if "hfourmuon_" not in tn or "_osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["fourmuon"]:
             tn = h.GetName()
-            if "hfourmuon_" not in tn or "_osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
     # Fill histograms for selected non-overlapping SVs (with a selected four muon system)
     nSVselass_qmu = 0
     for v in set(selqmusvidxs):
         nSVselass_qmu = nSVselass_qmu+1
         lxy = t.SV_lxy[v]
-        for h in h1d:
+        for h in h1d["svselass_fourmu"]:
             tn = h.GetName()
-            if "hsvselass_fourmu" not in tn or "osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["svselass_fourmu"]:
             tn = h.GetName()
-            if "hsvselass_fourmu" not in tn or "osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
     nSVs = nSVselass_qmu
-    for h in h1d:
+    for h in h1d["nsvselass_fourmu"]:
         if args.noFourMuon:
             break
         tn = h.GetName()
-        if "h_nsvselass_fourmu" not in tn or "osv" in tn:
-            continue
-        else:
-            h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]))
 
     # Fill histograms for muons from selected dimuon and four-muon systems
     selmuidxs_dmu = seldmuidxs+seldmuidxs_osv
-    for m in selmuidxs_dmu:
-        for h in h1d:
+    selvecidxs_dmu = seldmuvecs+seldmuvecs_osv
+    for m_,m in enumerate(selmuidxs_dmu):
+        vn = selvecidxs_dmu[m_//2]
+        if m in seldmuidxs:
+            lxy  = t.SV_lxy[svidx[vn]]
+            mass = (dmuvec[vn]).M()
+            pt =  (dmuvec[vn]).Pt()
+            phi =  (dmuvec[vn]).Phi()
+        else:
+            lxy = t.SVOverlap_lxy[osvidx[vn]]
+            mass = (dmuvec_osv[vn]).M()
+            pt =  (dmuvec_osv[vn]).Pt()
+            phi =  (dmuvec_osv[vn]).Phi()
+        dxysign = getIPSign(t.Muon_phiCorr[m], phi)
+        for h in h1d["selmuon"]:
             tn = h.GetName()
-            if "hselmuon_" not in tn or "fourmu" in tn or "osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable1d[h.GetName()]))
-        for h in h2d:
+            h.Fill(eval(variable1d[h.GetName()]))
+        for h in h2d["selmuon"]:
             tn = h.GetName()
-            if "hselmuon_" not in tn or "fourmu" in tn or "osv" in tn:
-                continue
-            else:
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
         if m in seldmuidxs_osv:
-            for h in h1d:
+            for h in h1d["selmuon_osv"]:
                 tn = h.GetName()
-                if "hselmuon_osv" not in tn or "fourmu" in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable1d[h.GetName()]))
-            for h in h2d:
+                h.Fill(eval(variable1d[h.GetName()]))
+            for h in h2d["selmuon_osv"]:
                 tn = h.GetName()
-                if "hselmuon_osv" not in tn or "fourmu" in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
     if len(qmuidxs_sel)>3:
-        for m in qmuidxs_sel:
-            for h in h1d:
+        for m_,m in enumerate(qmuidxs_sel):
+            vn = selqmuvecs[m_//4]
+            if m in qmuidxsminlxy:
+                lxy = svvecminlxy_qmu[vn].Perp()
+                pt = (qmu_dmuvecminlxy[vn]).Pt()
+                mass = (qmu_dmuvecminlxy[vn]).M()
+            else:
+                lxy = svvecmaxlxy_qmu[vn].Perp()
+                pt = (qmu_dmuvecmaxlxy[vn]).Pt()
+                mass = (qmu_dmuvecmaxlxy[vn]).M()
+            for h in h1d["selmuon_fourmu"]:
                 tn = h.GetName()
-                if "hselmuon_fourmu" not in tn or "osv" in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable1d[h.GetName()]))
-            for h in h2d:
+                h.Fill(eval(variable1d[h.GetName()]))
+            for h in h2d["selmuon_fourmu"]:
                 tn = h.GetName()
-                if "hselmuon_fourmu" not in tn or "osv" in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
     if len(qmuidxs_osv_sel)>3:
-        for m in qmuidxs_osv_sel:
-            for h in h1d:
+        for m_,m in enumerate(qmuidxs_osv_sel):
+            vn = selqmuvecs_osv[m_//4]
+            lxy  = t.SVOverlap_lxy[osvidx_qmu[vn]]
+            mass = (qmuvec_osv[vn]).M()
+            pt = (qmuvec_osv[vn]).Pt()
+            for h in h1d["selmuon_fourmu_osv"]:
                 tn = h.GetName()
-                if "hselmuon_fourmu_osv" not in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable1d[h.GetName()]))
-            for h in h2d:
+                h.Fill(eval(variable1d[h.GetName()]))
+            for h in h2d["selmuon_fourmu_osv"]:
                 tn = h.GetName()
-                if "hselmuon_fourmu_osv" not in tn:
-                    continue
-                else:
-                    h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
 
 ### Write histograms
 foname = "%s/histograms_%s_all.root"%(outdir,args.year)
@@ -1279,6 +1302,10 @@ if index>=0:
     foname = foname+("_%d"%index)
 fout = ROOT.TFile(foname+".root","RECREATE")
 fout.cd()
-for h in hall:
-    h.Write()
+for cat in h1d.keys():
+    for h in h1d[cat]:
+        h.Write()
+for cat in h2d.keys():
+    for h in h2d[cat]:
+        h.Write()
 fout.Close()

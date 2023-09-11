@@ -651,7 +651,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
               abs(genpart.pdgId())!=4900213 && // Dark rho
               abs(genpart.pdgId())!=4900101 && // Dark mass
               abs(genpart.pdgId())!=4900102 && // Dark mass
-              abs(genpart.pdgId())!=25) // Higgs
+              abs(genpart.pdgId())!=1023 && // Dark photon from Higgs
+              abs(genpart.pdgId())!=25 && // Higgs
+              abs(genpart.pdgId())!=443) // JPsi
             continue;
           if (!genpart.isLastCopy())
             continue;

@@ -122,9 +122,9 @@ int main(int argc, char **argv) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenA1_v3p1/", startFile, nFiles, isCondor); // 72 files
     process = "Signal_ScenA_v3p1";
   }
-  if ( sampleArg=="Signal_ScenB1_v3p1" ) {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenB1_v3p1/", startFile, nFiles, isCondor); // 74 files
-    process = "Signal_ScenB1_v3p1";
+  if ( sampleArg=="Signal_ScenB1_v3p2" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenB1_v3p2/", startFile, nFiles, isCondor); // 89 files
+    process = "Signal_ScenB1_v3p2";
   }
   if ( sampleArg=="Signal_ScenB2_v3p1" ) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Signal/Signal_ScenB2_v3p1/", startFile, nFiles, isCondor); // 99 files

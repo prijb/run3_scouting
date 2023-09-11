@@ -136,7 +136,7 @@ legnames["DataD"] = "Run2022D (%.2f/fb)"%luminosity2022D
 legnames["DataE"] = "Run2022E (%.2f/fb)"%luminosity2022E
 legnames["DataF"] = "Run2022F (%.2f/fb)"%luminosity2022F
 legnames["DataG"] = "Run2022G (%.2f/fb)"%luminosity2022G
-legnames["DileptonMinBias"] = "Dilepton MinBias simulation"
+legnames["DileptonMinBias"] = "MinBias simulation"
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-06"] = "h#rightarrowZ_{d}Z_{d}, #epsilon = 1x10^{-6}"
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon5e-07"] = "h#rightarrowZ_{d}Z_{d}, #epsilon = 5x10^{-7}"
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-07"] = "h#rightarrowZ_{d}Z_{d}, #epsilon = 1x10^{-7}"
@@ -225,7 +225,7 @@ if len(samples)>1 or len(inmultidirs)>1:
 if len(samples)>4 or len(inmultidirs)>4:
     ncl=3
     xol=0.5
-leg = ROOT.TLegend(0.69-xol, 0.89-0.06*max(len(samples),len(inmultidirs)+1)/ncl, 0.89, 0.89)
+leg = ROOT.TLegend(0.62-xol, 0.89-0.06*max(len(samples),len(inmultidirs)+1)/ncl, 0.89, 0.89)
 leg.SetNColumns(ncl)
 leg.SetFillColor(0)
 leg.SetFillStyle(0)
@@ -664,6 +664,16 @@ for hn,hnn in enumerate(h1dn):
 for hn,hnn in enumerate(h2dn):
     for fn in range(len(infiles)):
         h = h2d[fn][hn].Clone()
+        if "lxycomp" in hnn:
+            if len(args.lxySel)>0:
+                 xmin=float(args.lxySel[0])
+                 ymin=float(args.lxySel[0])
+                 isZoom = True
+                 if len(args.lxySel)>1:
+                     xmax=float(args.lxySel[1])
+                     ymax=float(args.lxySel[1])
+                 h.GetXaxis().SetRangeUser(xmin, xmax)
+                 h.GetYaxis().SetRangeUser(ymin, ymax)
         if "yvsx" in hnn:
             maxc      = 100.0
             maxcPixel = 17.5
