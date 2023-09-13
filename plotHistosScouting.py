@@ -166,7 +166,7 @@ if not os.path.exists(outdir):
     os.makedirs(outdir)
 os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
 
-isMultiDir = (len(samples)==1 and len(args.inMultiDir)>1)
+isMultiDir = (len(samples)==1 and len(args.inMultiDir)>1 or len(samples)==len(args.inMultiDir))
 inmultidirs = []
 inmultilegs = []
 if isMultiDir:
@@ -194,10 +194,15 @@ if not isMultiDir:
             os.system('hadd '+indir+'/'+hname+'_'+s+'_'+args.year+'_all.root $(find '+indir+' -name "'+hname+'_'+s+'*_'+args.year+'*.root")')
         infiles.append(indir+'/'+hname+'_'+s+'_'+args.year+'_all.root')
 else:
-    for d in inmultidirs:
-        if not os.path.isfile("%s/%s_%s_%s_all.root"%(d,hname,samples[0],args.year)):
-            os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+args.year+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_'+args.year+'_*.root")')
-        infiles.append(d+'/'+hname+'_'+samples[0]+'_'+args.year+'_all.root')        
+    for i,d in enumerate(inmultidirs):
+        if len(samples) == len(inmultidirs):
+            if not os.path.isfile("%s/%s_%s_%s_all.root"%(d,hname,samples[i],args.year)):
+                os.system('hadd '+d+'/'+hname+'_'+samples[i]+'_'+args.year+'_all.root $(find '+d+' -name "'+hname+'_'+samples[i]+'*_'+args.year+'_*.root")')
+            infiles.append(d+'/'+hname+'_'+samples[i]+'_'+args.year+'_all.root')        
+        else:
+            if not os.path.isfile("%s/%s_%s_%s_all.root"%(d,hname,samples[0],args.year)):
+                os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+args.year+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_'+args.year+'_*.root")')
+            infiles.append(d+'/'+hname+'_'+samples[0]+'_'+args.year+'_all.root')        
 
 if len(infiles)<1:
     print("No matching input file was found in %s."%indir)
@@ -280,10 +285,11 @@ for fn,f in enumerate(infiles):
         else:
             h1d[fn][len(h1d[fn])-1].SetLineColor  (colorsMultiDir[fn])
             h1d[fn][len(h1d[fn])-1].SetMarkerColor(colorsMultiDir[fn])
-    if "signal" in samplecol[fn]:
-        nSigSamples = nSigSamples+1
-    if "mc" in samplecol[fn]:
-        nMCSamples = nMCSamples+1
+    if not isMultiDir:
+        if "signal" in samplecol[fn]:
+            nSigSamples = nSigSamples+1
+        if "mc" in samplecol[fn]:
+            nMCSamples = nMCSamples+1
     for hn in h2dn:
         if args.noPreSel:
             if "hsvsel_" in hn:
@@ -482,6 +488,7 @@ for hn,hnn in enumerate(h1dn):
                 if fn==0:
                     h1dr_den[hn].Scale(1.0/integral)
             tmaxY = max(tmaxY, h1d[fn][hn].GetMaximum())
+            tminY = 0.0
             if doLogy:
                 minb = 1e100
                 for b in range(1,h1d[fn][hn].GetNbinsX()+1):
