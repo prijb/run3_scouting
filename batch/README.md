@@ -1,4 +1,34 @@
-## Info
+## Run3 Info
+
+The RAW data are skimmed and/or slimmed first, as in Run 2. The skim requires at least 2 Scouting Muons and at least 1 Scouting Vertex for data.
+
+* Do `. install_cmssw.sh`. This sets up a CMSSW environment with some EDFilters and some EDAnalyzers. (Note that `Scouting/NtupleMaker/test/producer_Run3.py` is the relevant PSet for slim/skimming)
+
+##### crab commands (used for initial test on signal and data)
+
+* Submit crab jobs
+  * `source /cvmfs/cms.cern.ch/crab3/crab.sh` for crab commands
+  * submit with
+
+```bash
+python3 crabcfg_run3.py B
+python3 crabcfg_run3.py C
+python3 crabcfg_run3.py D
+python3 crabcfg_run3.py E
+python3 crabcfg_run3.py F
+python3 crabcfg_run3.py G
+python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v0p30_AODSIM_v0p30
+python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v1p3_AODSIM_v1p3
+python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v1p4_AODSIM_v1p4
+python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v1p5_AODSIM_v1p5
+python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower_ScenarioB_default_Run3Summer22GS_v0p32_AODSIM_v0p32
+python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower_ScenarioC_default_Run3Summer22GS_v0p34_AODSIM_v0p34
+python3 crabcfg_run3_2023.py B ""
+python3 crabcfg_run3_2023.py C -triggerV10
+python3 crabcfg_run3_2023.py C ""
+```
+
+## Run2 Info
 
 RAW ntuples are generated/slimmed first, then these are made into babies.
 

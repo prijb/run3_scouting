@@ -15,7 +15,7 @@ cd tmp_create_package
 
 # Prepare package directory
 mkdir -p ScoutingRun3
-cp ../*.py ../data ScoutingRun3/. -r # Copy relevant folders
+cp ../*.py ../data ../utils ScoutingRun3/. -r # Copy relevant folders
 tar -cf - --exclude=temp_data* ../cpp | tar -xf - -C ScoutingRun3/. # Copy cpp folder without the plot folders
 tar -chJf package.tar.gz ScoutingRun3
 mv package.tar.gz ../.

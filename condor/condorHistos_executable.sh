@@ -1,13 +1,13 @@
 #!/bin/bash
 
 SCRAMARCH=slc7_amd64_gcc10
-CMSSWVERSION=CMSSW_12_6_0
+CMSSWVERSION=CMSSW_12_6_0_patch1
 
-OUTDIR=$1
-YEAR=$2
-PROCESS=$3
-STARTFILE=$4
-NFILES=$5
+INDIR=$1
+OUTDIR=$2
+while ! [ -z "$3" ]; do
+    FLAGS="$FLAGS $3"; shift;
+done
 
 function stageout {
     COPY_SRC=$1
@@ -43,18 +43,22 @@ function stageout {
 
 ulimit -s unlimited
 source /cvmfs/cms.cern.ch/cmsset_default.sh
-cd /cvmfs/cms.cern.ch/$SCRAMARCH/cms/cmssw/$CMSSWVERSION/src ; eval `scramv1 runtime -sh` ; cd -
 
 tar xvf package.tar.gz
-cd ScoutingRun3/cpp
-echo $OUTDIR $YEAR $PROCESS $STARTFILE $NFILES
-./main.exe $OUTDIR $YEAR $PROCESS $STARTFILE $NFILES
+cd ScoutingRun3/
+export SCRAM_ARCH=${SCRAMARCH} && scramv1 project CMSSW ${CMSSWVERSION}
+cd ${CMSSWVERSION}/src
+cmsenv
+
+cd ../.. # Get back to ScoutingRun3/
+echo "python3 fillHistosScouting.py --inDir ${INDIR} --outDir ${OUTDIR} ${FLAGS}"
+python3 fillHistosScouting.py --inDir ${INDIR} --outDir ${OUTDIR} ${FLAGS}
 
 for FILE in $(ls $OUTDIR);
 do
   echo "File $FILE to be copied..."
   echo ""
   COPY_SRC="file://`pwd`/${OUTDIR}/$FILE"
-  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/ScoutingRun3Output/${OUTDIR}/$FILE"
+  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
   stageout $COPY_SRC $COPY_DEST
-done;
+done
