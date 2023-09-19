@@ -217,6 +217,7 @@ struct SV {
   std::vector<bool> selected;
   std::vector<bool> onModule, onModuleWithinUnc;
   std::vector<float> closestDet_x, closestDet_y, closestDet_z;
+  std::vector<float> minDistanceFromDet, minDistanceFromDet_x, minDistanceFromDet_y, minDistanceFromDet_z;
 
   void clear() {
     index.clear(); ndof.clear();
@@ -482,6 +483,10 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("SV_closestDet_x", &SVs.closestDet_x);
   tout->Branch("SV_closestDet_y", &SVs.closestDet_y);
   tout->Branch("SV_closestDet_z", &SVs.closestDet_z);
+  tout->Branch("SV_minDistanceFromDet", &SVs.minDistanceFromDet);
+  tout->Branch("SV_minDistanceFromDet_x", &SVs.minDistanceFromDet_x);
+  tout->Branch("SV_minDistanceFromDet_y", &SVs.minDistanceFromDet_y);
+  tout->Branch("SV_minDistanceFromDet_z", &SVs.minDistanceFromDet_z);
 
   tout->Branch("SVOverlap_vtxIdxs", &SVOverlaps.vtxIdxs);
   tout->Branch("SVOverlap_x", &SVOverlaps.x);
@@ -686,9 +691,13 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       auto svs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingMuonPacker", "displacedVtx");
       auto dvonmodule = getObject<std::vector<bool>>(ev, "hitMaker", "dvonmodule");
       auto dvonmodulewithinunc = getObject<std::vector<bool>>(ev, "hitMaker", "dvonmodulewithinunc");
-      auto dvdetxmindr = getObject<std::vector<float>>(ev, "hitMaker", "dvdetxmindr");
-      auto dvdetymindr = getObject<std::vector<float>>(ev, "hitMaker", "dvdetymindr");
-      auto dvdetzmindr = getObject<std::vector<float>>(ev, "hitMaker", "dvdetzmindr");
+      auto dvdetxmind = getObject<std::vector<float>>(ev, "hitMaker", "dvdetxmind");
+      auto dvdetymind = getObject<std::vector<float>>(ev, "hitMaker", "dvdetymind");
+      auto dvdetzmind = getObject<std::vector<float>>(ev, "hitMaker", "dvdetzmind");
+      auto dvmindfromdet = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdet");
+      auto dvmindfromdetx = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdetx");
+      auto dvmindfromdety = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdety");
+      auto dvmindfromdetz = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdetz");
       SVs.clear();
 
       unsigned int nSVs = svs.size();
@@ -720,9 +729,13 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         SVs.l3d.push_back(TMath::Sqrt(lxy*lxy+(z-PV_z)*(z-PV_z)));
         SVs.onModule.push_back(dvonmodule.at(iSV));
         SVs.onModuleWithinUnc.push_back(dvonmodulewithinunc.at(iSV));
-        SVs.closestDet_x.push_back(dvdetxmindr.at(iSV));
-        SVs.closestDet_y.push_back(dvdetymindr.at(iSV));
-        SVs.closestDet_z.push_back(dvdetzmindr.at(iSV));
+        SVs.closestDet_x.push_back(dvdetxmind.at(iSV));
+        SVs.closestDet_y.push_back(dvdetymind.at(iSV));
+        SVs.closestDet_z.push_back(dvdetzmind.at(iSV));
+        SVs.minDistanceFromDet.push_back(dvmindfromdet.at(iSV));
+        SVs.minDistanceFromDet_x.push_back(dvmindfromdetx.at(iSV));
+        SVs.minDistanceFromDet_y.push_back(dvmindfromdety.at(iSV));
+        SVs.minDistanceFromDet_z.push_back(dvmindfromdetz.at(iSV));
 
         float mindx=1e6, mindy=1e6, mindz=1e6, mindxy=1e6, mind3d=1e6;
         float maxdx=-1, maxdy=-1, maxdz=-1, maxdxy=-1, maxd3d=-1;
