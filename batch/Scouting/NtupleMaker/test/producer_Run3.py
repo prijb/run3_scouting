@@ -59,6 +59,8 @@ process.GlobalTag.globaltag = gtag
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(opts.nevents))
 
+process.options = cms.untracked.PSet(SkipEvent = cms.untracked.vstring('ProductNotFound'))
+
 if opts.data:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 else:

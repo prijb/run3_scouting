@@ -8,7 +8,7 @@ import sys
 
 era = "2023"+sys.argv[1] # ABCDEFG
 extra = sys.argv[2]
-ntuple_version = "2"
+ntuple_version = "4"
 
 config.General.requestName = 'skim__{}{}_{}'.format(
         era,
@@ -42,15 +42,14 @@ config.Data.unitsPerJob = int(10e6/2)
 #'/ScoutingPFRun3/Run2022A-v1/RAW#ff2aeb80-96a6-4007-a019-ff75eed7a527',
 #]
 
+config.Data.lumiMask = "data/Cert_Collisions2023_366442_370790_Golden.json"
 if(era=="2023C-triggerV10"): 
    config.Data.lumiMask = "data/Cert_Collisions2023_eraC_367095_368823_Golden_1.json"
 elif(era=="2023C"): 
    config.Data.lumiMask = "data/Cert_Collisions2023_eraC_367095_368823_Golden_2.json"
-elif(era=="2023B"): 
-   config.Data.lumiMask = "data/Cert_Collisions2023_eraB_366403_367079_Golden.json"
 
 #edit the area and user name
-config.Data.outLFNDirBase = '/store/user/legianni/testRAWScouting_'+ntuple_version # DB no
+config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_version # DB no
 config.Data.publication = False
 config.Site.storageSite = "T2_US_UCSD"
 
