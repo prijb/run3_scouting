@@ -230,6 +230,7 @@ struct SV {
     selected.clear();
     onModule.clear(); onModuleWithinUnc.clear();
     closestDet_x.clear(); closestDet_y.clear(); closestDet_z.clear();
+    minDistanceFromDet.clear(), minDistanceFromDet_x.clear(), minDistanceFromDet_y.clear(), minDistanceFromDet_z.clear();
   }
 
   void sort() {
