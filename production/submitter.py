@@ -18,14 +18,21 @@ if __name__ == '__main__':
 
     total_summary = {}
 
-    reqname = 'DarkShower_ScenarioA_default'  # Scouting For Scouting
+    # NOTE make this script more flexible again
+    '''
+    requests = [
+        {'name': 'DarkShower_ScenarioA', 'fragment/a_fragment.py'}
+    ]
+    '''
+
+    reqname = 'DarkShower_ScenarioB1_default'  # Scouting For Scouting
 
     fragment = "psets/darkshower_cfg.py"  # This defines the physics
     events_per_point = 20
     events_per_job = 10
     njobs = int(events_per_point)//events_per_job
 
-    tag = "v0p28"  # v0p8 first one with compiling on worker, 14 switch to el8 from rhel8
+    tag = "v4p0"  # v0p8 first one with compiling on worker, 14 switch to el8 from rhel8
     # 17 - trying to switch of pythia multithreading
     campaign = "Run3Summer22GS"
 
