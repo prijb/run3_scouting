@@ -30,7 +30,7 @@ The output cards will be available in the ```hZdZd/``` dir.
 
 To create the gridpacks the central generation repository should be cloned:
 ```
-git clone https://github.com/cms-sw/genproductions.git -b mg29x
+git clone https://github.com/cms-sw/genproductions.git
 ```
 The new cards should be copied within the ```genproductions/bin/MadGraph5_aMCatNLO/cards``` folder. Then, in ```genproductions/bin/MadGraph5_aMCatNLO/``` the gridpacks are created by running:
 ```
