@@ -1,6 +1,6 @@
 # HAHM production
 
-The production takes as an example the existing HAHM hToZdZd simulation for Run 3 with mZd = 20 GeV and epsilon = 1e-8. Central fragment for this sample can be accessed through:
+The production takes as an example the existing HAHM hToZdZd simulation for Run 3 with $m_{Z_D} = 20$ GeV and $\epsilon = 1\cdot 10^{-8}$. Central fragment for this sample can be accessed through:
 
 ```
 https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_fragment/EXO-Run3Summer22EEwmLHEGS-01017
@@ -9,6 +9,24 @@ https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_fragment/EXO-Run3Summer
 Additional info:
 McM record: https://cms-pdmv.cern.ch/mcm/requests?page=0&prepid=EXO-Run3Summer22EEwmLHEGS-01017
 
+## Building the model
+
+Each point is framed in a grid of mZd (mass of the dark photon) and epsilon (kinetix mixing). For the generation there are several parameters that need to be computed and set in the gridpacks/fragments:
+- Lifetime `ctau` (in mm)
+- Decay width `GammaZd` (in GeV)
+- Branching ratio to fermions including leptons and quarks
+
+The characteristics of the model are documented in https://link.springer.com/article/10.1007/JHEP02(2015)157.
+
+The `makeModel.py` script computes the parameters for a given set of (mass, epsilon) values. **Note: Branching ratios are not implemented yet.** It is executed by running:
+```
+python3 makeModel.py
+```
+after setting the `model_grid`` variable with the mass and epsilon choices.
+
+The output is a `mass_epsilon_gamma_ctau.txt` file whose rows correspond with the chosen mass, epsilon, gamma and lifetime values. The total width `GammaZd` is computed from the tabuled value of
+$$\dfrac{\Gamma_{Z_D}}{\epsilon^2 \text{ (GeV)}}$$
+which is available in http://exotichiggs.physics.sunysb.edu/web/wopr/wp-content/uploads/2014/12/HiggsedDarkPhoton_BrTableData.txt (and in `model-tables/HiggsedDarkPhoton_BrTableData.txt`).
 
 ## Gridpack production
 
@@ -35,6 +53,12 @@ git clone https://github.com/cms-sw/genproductions.git
 The new cards should be copied within the ```genproductions/bin/MadGraph5_aMCatNLO/cards``` folder. Then, in ```genproductions/bin/MadGraph5_aMCatNLO/``` the gridpacks are created by running:
 ```
 ./gridpack_generation.sh LL_HAHM_MS_400_kappa_0p01_MZd_5p0_eps_1e-8 cards/hZdZd/hZdZd_mZd_5p0_eps_1e-8/
+```
+
+Once created, test the output by going to the recently created folder and running ```runcmsgrid.sh```. For example:
+```
+cd LL_HAHM_MS_400_kappa_0p01_MZd_10_eps_1e-6/LL_HAHM_MS_400_kappa_0p01_MZd_10_eps_1e-6_gridpack/work/gridpack/
+./runcmsgrid.sh 100 1 1
 ```
 
 ## Fragment production
