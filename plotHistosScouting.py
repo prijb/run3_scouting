@@ -488,7 +488,6 @@ for hn,hnn in enumerate(h1dn):
                 if fn==0:
                     h1dr_den[hn].Scale(1.0/integral)
             tmaxY = max(tmaxY, h1d[fn][hn].GetMaximum())
-            tminY = 0.0
             if doLogy:
                 minb = 1e100
                 for b in range(1,h1d[fn][hn].GetNbinsX()+1):
@@ -499,6 +498,8 @@ for hn,hnn in enumerate(h1dn):
                 else:
                     tminY = min(tminY, 0.1)
                     tmaxY = max(tmaxY, 1.0)
+            else:
+                tminY = 0.0
         h1dr[fn][hn].Divide(h1dr_den[hn])
         if "hsv" in hnn and not "mind" in hnn and not "maxd" in hnn:
             ytitle = ytitle.replace("Events", "Number of SVs")
