@@ -22,12 +22,12 @@ The `makeModel.py` script computes the parameters for a given set of $(m_{Z_D}, 
 ```
 python3 makeModel.py
 ```
-after setting the `model_grid`` variable with the mass and epsilon choices.
+after setting the `model_grid` variable with the $m_{Z_D}$ and $\epsilon$ choices.
 
 The output is a `mass_epsilon_gamma_ctau.txt` file whose rows correspond with the final $m_{Z_D}$, $\epsilon$, $\Gamma_{Z_D}$ and $c\tau_{Z_D}$ values. The total width $\Gamma_{Z_D}$ is computed from the tabuled value of
 $$\dfrac{\Gamma_{Z_D}}{\epsilon^2 \text{ (GeV)}}$$
 which is available in `model-tables/HiggsedDarkPhoton_BrTableData.txt` and in [this reference](http://exotichiggs.physics.sunysb.edu/web/wopr/wp-content/uploads/2014/12/HiggsedDarkPhoton_BrTableData.txt). Then, the lifetime is computed by using
-$$c\tau_{Z_D} = \dfrac{c\slash{h}}{\Gamma_{Z_D}}$$.
+$$c\tau_{Z_D} = \dfrac{c\hbar}{\Gamma_{Z_D}}$$.
 
 Last created file is available in `mass_epsilon_gamma_ctau.txt` and will be used as an input for the fragment generation (described later).
 
