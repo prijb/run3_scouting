@@ -31,6 +31,43 @@ $$c\tau_{Z_D} = \dfrac{c\hbar}{\Gamma_{Z_D}}$$.
 
 Last created file is available in `mass_epsilon_gamma_ctau.txt` and will be used as an input for the fragment generation (described later).
 
+### Branching fraction calculation
+
+The decay is driven by Pythia and the different branching fractions are set in the fragment (see below). These branching fractions need to be computed manually. The computation is done with Madgraph by following the steps specified below:
+
+1) Get the model UFO from [insertar link], decompress it and copy the `HAHM_variableXX_UFO` folders in the Madgraph `models/` directory. Then, run Madgraph by doing:
+```
+./bin/mg5_aMC
+```
+
+2) Import the model from sw, define `f` for the fermions and generate the diagrams:
+```
+import model --modelname HAHM_variablesw_v3_UFO
+define f = u c d s u~ c~ d~ s~ b b~ e+ e- m+ m- tt+ tt- ve vm vt ve~ vm~ vt~
+generate zp > f f
+```
+
+3) Launch the computations and modify the model parameters accordingly:
+```
+launch
+```
+3.1) Set Pythia 8 for showering.
+3.2) Set the `param_card.dat` accordingly for each point (remember to fix 400 GeV for $m_{s}$ and $k = 0.01$). For $m_{Z_D} = 10$ GeV and $\epsilon = 1\cdot 10^{-6}$ we would have:
+```
+###################################
+## INFORMATION FOR HIDDEN
+###################################
+Block hidden
+    1 1.000000e+01 # mZDinput
+    2 4.000000e+02 # MHSinput
+    3 1.000000e-06 # epsilon
+    4 1.000000e-02 # kap
+    5 1.279000e+02 # aXM1
+```
+3.3) Increase the number of generated events in the `run_card.dat` to `100000`.
+
+Note: Madgraph can be used in lxplus by following the instructions of [this twiki](https://twiki.cern.ch/twiki/bin/view/Main/MadgraphOnLxPlus).
+
 ## Gridpack production
 
 Template cards to make the gridpacks are found in ```card-templates/``` and are made from ones extracted from the central gridpack:

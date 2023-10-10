@@ -19,12 +19,14 @@ with open(inputdir + tmp_proc_card, 'r') as file_:
 with open(inputdir + tmp_run_card, 'r') as file_:
     txt_run_card = file_.read()
 
+#
 ## Define the model grid: mass ; [epsilon]
-model_grid = {}
-model_grid["10"] = ['1e-6']
+model_grid = [] # mass : [epsilon values]
+model_grid.append([10, [1e-06, 5e-07, 1e-07, 3e-08]])
 
-for mass in model_grid.keys():
-    for epsilon in model_grid[mass]:
+for point in model_grid:
+    mass = str(point[0])
+    for epsilon in point[1]:
         outdir = 'hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON}/'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
