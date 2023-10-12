@@ -22,6 +22,7 @@ with open(inputdir + tmp_run_card, 'r') as file_:
 #
 ## Define the model grid: mass ; [epsilon]
 model_grid = [] # mass : [epsilon values]
+model_grid.append([5, [1e-06, 5e-07, 1e-07, 3e-08]])
 model_grid.append([10, [1e-06, 5e-07, 1e-07, 3e-08]])
 
 for point in model_grid:

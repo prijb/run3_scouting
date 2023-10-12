@@ -8,7 +8,6 @@ from utils import *
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--dir", default="./", help="Path to gridpacks")
-parser.add_argument("--doConfig", default="./", help="Path to gridpacks")
 args = parser.parse_args()
 
 ### Initial setup 
@@ -28,13 +27,13 @@ output = 'outputFragments_' + today + '/'
 if not os.path.isdir(output):
     os.makedirs(output)
 
-print('> Reading gridpacks in: ' + output) 
+print('> Reading gridpacks in: ' + gridpack_loc) 
 print('> Output fragments will be saved in: ' + output) 
 
 #
 ### Process the masses
 model_grid = []
-model_grid.append([10, 1e-07, 1.137931034482759])
+model_grid.append([5, 5e-07, 9.532850241545894])
 
 for p in model_grid:
     smZd = str(p[0])

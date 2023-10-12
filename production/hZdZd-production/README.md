@@ -9,6 +9,36 @@ https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_fragment/EXO-Run3Summer
 Additional info:
 McM record: https://cms-pdmv.cern.ch/mcm/requests?page=0&prepid=EXO-Run3Summer22EEwmLHEGS-01017
 
+## Quick: How to run
+
+1. Create the models with a predefined $(m_{Z_D}, \epsilon)$ selection:
+```
+python3 makeModel.py
+```
+this will create a `mass_epsilon_gamma_ctau.txt` file with the necessary grid information. Latest file is available in the reposity.
+2. Create the cards for the same $(m_{Z_D}, \epsilon)$ selection:
+```
+python3 makeCards.py
+```
+output cards are stored in the `hZdZd/` dir by default.
+3. Create the gridpacks from the cards by using the [CMSSW genproductions repository](https://github.com/cms-sw/genproductions.git) (instructions below). Already created gridpacks are available in:
+```
+/ceph/cms/store/user/fernance/Run3ScoutingProduction/hZdZd/Gridpacks/
+```
+4. Create the fragments for the selected grid. This is done by running:
+```
+python3 makeFragment.py --dir [gridpacks location]
+```
+This script takes the previous `mass_epsilon_gamma_ctau.txt` file, the gridpacks and creates the fragments for each point. Branching ratios of the dark photon are defined in the `mass_brs.txt` file (see below for branching ratio recomputation). Fragments are saved in a dir named `outputFragments_MM-DD-YYYY`. Last created fragments are available in:
+```
+/ceph/cms/store/user/fernance/Run3ScoutingProduction/hZdZd/Fragments/
+```
+5. Create the cfg files (only for testing as central production just requires fragments and gridpacks) by running `makeCfgs.sh` indicating the input fragments:
+```
+sh makeCfgs.sh outputFragments_MM-DD-YYYY
+```
+and output config files are saved in `configs/`.
+
 ## Building the model
 
 Each point is framed in a grid of $m_{Z_D}$ (mass of the dark photon) and $\epsilon$ (kinetix mixing). For the generation there are several parameters that need to be computed and set in the gridpacks/fragments:
@@ -30,6 +60,9 @@ which is available in `model-tables/HiggsedDarkPhoton_BrTableData.txt` and in [t
 $$c\tau_{Z_D} = \dfrac{c\hbar}{\Gamma_{Z_D}}$$.
 
 Last created file is available in `mass_epsilon_gamma_ctau.txt` and will be used as an input for the fragment generation (described later).
+
+The relation between the kinetic mixing $\epsilon$ and the lifetime $c\tau$ is shown in the following plot:
+![alt text](https://github.com/cmstas/run3_scouting/blob/hZdZdprod/production/hZdZd-production/plots/hZdZd_eps_vs_ctau.png)
 
 ### Branching fraction calculation
 
@@ -109,3 +142,12 @@ cd LL_HAHM_MS_400_kappa_0p01_MZd_10_eps_1e-6/LL_HAHM_MS_400_kappa_0p01_MZd_10_ep
 ## Fragment production
 
 (in progress)
+
+## Config file production (Only for testing)
+
+Config files are created by running the `makeCfgs.sh` script by taking as an input a dir containing the fragments e.g.
+```
+sh makeCfgs.sh outputFragments_Oct-11-2023
+```
+This script compiles a `CMSSW_12_4_11_patch3` release and runs `cmsDriver.py` over all the fragments available. Final configuration files are stored in `configs/` dir.
+

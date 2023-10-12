@@ -31,13 +31,14 @@ fi
 EVENTS=10
 SEED=$(($(date +%s) % 100 + 1));
 for FILE in Configuration/GenProduction/python/*.py; do
+    FILENAME="$(basename $FILE)"
     if [ $FILE == "Configuration/GenProduction/python/__init__.py" ]; then
         continue;
     fi
-    prefix=${FILE%.*};
+    prefix=${FILENAME%_TuneCP5_13p6TeV_pythia8_cff.*};
     suffix="_cfg.py"
     CFG="$prefix$suffix";
     ROOT="file:$prefix.root"
-    cmsDriver.py $FILE --python_filename $CFG --eventcontent RAWSIM,LHE --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM,LHE --fileout $ROOT --conditions 124X_mcRun3_2022_realistic_postEE_v1 --beamspot Realistic25ns13p6TeVEarly2022Collision --customise_commands process.RandomNumberGeneratorService.externalLHEProducer.initialSeed="int(${SEED})" --step LHE,GEN,SIM --geometry DB:Extended --era Run3 --no_exec --mc -n $EVENTS;
-    mv $FILE $CFGPATH;
+    cmsDriver.py $FILE --python_filename $CFG --eventcontent RAWSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM --fileout file:output_gensim.root --conditions 124X_mcRun3_2022_realistic_postEE_v1 --beamspot Realistic25ns13p6TeVEarly2022Collision --customise_commands process.RandomNumberGeneratorService.externalLHEProducer.initialSeed="int(${SEED})" --step LHE,GEN,SIM --geometry DB:Extended --era Run3 --no_exec --mc -n $EVENTS;
+    mv $CFG $CFGPATH;
 done
