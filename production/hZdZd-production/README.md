@@ -16,15 +16,18 @@ McM record: https://cms-pdmv.cern.ch/mcm/requests?page=0&prepid=EXO-Run3Summer22
 python3 makeModel.py
 ```
 this will create a `mass_epsilon_gamma_ctau.txt` file with the necessary grid information. Latest file is available in the reposity.
+
 2. Create the cards for the same $(m_{Z_D}, \epsilon)$ selection:
 ```
 python3 makeCards.py
 ```
 output cards are stored in the `hZdZd/` dir by default.
+
 3. Create the gridpacks from the cards by using the [CMSSW genproductions repository](https://github.com/cms-sw/genproductions.git) (instructions below). Already created gridpacks are available in:
 ```
 /ceph/cms/store/user/fernance/Run3ScoutingProduction/hZdZd/Gridpacks/
 ```
+
 4. Create the fragments for the selected grid. This is done by running:
 ```
 python3 makeFragment.py --dir [gridpacks location]
@@ -33,6 +36,7 @@ This script takes the previous `mass_epsilon_gamma_ctau.txt` file, the gridpacks
 ```
 /ceph/cms/store/user/fernance/Run3ScoutingProduction/hZdZd/Fragments/
 ```
+
 5. Create the cfg files (only for testing as central production just requires fragments and gridpacks) by running `makeCfgs.sh` indicating the input fragments:
 ```
 sh makeCfgs.sh outputFragments_MM-DD-YYYY
@@ -84,8 +88,7 @@ generate zp > f f
 ```
 launch
 ```
-3.1) Set Pythia 8 for showering.
-3.2) Set the `param_card.dat` accordingly for each point (remember to fix 400 GeV for $m_{s}$ and $k = 0.01$). For $m_{Z_D} = 10$ GeV and $\epsilon = 1\cdot 10^{-6}$ we would have:
+The `param_card.dat` should be set accordingly for each point (remember to fix 400 GeV for $m_{s}$ and $k = 0.01$). For $m_{Z_D} = 10$ GeV and $\epsilon = 1\cdot 10^{-6}$ we would have:
 ```
 ###################################
 ## INFORMATION FOR HIDDEN
@@ -97,9 +100,12 @@ Block hidden
     4 1.000000e-02 # kap
     5 1.279000e+02 # aXM1
 ```
-3.3) Increase the number of generated events in the `run_card.dat` to `100000`.
+Also, the number of generated events in the `run_card.dat` should be increased to `100000` (higher values are not recommended).
 
-Note: Madgraph can be used in lxplus by following the instructions of [this twiki](https://twiki.cern.ch/twiki/bin/view/Main/MadgraphOnLxPlus).
+
+All this steps can be done by running the `launchZddToff_MG5.py` script in a Madgraph area in lxplus.
+
+**Note:** Madgraph can be used in lxplus by following the instructions of [this twiki](https://twiki.cern.ch/twiki/bin/view/Main/MadgraphOnLxPlus).
 
 ## Gridpack production
 
@@ -119,7 +125,7 @@ python3 makeCards.py
 ``` 
 The output cards will be available in the ```hZdZd/``` dir.
 
-To create the gridpacks the central generation repository should be cloned:
+To create the gridpack from the cards, the central generation repository should be cloned:
 ```
 git clone https://github.com/cms-sw/genproductions.git
 ```
@@ -128,7 +134,7 @@ This would load the repository with the `master` configuration which now (Oct 4t
 - CMSSW version: `CMSSW_12_4_8` (used for central production)
 - Madgraph5 version: 2.9.13 (central production used 2.9.9)
 
-The new cards should be copied within the ```genproductions/bin/MadGraph5_aMCatNLO/cards``` folder. Then, in ```genproductions/bin/MadGraph5_aMCatNLO/``` the gridpacks are created by running:
+The new cards should be copied within the ```genproductions/bin/MadGraph5_aMCatNLO/cards``` dir. Then, in ```genproductions/bin/MadGraph5_aMCatNLO/``` the gridpacks are created by running:
 ```
 ./gridpack_generation.sh LL_HAHM_MS_400_kappa_0p01_MZd_5p0_eps_1e-8 cards/hZdZd/hZdZd_mZd_5p0_eps_1e-8/
 ```
@@ -139,9 +145,18 @@ cd LL_HAHM_MS_400_kappa_0p01_MZd_10_eps_1e-6/LL_HAHM_MS_400_kappa_0p01_MZd_10_ep
 ./runcmsgrid.sh 100 1 1
 ```
 
+To run the gridpack creation automatically, a bash script `runCards.sh` is also created in the `hZdZd/` dir. It can be run after the cards are successfully copied.
+
 ## Fragment production
 
-(in progress)
+Fragments are created for the grid specified in the `mass_epsilon_gamma_ctau.txt`. The gridpack location is specified with the --dir command. The `makeFragment.py` gathers both and produces the corresponding fragments, which are stored in a dir named `outputFragments_MM-DD-YYYY`. The branching ratios of the $Z_{D}$ are also specified at fragment level. The values for a given mass were computed with Madgraph and are available in the `mass_brs.txt` file.
+
+The steps to compute the BRs for a given point are specified above (right now only $m_{ZD} = 10, 5$ GeV points are available). 
+
+The command to use to generate the fragments is:
+```
+python3 makeFragment.py --dir [gridpacks location]
+```
 
 ## Config file production (Only for testing)
 

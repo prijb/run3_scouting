@@ -1,5 +1,6 @@
 import os
 import sys
+from utils import *
 
 inputdir = "card-templates/"
 tmp_customizecards = "LL_HAHM_MS_400_kappa_0p01_MZd_ZDMASS_eps_EPSILON_customizecards.dat"
@@ -19,15 +20,34 @@ with open(inputdir + tmp_proc_card, 'r') as file_:
 with open(inputdir + tmp_run_card, 'r') as file_:
     txt_run_card = file_.read()
 
-#
-## Define the model grid: mass ; [epsilon]
-model_grid = [] # mass : [epsilon values]
-model_grid.append([5, [1e-06, 5e-07, 1e-07, 3e-08]])
-model_grid.append([10, [1e-06, 5e-07, 1e-07, 3e-08]])
+## Pick the model txt sile
+grid = parse_table('mass_epsilon_gamma_ctau.txt')
+im = 0.0
+model_grid = []
+for i in range(1, len(grid)):
+    if grid[i][0]!=im:
+        im = grid[i][0]
+        model_grid.append([])
+        model_grid[-1].append(grid[i][0])
+        model_grid[-1].append([])
+    model_grid[-1][1].append(grid[i][1])
+        
+print(model_grid)
+## Or define the model grid manually (uncomment)
+#model_grid = [] # mass : [epsilon values]
+#model_grid.append([5, [1e-06, 5e-07, 1e-07, 3e-08]])
+#model_grid.append([10, [1e-06, 5e-07, 1e-07, 3e-08]])
 
+
+if not os.path.isdir('hZdZd/'):
+    os.makedirs('hZdZd/')
+bashfile =  open('hZdZd/runCards.sh', 'w')
 for point in model_grid:
     mass = str(point[0])
     for epsilon in point[1]:
+        bashtxt = './gridpack_generation.sh LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_eps_{EPSILON} cards/hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON} condor\n'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
+        bashfile.write("""echo ">>>>>> GENERATING NEW GRID PACK FOR MZD = {ZDMASS} AND EPSILON = {EPSILON}"\n""".format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon))
+        bashfile.write(bashtxt)
         outdir = 'hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON}/'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
@@ -52,5 +72,5 @@ for point in model_grid:
             file_.write(out_run_card)
             file_.close()
 
-
+bashfile.close()
 

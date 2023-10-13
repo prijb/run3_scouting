@@ -48,12 +48,12 @@ model_file.write('mZd (GeV)\tEpsilon\t\tGammaZd (GeV)\t\tctau (mm)\n')
 #
 # Init the grid
 model_grid = [] # mass : [epsilon values]
-model_grid.append([0.7, [5e-06, 2e-06, 5e-07, 2e-07]])
-model_grid.append([1,   [5e-06, 2e-06, 5e-07, 2e-07]])
-model_grid.append([2,   [3e-06, 1e-06, 3e-07, 1e-07]])
-model_grid.append([3,   [3e-06, 1e-06, 3e-07, 1e-07]])
+#model_grid.append([0.7, [5e-06, 2e-06, 5e-07, 2e-07]])
+#model_grid.append([1,   [5e-06, 2e-06, 5e-07, 2e-07]])
+#model_grid.append([2,   [3e-06, 1e-06, 3e-07, 1e-07]])
+#model_grid.append([3,   [3e-06, 1e-06, 3e-07, 1e-07]])
 model_grid.append([5,   [1e-06, 6e-07, 2e-07, 7e-08]])
-model_grid.append([7,   [1e-06, 6e-07, 2e-07, 7e-08]])
+#model_grid.append([7,   [1e-06, 6e-07, 2e-07, 7e-08]])
 model_grid.append([10,  [1e-06, 5e-07, 1e-07, 3e-08]])
 
 #

@@ -32,8 +32,11 @@ print('> Output fragments will be saved in: ' + output)
 
 #
 ### Process the masses
+grid = parse_table('mass_epsilon_gamma_ctau.txt')
 model_grid = []
-model_grid.append([5, 5e-07, 9.532850241545894])
+for i in range(1, len(grid)):
+    model_grid.append([grid[i][0], grid[i][1], grid[i][3]])
+print(model_grid)
 
 for p in model_grid:
     smZd = str(p[0])
