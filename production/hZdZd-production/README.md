@@ -52,7 +52,7 @@ Each point is framed in a grid of $m_{Z_D}$ (mass of the dark photon) and $\epsi
 
 The characteristics of the model are documented in https://link.springer.com/article/10.1007/JHEP02(2015)157.
 
-The `makeModel.py` script computes the parameters for a given set of $(m_{Z_D}, \epsilon)$ values. **Note: Branching ratios are not implemented yet.** It is executed by running:
+The `makeModel.py` script computes the parameters for a given set of $(m_{Z_D}, \epsilon)$ values. It is executed by running:
 ```
 python3 makeModel.py
 ```
@@ -72,7 +72,7 @@ The relation between the kinetic mixing $\epsilon$ and the lifetime $c\tau$ is s
 
 The decay is driven by Pythia and the different branching fractions are set in the fragment (see below). These branching fractions need to be computed manually. The computation is done with Madgraph by following the steps specified below:
 
-1) Get the model UFO from [insertar link], decompress it and copy the `HAHM_variableXX_UFO` folders in the Madgraph `models/` directory. Then, run Madgraph by doing:
+1) Get the model UFO from [this link](https://cms-project-generators.web.cern.ch/cms-project-generators/HAHM_MG5model_v3.tar.gz), decompress it and copy the `HAHM_variableXX_UFO` folders in the Madgraph `models/` directory. Then, run Madgraph by doing:
 ```
 ./bin/mg5_aMC
 ```
@@ -100,7 +100,7 @@ Block hidden
     4 1.000000e-02 # kap
     5 1.279000e+02 # aXM1
 ```
-Also, the number of generated events in the `run_card.dat` should be increased to `100000` (higher values are not recommended).
+Also, the number of generated events in the `run_card.dat` should be increased to `100000` (higher values are not recommended) and the energy of the protons raised to `6800.` (default configuration has `6500.` which corresponds to 13 TeV).
 
 
 All this steps can be done by running the `launchZddToff_MG5.py` script in a Madgraph area in lxplus.
