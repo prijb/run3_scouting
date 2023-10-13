@@ -16,9 +16,9 @@ BLOCK GAUGEMASS #
 ## INFORMATION FOR HIDDEN
 ###################################
 BLOCK HIDDEN # 
-      1 {ZDMASS} # mzdinput
+      1 {ZDMASS:.6e} # mzdinput
       2 4.000000e+02 # mhsinput
-      3 {EPSILON} # epsilon
+      3 {EPSILON:.6e} # epsilon
       4 1.000000e-02 # kap
       5 1.279000e+02 # axm1
 ###################################
