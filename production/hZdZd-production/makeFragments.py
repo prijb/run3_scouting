@@ -56,17 +56,17 @@ for p in model_grid:
         if b==len(brs)-1 and len(true_ref)<1:
             print('Mass %s not available, skipping...'% smZd)
             print('THIS SHOULD NEVER HAPPEN, REVISIT THE CONFIGURATION')
-    BR_MUMU          = true_ref[1]
-    BR_EE            = true_ref[2]
-    BR_TAUTAU        = true_ref[3]
-    BR_UUBAR         = true_ref[4]
-    BR_DDBAR         = true_ref[5]
-    BR_SSBAR         = true_ref[6]
-    BR_CCBAR         = true_ref[7]
-    BR_BBBAR         = true_ref[8]
-    BR_MUNUMUNUBAR   = true_ref[9]
-    BR_ENUENUBAR     = true_ref[10]
-    BR_TAUNUTAUNUBAR = true_ref[11]
+    BR_MUMU          = true_ref[2]
+    BR_EE            = true_ref[3]
+    BR_TAUTAU        = true_ref[4]
+    BR_UUBAR         = true_ref[5]
+    BR_DDBAR         = true_ref[6]
+    BR_SSBAR         = true_ref[7]
+    BR_CCBAR         = true_ref[8]
+    BR_BBBAR         = true_ref[9]
+    BR_MUNUMUNUBAR   = true_ref[10]
+    BR_ENUENUBAR     = true_ref[11]
+    BR_TAUNUTAUNUBAR = true_ref[12]
     GRIDPACK = gridpack_loc + 'LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_eps_{EPSILON}_slc7_amd64_gcc10_CMSSW_12_4_8_tarball.tar.xz'.format(ZDMASS = ZDMASS, EPSILON = EPSILON)
 
     temp_txt = fragmentTEXT.format(GRIDPACK = GRIDPACK,
