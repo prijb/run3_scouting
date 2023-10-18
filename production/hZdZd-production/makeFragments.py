@@ -7,7 +7,7 @@ from utils import *
 ### Init 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("--dir", default="./", help="Path to gridpacks")
+parser.add_argument("--dir", default="/ceph/cms/store/user/fernance/Run3ScoutingProduction/hZdZd/Gridpacks/", help="Path to gridpacks")
 args = parser.parse_args()
 
 ### Initial setup 

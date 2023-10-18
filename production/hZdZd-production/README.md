@@ -166,3 +166,6 @@ sh makeCfgs.sh outputFragments_Oct-11-2023
 ```
 This script compiles a `CMSSW_12_4_11_patch3` release and runs `cmsDriver.py` over all the fragments available. Final configuration files are stored in `configs/` dir.
 
+Since the arch used is `el8_amd64_gcc10`, this step needs to run in uaf-2 or uaf-3, uaf-7,8,10 won't work.
+
+**Important note:** The number of events (per job) must be set here now at this step if the jobs are going to be run with ProjectMetis. ProjectMetis doesn't set the correct event number for the LHE step, only for the GEN-SIM (or at least I didn't configure it well). 
