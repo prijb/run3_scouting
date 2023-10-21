@@ -33,44 +33,55 @@ for i in range(1, len(grid)):
     model_grid[-1][1].append(grid[i][1])
         
 print(model_grid)
-## Or define the model grid manually (uncomment)
-#model_grid = [] # mass : [epsilon values]
-#model_grid.append([5, [1e-06, 5e-07, 1e-07, 3e-08]])
-#model_grid.append([10, [1e-06, 5e-07, 1e-07, 3e-08]])
 
+mode = "lifetime" # or epsilon
 
 if not os.path.isdir('hZdZd/'):
     os.makedirs('hZdZd/')
 bashfile =  open('hZdZd/runCards.sh', 'w')
-for point in model_grid:
+for p,point in enumerate(grid):
+    if p==0: continue
     mass = str(point[0])
-    for epsilon in point[1]:
+    epsilon = str(point[1])
+    ctau = str(point[3])
+    if mode == "epsilon":
         bashtxt = './gridpack_generation.sh LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_eps_{EPSILON} cards/hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON} condor\n'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
         bashfile.write("""echo ">>>>>> GENERATING NEW GRID PACK FOR MZD = {ZDMASS} AND EPSILON = {EPSILON}"\n""".format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon))
         bashfile.write(bashtxt)
         outdir = 'hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON}/'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
-        if not os.path.isdir(outdir):
-            os.makedirs(outdir)
         customizecards = tmp_customizecards.replace('ZDMASS', '{ZDMASS}').replace('EPSILON', '{EPSILON}').format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
-        with open(outdir + customizecards, 'w') as file_:
-            out_customizecards = txt_customizecards.format(ZDMASS = mass, EPSILON = epsilon) # not replace the '.'
-            file_.write(out_customizecards)
-            file_.close()
         extramodels = tmp_extramodels.replace('ZDMASS', '{ZDMASS}').replace('EPSILON', '{EPSILON}').format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
-        with open(outdir + extramodels, 'w') as file_:
-            out_extramodels = txt_extramodels # No need to format (?)
-            file_.write(out_extramodels)
-            file_.close()
         proc_card = tmp_proc_card.replace('ZDMASS', '{ZDMASS}').replace('EPSILON', '{EPSILON}').format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
-        with open(outdir + proc_card, 'w') as file_:
-            out_proc_card = txt_proc_card.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
-            file_.write(out_proc_card)
-            file_.close()
         run_card = tmp_run_card.replace('ZDMASS', '{ZDMASS}').replace('EPSILON', '{EPSILON}').format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
-        with open(outdir + run_card, 'w') as file_:
-            out_run_card = txt_run_card # No need to format (?)
-            file_.write(out_run_card)
-            file_.close()
+    if mode == "lifetime":
+        bashtxt = './gridpack_generation.sh LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_ctau_{CTAU} cards/hZdZd/hZdZd_mZd_{ZDMASS}_ctau_{CTAU} condor\n'.format(ZDMASS = mass.replace('.', 'p'), CTAU = ctau)
+        bashfile.write("""echo ">>>>>> GENERATING NEW GRID PACK FOR MZD = {ZDMASS} AND CTAU = {CTAU}"\n""".format(ZDMASS = mass.replace('.', 'p'), CTAU = ctau))
+        bashfile.write(bashtxt)
+        outdir = 'hZdZd/hZdZd_mZd_{ZDMASS}_ctau_{CTAU}/'.format(ZDMASS = mass.replace('.', 'p'), CTAU = ctau)
+        customizecards = tmp_customizecards.replace('ZDMASS', '{ZDMASS}').replace('eps_EPSILON', 'ctau_{CTAU}').format(ZDMASS = mass.replace('.', 'p'), CTAU = ctau)
+        extramodels = tmp_extramodels.replace('ZDMASS', '{ZDMASS}').replace('eps_EPSILON', 'ctau_{CTAU}').format(ZDMASS = mass.replace('.', 'p'), CTAU = ctau)
+        proc_card = tmp_proc_card.replace('ZDMASS', '{ZDMASS}').replace('eps_EPSILON', 'ctau_{CTAU}').format(ZDMASS = mass.replace('.', 'p'), CTAU = ctau)
+        run_card = tmp_run_card.replace('ZDMASS', '{ZDMASS}').replace('eps_EPSILON', 'ctau_{CTAU}').format(ZDMASS = mass.replace('.', 'p'), CTAU = ctau)
+    if not os.path.isdir(outdir):
+        os.makedirs(outdir)
+
+    # Note: Cards are written in terms of mass - epsilon although the name of the card changes in each case
+    with open(outdir + customizecards, 'w') as file_:
+        out_customizecards = txt_customizecards.format(ZDMASS = mass, EPSILON = epsilon) # not replace the '.'
+        file_.write(out_customizecards)
+        file_.close()
+    with open(outdir + extramodels, 'w') as file_:
+        out_extramodels = txt_extramodels # No need to format (?)
+        file_.write(out_extramodels)
+        file_.close()
+    with open(outdir + proc_card, 'w') as file_:
+        out_proc_card = txt_proc_card.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
+        file_.write(out_proc_card)
+        file_.close()
+    with open(outdir + run_card, 'w') as file_:
+        out_run_card = txt_run_card # No need to format (?)
+        file_.write(out_run_card)
+        file_.close()
 
 bashfile.close()
 

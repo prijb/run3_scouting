@@ -52,11 +52,11 @@ Each point is framed in a grid of $m_{Z_D}$ (mass of the dark photon) and $\epsi
 
 The characteristics of the model are documented in https://link.springer.com/article/10.1007/JHEP02(2015)157.
 
-The `makeModel.py` script computes the parameters for a given set of $(m_{Z_D}, \epsilon)$ values. It is executed by running:
+The `makeModel.py` script computes the parameters for a given set of $(m_{Z_D}, \epsilon)$ or $(m_{Z_D}, c\tau)$ selections. It is executed by running:
 ```
 python3 makeModel.py
 ```
-after setting the `model_grid` variable with the $m_{Z_D}$ and $\epsilon$ choices.
+after setting the `model_grid` variable with the $m_{Z_D}$ and $\epsilon$/$c\tau$ choices.
 
 The output is a `mass_epsilon_gamma_ctau.txt` file whose rows correspond with the final $m_{Z_D}$, $\epsilon$, $\Gamma_{Z_D}$ and $c\tau_{Z_D}$ values. The total width $\Gamma_{Z_D}$ is computed from the tabuled value of
 $$\dfrac{\Gamma_{Z_D}}{\epsilon^2 \text{ (GeV)}}$$
