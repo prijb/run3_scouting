@@ -33,18 +33,22 @@ if __name__ == '__main__':
     requests = {
         "ScenB1_30_9p9_4p8_ctau_26_filter": {
             'cfg': "psets/ScenB1_30_9p9_4p8_ctau_26_filter_cfg.py",
-            'eff': 0.25,
+            'eff': 0.7,  # was 0.25
         },
-        "ScenA_20_5p0_1p2_ctau_23_filter": {
-            'cfg': "psets/ScenA_20_5p0_1p2_ctau_23_filter_cfg.py",
-            'eff': 0.50,
-        },
+        #"ScenB1_30_9p9_4p8_ctau_26_filter_4mu": {
+        #    'cfg': "psets/ScenB1_30_9p9_4p8_ctau_26_filter_4mu_cfg.py",
+        #    'eff': 0.05,  # this is probably optimistic
+        #},
+        #"ScenA_20_5p0_1p2_ctau_23_filter": {
+        #    'cfg': "psets/ScenA_20_5p0_1p2_ctau_23_filter_cfg.py",
+        #    'eff': 0.50,
+        #},
     }
-    events_per_point = 100000
+    events_per_point = 200000
     events_per_job = 2500
     njobs = int(events_per_point)//events_per_job
 
-    tag = "v6p0"  # v0p8 first one with compiling on worker, 14 switch to el8 from rhel8
+    tag = "v7p0"  # v0p8 first one with compiling on worker, 14 switch to el8 from rhel8
     # 17 - trying to switch of pythia multithreading
     campaign = "Run3Summer22GS"
 
