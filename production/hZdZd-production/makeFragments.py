@@ -8,15 +8,22 @@ from utils import *
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--dir", default="/ceph/cms/store/user/fernance/Run3ScoutingProduction/hZdZd/Gridpacks/", help="Path to gridpacks")
+parser.add_argument("--br", default="mass_corr_brs.txt", help="Table with the branching ratios")
+parser.add_argument("--model", default="mass_epsilon_gamma_ctau.txt", help="Table with the model")
+parser.add_argument("--mode", default="lifetime", help="Can also be 'epsilon'")
 args = parser.parse_args()
 
 ### Initial setup 
 
 # Branchin ratios (todo)
-brs = parse_table('mass_brs.txt')
+brs = parse_table(args.br)
 
-fragmentNAME = 'HTo2ZdTo2mu2x_MZd-{ZDMASS}_Epsilon-{EPSILON}_TuneCP5_13p6TeV_pythia8_cff.py'
-fragmentTEMPLATE = 'fragment-templates/HTo2ZdTo2mu2x_MZd-ZDMASS_Epsilon-EPSILON_TuneCP5_13p6TeV_pythia8_cff.py'
+fragmentTEMPLATE = 'fragment-templates/HTo2ZdTo2mu2x_MZd-ZDMASS_Epsilon-EPSILON_TuneCP5_13p6TeV_pythia8_cff.py' # should be common for both
+if args.mode=="epsilon":
+    fragmentNAME = 'HTo2ZdTo2mu2x_MZd-{ZDMASS}_Epsilon-{EPSILON}_TuneCP5_13p6TeV_pythia8_cff.py'
+elif args.mode=="lifetime":
+    fragmentNAME = 'HTo2ZdTo2mu2x_MZd-{ZDMASS}_ctau-{CTAU}_TuneCP5_13p6TeV_pythia8_cff.py'
+
 with open(fragmentTEMPLATE, 'r') as file_:
     fragmentTEXT = file_.read()
 
@@ -32,7 +39,7 @@ print('> Output fragments will be saved in: ' + output)
 
 #
 ### Process the masses
-grid = parse_table('mass_epsilon_gamma_ctau.txt')
+grid = parse_table(args.model)
 model_grid = []
 for i in range(1, len(grid)):
     model_grid.append([grid[i][0], grid[i][1], grid[i][3]])
@@ -67,7 +74,10 @@ for p in model_grid:
     BR_MUNUMUNUBAR   = true_ref[10]
     BR_ENUENUBAR     = true_ref[11]
     BR_TAUNUTAUNUBAR = true_ref[12]
-    GRIDPACK = gridpack_loc + 'LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_eps_{EPSILON}_slc7_amd64_gcc10_CMSSW_12_4_8_tarball.tar.xz'.format(ZDMASS = ZDMASS, EPSILON = EPSILON)
+    if args.mode=="epsilon":
+        GRIDPACK = gridpack_loc + 'LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_eps_{EPSILON}_slc7_amd64_gcc10_CMSSW_12_4_8_tarball.tar.xz'.format(ZDMASS = ZDMASS.replace('.', 'p'), EPSILON = EPSILON)
+    if args.mode=="lifetime":
+        GRIDPACK = gridpack_loc + 'LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_ctau_{CTAU}_slc7_amd64_gcc10_CMSSW_12_4_8_tarball.tar.xz'.format(ZDMASS = ZDMASS.replace('.', 'p'), CTAU = LIFETIME)
 
     temp_txt = fragmentTEXT.format(GRIDPACK = GRIDPACK,
                                    ZDMASS = ZDMASS,
@@ -85,7 +95,10 @@ for p in model_grid:
                                    BR_ENUENUBAR = BR_ENUENUBAR,
                                    BR_TAUNUTAUNUBAR = BR_TAUNUTAUNUBAR)
 
-    out_fragment = fragmentNAME.format(ZDMASS = ZDMASS, EPSILON = EPSILON)
+    if args.mode=="epsilon":
+       out_fragment = fragmentNAME.format(ZDMASS = ZDMASS.replace('.', 'p'), EPSILON = EPSILON)
+    if args.mode=="lifetime":
+       out_fragment = fragmentNAME.format(ZDMASS = ZDMASS.replace('.','p'), CTAU = LIFETIME)
     with open(output + out_fragment, 'w') as file_:
         file_.write(temp_txt)
         file_.close()

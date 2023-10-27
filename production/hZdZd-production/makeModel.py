@@ -6,7 +6,7 @@ from utils import parse_table
 
 #
 # Partial width for a fermion [Eq.(2.12)]
-#
+# Not used here but can be useful to keep just in case
 def computePartGamma(mZd, mf, gL, gR):
     Nc = 3.0 # Assuming 3 colors
     term1 = Nc / (24.0*math.pi*mZd)
@@ -19,7 +19,6 @@ def computePartGamma(mZd, mf, gL, gR):
 
 # Constants
 CHSLASH = 0.19733e-15 # GeV*m
-ECOP = math.sqrt(4.0 * math.pi * 1./137.) # Taken alpha = 1/128 at Q^2 = mW^2
 
 # Get br table data for the dark photon decay
 info = parse_table('model-tables/HiggsedDarkPhoton_BrTableData.txt')
@@ -30,10 +29,7 @@ info = parse_table('model-tables/HiggsedDarkPhoton_BrTableData.txt')
 model_file = open('mass_epsilon_gamma_ctau.txt', 'w')
 model_file.write('mZd (GeV)\tEpsilon\t\tGammaZd (GeV)\t\tctau (mm)\n')
 
-## todo: Fix the table, looks not aligned due to differences of heading and values length
-
-#brs_file.write('mZd (GeV)\t\tEpsilon\t\tBR_MUMU\t\tBR_EE\t\tBR_TAUTAU\t\tBR_UUBAR\t\tBR_DDBAR\t\t BR_SSBAR\t\tBR_CCBAR\t\tBR_BBBAR\t\tBR_MUNUMUNUBAR\t\tBR_ENUENUBAR\t\tBR_TAUNUTAUNUBAR\n')
-
+## Select mode: if "lifetime" ir creates a (m, ctau) grid and if "epsilon" a (m, epsilon) one!
 mode = "lifetime" # or epsilon
 
 if mode=="epsilon":

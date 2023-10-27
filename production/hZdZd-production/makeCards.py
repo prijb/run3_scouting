@@ -2,6 +2,13 @@ import os
 import sys
 from utils import *
 
+parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("--model", default="mass_epsilon_gamma_ctau.txt", help="Table with the model")
+parser.add_argument("--mode", default="lifetime", help="Can also be 'epsilon'")
+args = parser.parse_args()
+
+filename = args.model
+mode = args.mode
 inputdir = "card-templates/"
 tmp_customizecards = "LL_HAHM_MS_400_kappa_0p01_MZd_ZDMASS_eps_EPSILON_customizecards.dat"
 tmp_extramodels    = "LL_HAHM_MS_400_kappa_0p01_MZd_ZDMASS_eps_EPSILON_extramodels.dat"
@@ -21,7 +28,7 @@ with open(inputdir + tmp_run_card, 'r') as file_:
     txt_run_card = file_.read()
 
 ## Pick the model txt sile
-grid = parse_table('mass_epsilon_gamma_ctau.txt')
+grid = parse_table(filename)
 im = 0.0
 model_grid = []
 for i in range(1, len(grid)):
@@ -32,9 +39,8 @@ for i in range(1, len(grid)):
         model_grid[-1].append([])
     model_grid[-1][1].append(grid[i][1])
         
+print("Grid to producel, obtained from: {}".format(filename))
 print(model_grid)
-
-mode = "lifetime" # or epsilon
 
 if not os.path.isdir('hZdZd/'):
     os.makedirs('hZdZd/')
@@ -45,7 +51,7 @@ for p,point in enumerate(grid):
     epsilon = str(point[1])
     ctau = str(point[3])
     if mode == "epsilon":
-        bashtxt = './gridpack_generation.sh LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_eps_{EPSILON} cards/hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON} condor\n'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
+        bashtxt = './gridpack_generation.sh LL_HAHM_MS_400_kappa_0p01_MZd_{ZDMASS}_eps_{EPSILON} cards/hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON}\n'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
         bashfile.write("""echo ">>>>>> GENERATING NEW GRID PACK FOR MZD = {ZDMASS} AND EPSILON = {EPSILON}"\n""".format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon))
         bashfile.write(bashtxt)
         outdir = 'hZdZd/hZdZd_mZd_{ZDMASS}_eps_{EPSILON}/'.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
@@ -75,7 +81,8 @@ for p,point in enumerate(grid):
         file_.write(out_extramodels)
         file_.close()
     with open(outdir + proc_card, 'w') as file_:
-        out_proc_card = txt_proc_card.format(ZDMASS = mass.replace('.', 'p'), EPSILON = epsilon)
+        out_proc_card = txt_proc_card.format(ZDMASS = mass.replace('.', 'p'), EPSILON = ctau) # CHECK CHECK
+        out_proc_card = out_proc_card.replace('_eps_', '_ctau_')
         file_.write(out_proc_card)
         file_.close()
     with open(outdir + run_card, 'w') as file_:
