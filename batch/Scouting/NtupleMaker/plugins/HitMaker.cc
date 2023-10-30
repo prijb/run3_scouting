@@ -333,6 +333,8 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         const TrackingGeometry::DetContainer& dets = theGeo_->dets();
         for (int i = 0; i < theHitPattern.numberOfAllHits(reco::HitPattern::TRACK_HITS); i++) {
           uint16_t hit = theHitPattern.getHitPattern(reco::HitPattern::TRACK_HITS, i);
+          if (!theHitPattern.validHitFilter(hit))
+            continue;
           uint16_t subDet = theHitPattern.getSubStructure(hit);
           uint16_t layer = theHitPattern.getLayer(hit);
           std::pair<uint16_t, uint16_t> detInfo(subDet, layer);
@@ -343,7 +345,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                 if ((dets[i]->position().perp()*dets[i]->position().perp()) < (dv_x*dv_x+dv_y*dv_y))
                   nhitsbeforesv++;
               } else {
-                if ((dets[i]->position().z()) < dv_z)
+                if (std::abs(dets[i]->position().z()) < dv_z)
                   nhitsbeforesv++;
               }
               break;
