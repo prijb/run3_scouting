@@ -21,7 +21,10 @@
 #include "DataFormats/Scouting/interface/ScoutingVertex.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingMuon.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingVertex.h"
+#include "DataFormats/Scouting/interface/Run3ScoutingHitPatternPOD.h"
 
+#include "DataFormats/TrackReco/interface/HitPattern.h"
+#include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 #include "DataFormats/GeometrySurface/interface/Cylinder.h"
 #include "DataFormats/GeometrySurface/interface/PlaneBuilder.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
@@ -85,6 +88,7 @@ private:
   edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magFieldToken_;
   edm::ESGetToken<GlobalTrackingGeometry, GlobalTrackingGeometryRecord> trackingGeometryToken_;
   edm::ESGetToken<MeasurementTracker, CkfComponentsRecord> measurementTrackerToken_; 
+  edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> trackerTopologyToken_;
  
   edm::ESHandle<Propagator> propagatorHandle_;
   edm::ESGetToken<Propagator, TrackingComponentsRecord> propagatorToken_;

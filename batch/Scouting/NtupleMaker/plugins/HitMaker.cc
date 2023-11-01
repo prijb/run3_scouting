@@ -20,6 +20,7 @@ HitMaker::HitMaker(const edm::ParameterSet& iConfig):
 magFieldToken_(esConsumes()),
 trackingGeometryToken_(esConsumes()),
 measurementTrackerToken_(esConsumes()),
+trackerTopologyToken_(esConsumes()),
 propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
 {
     muonToken_ = consumes<Run3ScoutingMuonCollection>(iConfig.getParameter<InputTag>("muonInputTag"));
@@ -34,6 +35,7 @@ propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
     produces<vector<vector<float> > >("x").setBranchAlias("Muon_hit_x");
     produces<vector<vector<float> > >("y").setBranchAlias("Muon_hit_y");
     produces<vector<vector<float> > >("z").setBranchAlias("Muon_hit_z");
+    produces<vector<int> >("nhitsbeforesv").setBranchAlias("Muon_nHitsBeforeSV");
     produces<vector<int> >("nexpectedhits").setBranchAlias("Muon_nExpectedPixelHits");
     produces<vector<int> >("ncompatible").setBranchAlias("Muon_nCompatiblePixelLayers");
     produces<vector<int> >("nexpectedhitsmultiple").setBranchAlias("Muon_nExpectedPixelHitsMultiple");
@@ -122,6 +124,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     magfield_ = iSetup.getHandle(magFieldToken_);
     theGeo_ = iSetup.getHandle(trackingGeometryToken_);
     measurementTracker_ = iSetup.getHandle(measurementTrackerToken_);
+    const TrackerTopology* const ttopo_ = &iSetup.getData(trackerTopologyToken_);
 
     auto const& searchGeom = *(*measurementTracker_).geometricSearchTracker();
     auto const& prop = *propagatorHandle_;
@@ -150,6 +153,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<vector<float> > > v_hitx(new vector<vector<float> >);
     unique_ptr<vector<vector<float> > > v_hity(new vector<vector<float> >);
     unique_ptr<vector<vector<float> > > v_hitz(new vector<vector<float> >);
+    unique_ptr<vector<int> > v_nhitsbeforesv(new vector<int>);
     unique_ptr<vector<int> > v_nexpectedhits(new vector<int>);
     unique_ptr<vector<int> > v_ncompatible(new vector<int>);
     unique_ptr<vector<int> > v_nexpectedhitsmultiple(new vector<int>);
@@ -321,6 +325,34 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
         // Is track reference point inside a cylinder with the DV? This should always be true from what I've seen.
         bool track_ref_inside_dv = (track_vx*track_vx+track_vy*track_vy) < (dv_x*dv_x+dv_y*dv_y);
+
+        // Get the hit pattern of the muon and count the number of hits in a cylinder with the DV
+        int nhitsbeforesv = 0; // counter
+        Run3ScoutingHitPatternPOD hitPattern = muon.trk_hitPattern();
+        reco::HitPattern theHitPattern(hitPattern);
+        const TrackingGeometry::DetContainer& dets = theGeo_->dets();
+        for (int i = 0; i < theHitPattern.numberOfAllHits(reco::HitPattern::TRACK_HITS); i++) {
+          uint16_t hit = theHitPattern.getHitPattern(reco::HitPattern::TRACK_HITS, i);
+          if (!theHitPattern.validHitFilter(hit))
+            continue;
+          uint16_t subDet = theHitPattern.getSubStructure(hit);
+          uint16_t layer = theHitPattern.getLayer(hit);
+          std::pair<uint16_t, uint16_t> detInfo(subDet, layer);
+          for (unsigned int i = 0; i < dets.size(); i++) {
+            auto detId = dets[i]->geographicalId();
+            if (subDet==detId.subdetId() && layer==ttopo_->layer(detId)) {
+              if(subDet==1 || subDet==3 || subDet==5) {
+                if ((dets[i]->position().perp()*dets[i]->position().perp()) < (dv_x*dv_x+dv_y*dv_y))
+                  nhitsbeforesv++;
+              } else {
+                if (std::abs(dets[i]->position().z()) < dv_z)
+                  nhitsbeforesv++;
+              }
+              break;
+            }
+          }
+        }
+        v_nhitsbeforesv->push_back(nhitsbeforesv);
 
         if (debug) {
             std::cout << "=== Muon "
@@ -545,6 +577,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(v_hitx), "x");
     iEvent.put(std::move(v_hity), "y");
     iEvent.put(std::move(v_hitz), "z");
+    iEvent.put(std::move(v_nhitsbeforesv), "nhitsbeforesv");
     iEvent.put(std::move(v_nexpectedhits), "nexpectedhits");
     iEvent.put(std::move(v_ncompatible), "ncompatible");
     iEvent.put(std::move(v_nexpectedhitsmultiple), "nexpectedhitsmultiple");
