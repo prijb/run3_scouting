@@ -20,6 +20,7 @@ HitMaker::HitMaker(const edm::ParameterSet& iConfig):
 magFieldToken_(esConsumes()),
 trackingGeometryToken_(esConsumes()),
 measurementTrackerToken_(esConsumes()),
+trackerTopologyToken_(esConsumes()),
 propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
 {
     muonToken_ = consumes<Run3ScoutingMuonCollection>(iConfig.getParameter<InputTag>("muonInputTag"));
@@ -34,6 +35,7 @@ propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
     produces<vector<vector<float> > >("x").setBranchAlias("Muon_hit_x");
     produces<vector<vector<float> > >("y").setBranchAlias("Muon_hit_y");
     produces<vector<vector<float> > >("z").setBranchAlias("Muon_hit_z");
+    produces<vector<int> >("nhitsbeforesv").setBranchAlias("Muon_nHitsBeforeSV");
     produces<vector<int> >("nexpectedhits").setBranchAlias("Muon_nExpectedPixelHits");
     produces<vector<int> >("ncompatible").setBranchAlias("Muon_nCompatiblePixelLayers");
     produces<vector<int> >("nexpectedhitsmultiple").setBranchAlias("Muon_nExpectedPixelHitsMultiple");
@@ -45,9 +47,13 @@ propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
     produces<vector<float> >("pzatdv").setBranchAlias("Muon_pzatdv");
     produces<vector<bool> >("dvonmodule").setBranchAlias("Vertex_onModule");
     produces<vector<bool> >("dvonmodulewithinunc").setBranchAlias("Vertex_onModule_withinUnc");
-    produces<vector<float> >("dvdetxmindr").setBranchAlias("Vertex_closestDet_x");
-    produces<vector<float> >("dvdetymindr").setBranchAlias("Vertex_closestDet_y");
-    produces<vector<float> >("dvdetzmindr").setBranchAlias("Vertex_closestDet_z");
+    produces<vector<float> >("dvmindfromdet").setBranchAlias("Vertex_minDistanceFromDet");
+    produces<vector<float> >("dvmindfromdetx").setBranchAlias("Vertex_minDistanceFromDet_x");
+    produces<vector<float> >("dvmindfromdety").setBranchAlias("Vertex_minDistanceFromDet_y");
+    produces<vector<float> >("dvmindfromdetz").setBranchAlias("Vertex_minDistanceFromDet_z");
+    produces<vector<float> >("dvdetxmind").setBranchAlias("Vertex_closestDet_x");
+    produces<vector<float> >("dvdetymind").setBranchAlias("Vertex_closestDet_y");
+    produces<vector<float> >("dvdetzmind").setBranchAlias("Vertex_closestDet_z");
 }
 
 HitMaker::~HitMaker(){
@@ -59,9 +65,12 @@ void HitMaker::endJob(){}
 
 void HitMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){}
 
-float HitMaker::getMinDetDistance(const GeomDet *det, Local3DPoint point, GlobalPoint& retPoint){
+std::vector<float> HitMaker::getMinDetDistance(const GeomDet *det, Local3DPoint point, GlobalPoint& retPoint){
 
   float mindistance=100000;
+  float mindistance_x=100000;
+  float mindistance_y=100000;
+  float mindistance_z=100000;
   float xy[4][2];
   float dz;
   const Bounds *b = &((det->surface()).bounds());
@@ -95,10 +104,15 @@ float HitMaker::getMinDetDistance(const GeomDet *det, Local3DPoint point, Global
   for (int i = 0; i < 4; ++i) {
     Local3DPoint lp1(xy[i][0], xy[i][1], -dz);
     Local3DPoint lp2(xy[i][0], xy[i][1], dz);
-    if((point-lp1).mag()<mindistance) {mindistance=(point-lp1).mag(); retPoint=det->surface().toGlobal(lp1);}
-    if((point-lp2).mag()<mindistance) {mindistance=(point-lp2).mag(); retPoint=det->surface().toGlobal(lp2);}
+    if((point-lp1).mag()<mindistance) {mindistance=(point-lp1).mag(); mindistance_x=(point-lp1).x(); mindistance_y=(point-lp1).y(); mindistance_z=(point-lp1).z(); retPoint=det->surface().toGlobal(lp1);}
+    if((point-lp2).mag()<mindistance) {mindistance=(point-lp2).mag(); mindistance_x=(point-lp2).x(); mindistance_y=(point-lp2).y(); mindistance_z=(point-lp2).z(); retPoint=det->surface().toGlobal(lp2);}
   }
-  return mindistance;
+  std::vector<float> mind;
+  mind.push_back(mindistance);
+  mind.push_back(mindistance_x);
+  mind.push_back(mindistance_y);
+  mind.push_back(mindistance_z);
+  return mind;
 
 }
 
@@ -110,6 +124,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     magfield_ = iSetup.getHandle(magFieldToken_);
     theGeo_ = iSetup.getHandle(trackingGeometryToken_);
     measurementTracker_ = iSetup.getHandle(measurementTrackerToken_);
+    const TrackerTopology* const ttopo_ = &iSetup.getData(trackerTopologyToken_);
 
     auto const& searchGeom = *(*measurementTracker_).geometricSearchTracker();
     auto const& prop = *propagatorHandle_;
@@ -138,6 +153,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<vector<float> > > v_hitx(new vector<vector<float> >);
     unique_ptr<vector<vector<float> > > v_hity(new vector<vector<float> >);
     unique_ptr<vector<vector<float> > > v_hitz(new vector<vector<float> >);
+    unique_ptr<vector<int> > v_nhitsbeforesv(new vector<int>);
     unique_ptr<vector<int> > v_nexpectedhits(new vector<int>);
     unique_ptr<vector<int> > v_ncompatible(new vector<int>);
     unique_ptr<vector<int> > v_nexpectedhitsmultiple(new vector<int>);
@@ -149,9 +165,13 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<float> > v_pzatdv(new vector<float>);
     unique_ptr<vector<bool> > dv_onmodule(new vector<bool>);
     unique_ptr<vector<bool> > dv_onmodule_withinunc(new vector<bool>);
-    unique_ptr<vector<float> > dv_detxmindr(new vector<float>);
-    unique_ptr<vector<float> > dv_detymindr(new vector<float>);
-    unique_ptr<vector<float> > dv_detzmindr(new vector<float>);
+    unique_ptr<vector<float> > dv_mindfromdet(new vector<float>);
+    unique_ptr<vector<float> > dv_mindfromdet_x(new vector<float>);
+    unique_ptr<vector<float> > dv_mindfromdet_y(new vector<float>);
+    unique_ptr<vector<float> > dv_mindfromdet_z(new vector<float>);
+    unique_ptr<vector<float> > dv_detxmind(new vector<float>);
+    unique_ptr<vector<float> > dv_detymind(new vector<float>);
+    unique_ptr<vector<float> > dv_detzmind(new vector<float>);
 
     if(debug){
     GlobalPoint myPoint(0,0,0);
@@ -196,6 +216,9 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         bool vertex_onmodule_withinunc = false;
         GlobalPoint closestDetV(0,0,0);
         float mindistance=10E6;
+        float mindistance_x=10E6;
+        float mindistance_y=10E6;
+        float mindistance_z=10E6;
         GlobalPoint myPoint(vertex.x(),vertex.y(),vertex.z());
         GlobalError myErr(vertex.xError(),0,vertex.yError(),0,0,vertex.zError()); // cov missing
         for (auto const& detL : searchGeom.allLayers()){
@@ -209,8 +232,8 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                        vertex_onmodule=subcomp->surface().bounds().inside(myLocalPoint);
                        vertex_onmodule_withinunc=subcomp->surface().bounds().inside(myLocalPoint,myLocalErr);
                        GlobalPoint retPoint(0,0,0);
-                       float mindist_temp=getMinDetDistance(subcomp, myLocalPoint, retPoint);
-                       if(mindist_temp<mindistance){mindistance=mindist_temp; closestDetV=retPoint;}
+                       std::vector<float> mindist_temp=getMinDetDistance(subcomp, myLocalPoint, retPoint);
+                       if(mindist_temp[0]<mindistance){mindistance=mindist_temp[0]; mindistance_x=mindist_temp[1]; mindistance_y=mindist_temp[2]; mindistance_z=mindist_temp[3]; closestDetV=retPoint;}
                    }
                 }
                 else{
@@ -219,17 +242,21 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                    vertex_onmodule=comp->surface().bounds().inside(myLocalPoint);
                    vertex_onmodule_withinunc=comp->surface().bounds().inside(myLocalPoint,myLocalErr);
                    GlobalPoint retPoint(0,0,0);
-                   float mindist_temp=getMinDetDistance(comp, myLocalPoint, retPoint);
-                   if(mindist_temp<mindistance){mindistance=mindist_temp; closestDetV=retPoint;}
+                   std::vector<float> mindist_temp=getMinDetDistance(comp, myLocalPoint, retPoint);
+                   if(mindist_temp[0]<mindistance){mindistance=mindist_temp[0]; mindistance_x=mindist_temp[1]; mindistance_y=mindist_temp[2]; mindistance_z=mindist_temp[3]; closestDetV=retPoint;}
                 }
             }
             if(vertex_onmodule && vertex_onmodule_withinunc) break;     
         }
         dv_onmodule->push_back(vertex_onmodule);
-        dv_onmodule_withinunc->push_back(vertex_onmodule_withinunc);   
-        dv_detxmindr->push_back(closestDetV.x());
-        dv_detymindr->push_back(closestDetV.y());
-        dv_detzmindr->push_back(closestDetV.z());
+        dv_onmodule_withinunc->push_back(vertex_onmodule_withinunc);
+        dv_mindfromdet->push_back(mindistance);
+        dv_mindfromdet_x->push_back(mindistance_x);
+        dv_mindfromdet_y->push_back(mindistance_y);
+        dv_mindfromdet_z->push_back(mindistance_z);
+        dv_detxmind->push_back(closestDetV.x());
+        dv_detymind->push_back(closestDetV.y());
+        dv_detzmind->push_back(closestDetV.z());
         if (debug){
             std::cout << " -- " << myPoint.x() << "  -- "<< myPoint.y() << " -- " << myPoint.z() << std::endl;
             std::cout << " -- " << vertex_onmodule << " -- " << mindistance << std::endl;
@@ -252,7 +279,6 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                 }
             }
         }
-        int nDV = (*dvHandle).size();
         float dv_x = 0;
         float dv_y = 0;
         float dv_z = 0;
@@ -299,6 +325,34 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
         // Is track reference point inside a cylinder with the DV? This should always be true from what I've seen.
         bool track_ref_inside_dv = (track_vx*track_vx+track_vy*track_vy) < (dv_x*dv_x+dv_y*dv_y);
+
+        // Get the hit pattern of the muon and count the number of hits in a cylinder with the DV
+        int nhitsbeforesv = 0; // counter
+        Run3ScoutingHitPatternPOD hitPattern = muon.trk_hitPattern();
+        reco::HitPattern theHitPattern(hitPattern);
+        const TrackingGeometry::DetContainer& dets = theGeo_->dets();
+        for (int i = 0; i < theHitPattern.numberOfAllHits(reco::HitPattern::TRACK_HITS); i++) {
+          uint16_t hit = theHitPattern.getHitPattern(reco::HitPattern::TRACK_HITS, i);
+          if (!theHitPattern.validHitFilter(hit))
+            continue;
+          uint16_t subDet = theHitPattern.getSubStructure(hit);
+          uint16_t layer = theHitPattern.getLayer(hit);
+          std::pair<uint16_t, uint16_t> detInfo(subDet, layer);
+          for (unsigned int i = 0; i < dets.size(); i++) {
+            auto detId = dets[i]->geographicalId();
+            if (subDet==detId.subdetId() && layer==ttopo_->layer(detId)) {
+              if(subDet==1 || subDet==3 || subDet==5) {
+                if ((dets[i]->position().perp()*dets[i]->position().perp()) < (dv_x*dv_x+dv_y*dv_y))
+                  nhitsbeforesv++;
+              } else {
+                if (std::abs(dets[i]->position().z()) < dv_z)
+                  nhitsbeforesv++;
+              }
+              break;
+            }
+          }
+        }
+        v_nhitsbeforesv->push_back(nhitsbeforesv);
 
         if (debug) {
             std::cout << "=== Muon "
@@ -523,6 +577,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(v_hitx), "x");
     iEvent.put(std::move(v_hity), "y");
     iEvent.put(std::move(v_hitz), "z");
+    iEvent.put(std::move(v_nhitsbeforesv), "nhitsbeforesv");
     iEvent.put(std::move(v_nexpectedhits), "nexpectedhits");
     iEvent.put(std::move(v_ncompatible), "ncompatible");
     iEvent.put(std::move(v_nexpectedhitsmultiple), "nexpectedhitsmultiple");
@@ -534,9 +589,13 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(v_pzatdv), "pzatdv");
     iEvent.put(std::move(dv_onmodule), "dvonmodule");
     iEvent.put(std::move(dv_onmodule_withinunc), "dvonmodulewithinunc");
-    iEvent.put(std::move(dv_detxmindr), "dvdetxmindr");
-    iEvent.put(std::move(dv_detymindr), "dvdetymindr");
-    iEvent.put(std::move(dv_detzmindr), "dvdetzmindr");
+    iEvent.put(std::move(dv_mindfromdet), "dvmindfromdet");
+    iEvent.put(std::move(dv_mindfromdet_x), "dvmindfromdetx");
+    iEvent.put(std::move(dv_mindfromdet_y), "dvmindfromdety");
+    iEvent.put(std::move(dv_mindfromdet_z), "dvmindfromdetz");
+    iEvent.put(std::move(dv_detxmind), "dvdetxmind");
+    iEvent.put(std::move(dv_detymind), "dvdetymind");
+    iEvent.put(std::move(dv_detzmind), "dvdetzmind");
 }
 
 DEFINE_FWK_MODULE(HitMaker);
