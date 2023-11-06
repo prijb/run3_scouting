@@ -54,16 +54,16 @@ if [ ${notar} -gt 0 ]
 then
    if [ ${year23} -gt 0 ]
    then
-      echo condor_submit condor/runScoutingLooper_onCondor2023.sub
+      condor_submit condor/runScoutingLooper_onCondor2023.sub
    else
-      echo condor_submit condor/runScoutingLooper_onCondor.sub
+      condor_submit condor/runScoutingLooper_onCondor.sub
    fi
 else
-   echo sh condor/create_package.sh
+   sh condor/create_package.sh
    if [ ${year23} -gt 0 ]
    then
-      echo condor_submit condor/runScoutingLooper_onCondor2023.sub
+      condor_submit condor/runScoutingLooper_onCondor2023.sub
    else
-      echo condor_submit condor/runScoutingLooper_onCondor.sub
+      condor_submit condor/runScoutingLooper_onCondor.sub
    fi
 fi
