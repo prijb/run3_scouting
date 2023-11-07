@@ -33,7 +33,7 @@ float partialUnblindingPercentage = 0.1; // 10% of each era
 // SV selection
 bool relaxedSVSel = false;
 float sfSVsel = (relaxedSVSel) ? 5.0 : 1.0;
-float maxXerr=0.05*sfSVsel, maxYerr=0.05*sfSVsel, maxZerr=0.10*sfSVsel, maxChi2=5.0*sfSVsel;
+float maxXerr=0.05*sfSVsel, maxYerr=0.05*sfSVsel, maxZerr=0.10*sfSVsel, maxChi2=3.0*sfSVsel;
 float maxDXYerr=0.05*sfSVsel, maxD3Derr=0.10*sfSVsel; // for identification of overlapping SVs
 
 template<class T>
@@ -215,6 +215,9 @@ struct SV {
   std::vector<float> mindx, mindy, mindz, mindxy, mind3d;
   std::vector<float> maxdx, maxdy, maxdz, maxdxy, maxd3d;
   std::vector<bool> selected;
+  std::vector<bool> onModule, onModuleWithinUnc;
+  std::vector<float> closestDet_x, closestDet_y, closestDet_z;
+  std::vector<float> minDistanceFromDet, minDistanceFromDet_x, minDistanceFromDet_y, minDistanceFromDet_z;
 
   void clear() {
     index.clear(); ndof.clear();
@@ -225,6 +228,9 @@ struct SV {
     mindx.clear(); mindy.clear(); mindz.clear(); mindxy.clear(); mind3d.clear();
     maxdx.clear(); maxdy.clear(); maxdz.clear(); maxdxy.clear(); maxd3d.clear();
     selected.clear();
+    onModule.clear(); onModuleWithinUnc.clear();
+    closestDet_x.clear(); closestDet_y.clear(); closestDet_z.clear();
+    minDistanceFromDet.clear(), minDistanceFromDet_x.clear(), minDistanceFromDet_y.clear(), minDistanceFromDet_z.clear();
   }
 
   void sort() {
@@ -254,6 +260,11 @@ struct SV {
     apply_permutation_in_place(maxdxy, comp);
     apply_permutation_in_place(maxd3d, comp);
     apply_permutation_in_place(selected, comp);
+    apply_permutation_in_place(onModule, comp);
+    apply_permutation_in_place(onModuleWithinUnc, comp);
+    apply_permutation_in_place(closestDet_x, comp);
+    apply_permutation_in_place(closestDet_y, comp);
+    apply_permutation_in_place(closestDet_z, comp);
   }
 };
 
@@ -299,12 +310,14 @@ struct Muon {
   std::vector<float> dxy, dxye, dz, dze;
   std::vector<float> dxysig, dzsig;
   std::vector<float> phiCorr, dxyCorr;
-  std::vector<float> PFIsoChg, PFIsoAll;
-  std::vector<float> PFRelIsoChg, PFRelIsoAll;
+  std::vector<float> PFIsoChg0p3, PFIsoChg0p4, PFIsoAll0p3, PFIsoAll0p4;
+  std::vector<float> PFRelIsoChg0p3, PFRelIsoChg0p4, PFRelIsoAll0p3, PFRelIsoAll0p4;
+  std::vector<float> mindrPF0p3, mindrPF0p4;
   std::vector<float> mindr, maxdr;
-  std::vector<float> mindrPF, mindrJet;
+  std::vector<float> mindrJet, mindphiJet, mindetaJet;
   std::vector<TLorentzVector> vec;
   std::vector<bool> selected;
+  std::vector<int> nhitsbeforesv, ncompatible, ncompatibletotal, nexpectedhits, nexpectedhitsmultiple, nexpectedhitsmultipletotal, nexpectedhitstotal;
 
   void clear() {
   vtxIdxs.clear();
@@ -322,12 +335,16 @@ struct Muon {
   dxy.clear(); dxye.clear(); dz.clear(); dze.clear();
   dxysig.clear(); dzsig.clear();
   phiCorr.clear(); dxyCorr.clear();
-  PFIsoChg.clear(); PFIsoAll.clear();
-  PFRelIsoChg.clear(); PFRelIsoAll.clear();
+  PFIsoChg0p3.clear(); PFIsoAll0p3.clear();
+  PFRelIsoChg0p3.clear(); PFRelIsoAll0p3.clear();
+  PFIsoChg0p4.clear(); PFIsoAll0p4.clear();
+  PFRelIsoChg0p4.clear(); PFRelIsoAll0p4.clear();
+  mindrPF0p3.clear(); mindrPF0p4.clear();
   mindr.clear(); maxdr.clear();
-  mindrPF.clear(); mindrJet.clear();
+  mindrJet.clear(); mindphiJet.clear(); mindetaJet.clear();
   vec.clear();
   selected.clear();
+  nhitsbeforesv.clear(); ncompatible.clear(); ncompatibletotal.clear(); nexpectedhits.clear(); nexpectedhitsmultiple.clear(); nexpectedhitsmultipletotal.clear(); nexpectedhitstotal.clear();
   }
 
   void sort() {
@@ -371,16 +388,30 @@ struct Muon {
     apply_permutation_in_place(dzsig, comp);
     apply_permutation_in_place(phiCorr, comp);
     apply_permutation_in_place(dxyCorr, comp);
-    apply_permutation_in_place(PFIsoChg, comp);
-    apply_permutation_in_place(PFIsoAll, comp);
-    apply_permutation_in_place(PFRelIsoChg, comp);
-    apply_permutation_in_place(PFRelIsoAll, comp);
+    apply_permutation_in_place(PFIsoChg0p3, comp);
+    apply_permutation_in_place(PFIsoAll0p3, comp);
+    apply_permutation_in_place(PFRelIsoChg0p3, comp);
+    apply_permutation_in_place(PFRelIsoAll0p3, comp);
+    apply_permutation_in_place(mindrPF0p3, comp);
+    apply_permutation_in_place(PFIsoChg0p4, comp);
+    apply_permutation_in_place(PFIsoAll0p4, comp);
+    apply_permutation_in_place(PFRelIsoChg0p4, comp);
+    apply_permutation_in_place(PFRelIsoAll0p4, comp);
+    apply_permutation_in_place(mindrPF0p4, comp);
     apply_permutation_in_place(mindr, comp);
     apply_permutation_in_place(maxdr, comp);
-    apply_permutation_in_place(mindrPF, comp);
     apply_permutation_in_place(mindrJet, comp);
+    apply_permutation_in_place(mindphiJet, comp);
+    apply_permutation_in_place(mindetaJet, comp);
     apply_permutation_in_place(vec, comp);
     apply_permutation_in_place(selected, comp);
+    apply_permutation_in_place(nhitsbeforesv, comp);
+    apply_permutation_in_place(ncompatible, comp);
+    apply_permutation_in_place(ncompatibletotal, comp);
+    apply_permutation_in_place(nexpectedhits, comp);
+    apply_permutation_in_place(nexpectedhitsmultiple, comp);
+    apply_permutation_in_place(nexpectedhitsmultipletotal, comp);
+    apply_permutation_in_place(nexpectedhitstotal, comp);
   }
 };
 
@@ -395,7 +426,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   // Branch variables
   unsigned int run, lumi, evtn;
   bool passL1, passHLT;
-  float PV_x, PV_y, PV_z;
+  float nPV, PV_x, PV_y, PV_z;
   GenPart GenParts;
   SV SVs;
   SVOverlap SVOverlaps;
@@ -410,6 +441,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("passL1", &passL1);
   tout->Branch("passHLT", &passHLT);
 
+  tout->Branch("nPV", &nPV);
   tout->Branch("PV_x", &PV_x);
   tout->Branch("PV_y", &PV_y);
   tout->Branch("PV_z", &PV_z);
@@ -448,6 +480,15 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("SV_maxdy", &SVs.maxdy);
   tout->Branch("SV_maxdz", &SVs.maxdz);
   tout->Branch("SV_selected", &SVs.selected);
+  tout->Branch("SV_onModule", &SVs.onModule);
+  tout->Branch("SV_onModuleWithinUnc", &SVs.onModuleWithinUnc);
+  tout->Branch("SV_closestDet_x", &SVs.closestDet_x);
+  tout->Branch("SV_closestDet_y", &SVs.closestDet_y);
+  tout->Branch("SV_closestDet_z", &SVs.closestDet_z);
+  tout->Branch("SV_minDistanceFromDet", &SVs.minDistanceFromDet);
+  tout->Branch("SV_minDistanceFromDet_x", &SVs.minDistanceFromDet_x);
+  tout->Branch("SV_minDistanceFromDet_y", &SVs.minDistanceFromDet_y);
+  tout->Branch("SV_minDistanceFromDet_z", &SVs.minDistanceFromDet_z);
 
   tout->Branch("SVOverlap_vtxIdxs", &SVOverlaps.vtxIdxs);
   tout->Branch("SVOverlap_x", &SVOverlaps.x);
@@ -495,16 +536,30 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("Muon_dzsig", &Muons.dzsig);
   tout->Branch("Muon_phiCorr", &Muons.phiCorr);
   tout->Branch("Muon_dxyCorr", &Muons.dxyCorr);
-  tout->Branch("Muon_PFIsoChg", &Muons.PFIsoChg);
-  tout->Branch("Muon_PFIsoAll", &Muons.PFIsoAll);
-  tout->Branch("Muon_PFRelIsoChg", &Muons.PFRelIsoChg);
-  tout->Branch("Muon_PFRelIsoAll", &Muons.PFRelIsoAll);
+  tout->Branch("Muon_PFIsoChg0p3", &Muons.PFIsoChg0p3);
+  tout->Branch("Muon_PFIsoAll0p3", &Muons.PFIsoAll0p3);
+  tout->Branch("Muon_PFRelIsoChg0p3", &Muons.PFRelIsoChg0p3);
+  tout->Branch("Muon_PFRelIsoAll0p3", &Muons.PFRelIsoAll0p3);
+  tout->Branch("Muon_mindrPF0p3", &Muons.mindrPF0p3);
+  tout->Branch("Muon_PFIsoChg0p4", &Muons.PFIsoChg0p4);
+  tout->Branch("Muon_PFIsoAll0p4", &Muons.PFIsoAll0p4);
+  tout->Branch("Muon_PFRelIsoChg0p4", &Muons.PFRelIsoChg0p4);
+  tout->Branch("Muon_PFRelIsoAll0p4", &Muons.PFRelIsoAll0p4);
+  tout->Branch("Muon_mindrPF0p4", &Muons.mindrPF0p4);
   tout->Branch("Muon_mindr", &Muons.mindr);
   tout->Branch("Muon_maxdr", &Muons.maxdr);
   tout->Branch("Muon_mindrJet", &Muons.mindrJet);
-  tout->Branch("Muon_mindrPF", &Muons.mindrPF);
+  tout->Branch("Muon_mindphiJet", &Muons.mindphiJet);
+  tout->Branch("Muon_mindetaJet", &Muons.mindetaJet);
   tout->Branch("Muon_vec", &Muons.vec);
   tout->Branch("Muon_selected", &Muons.selected);
+  tout->Branch("Muon_nhitsbeforesv", &Muons.nhitsbeforesv);
+  tout->Branch("Muon_ncompatible", &Muons.ncompatible);
+  tout->Branch("Muon_ncompatibletotal", &Muons.ncompatibletotal);
+  tout->Branch("Muon_nexpectedhits", &Muons.nexpectedhits);
+  tout->Branch("Muon_nexpectedhitsmultiple", &Muons.nexpectedhitsmultiple);
+  tout->Branch("Muon_nexpectedhitsmultipletotal", &Muons.nexpectedhitsmultipletotal);
+  tout->Branch("Muon_nexpectedhitstotal", &Muons.nexpectedhitstotal);
   
 
   // Event setup
@@ -520,14 +575,13 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       set_goodrun_file_json("../data/Cert_Collisions2022_355100_362760_Golden.json");
   }
 
-  
   // File loop
   unsigned int iFile = 1;
   for (auto inputFile : inputFiles) {
-    std::cout << "File number: " << iFile << "\n";
-    TFile file(inputFile);
-    auto nEventsFile = ((TTree*)file.Get("Events"))->GetEntries();
-    Event ev(&file);
+    std::cout << "File number: " << iFile << "\t" << inputFile <<  "\n";
+    TFile *file = TFile::Open(inputFile);
+    auto nEventsFile = ((TTree*)file->Get("Events"))->GetEntries();
+    Event ev(file);
 
     // Event loop
     unsigned int iEv = 0;
@@ -554,8 +608,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           continue;
       }
 
-
-      // L1 selection // FIXME: Buggy collection for MC
+      // L1 selection
       auto l1s = getObject<std::vector<bool>>(ev, "triggerMaker", "l1result");
       auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
       passL1 = false;
@@ -565,31 +618,26 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           break;
         }
       }
-      if (!isMC) { // Apply only for data, keep track for MC based on passL1
-        if (!passL1)
-          continue;
+      if (!passL1)
+	continue;
+
+      // HLT selection
+      auto hlts = getObject<std::vector<bool>>(ev, "triggerMaker", "hltresult");
+      passHLT = false;
+      for (auto hlt : hlts) {
+        if (hlt==true) {
+          passHLT = true;
+          break;
+        }
       }
-
-      // HLT selection // FIXME: Buggy collection
-      //auto hlts = getObject<std::vector<bool>>(ev, "triggerMaker", "hltresult");
-      //passHLT = false;
-      //for (auto hlt : hlts) { 
-      //  if (hlt==true) {
-      //    passHLT = true;
-      //    break;
-      //  }
-      //}
-      //if (!isMC) {
-      //  if (!passHLT)
-      //    continue;
-      //}
-      passHLT = true; // Temporary pass through
-
+      if (!passHLT)
+	continue;
 
       // PV selection
       auto pvs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingPrimaryVertexPacker", "primaryVtx");
-      PV_x = 0; PV_y = 0; PV_z = 0;
+      nPV = 0; PV_x = 0; PV_y = 0; PV_z = 0;
 
+      nPV = pvs.size();
       if (pvs.size() > 0 && pvs[0].isValidVtx()) {
         PV_x = pvs[0].x();
         PV_y = pvs[0].y();
@@ -611,7 +659,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
               abs(genpart.pdgId())!=4900213 && // Dark rho
               abs(genpart.pdgId())!=4900101 && // Dark mass
               abs(genpart.pdgId())!=4900102 && // Dark mass
-              abs(genpart.pdgId())!=25) // Higgs
+              abs(genpart.pdgId())!=1023 && // Dark photon from Higgs
+              abs(genpart.pdgId())!=25 && // Higgs
+              abs(genpart.pdgId())!=443) // JPsi
             continue;
           if (!genpart.isLastCopy())
             continue;
@@ -642,6 +692,15 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
       // SV selection
       auto svs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingMuonPacker", "displacedVtx");
+      auto dvonmodule = getObject<std::vector<bool>>(ev, "hitMaker", "dvonmodule");
+      auto dvonmodulewithinunc = getObject<std::vector<bool>>(ev, "hitMaker", "dvonmodulewithinunc");
+      auto dvdetxmind = getObject<std::vector<float>>(ev, "hitMaker", "dvdetxmind");
+      auto dvdetymind = getObject<std::vector<float>>(ev, "hitMaker", "dvdetymind");
+      auto dvdetzmind = getObject<std::vector<float>>(ev, "hitMaker", "dvdetzmind");
+      auto dvmindfromdet = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdet");
+      auto dvmindfromdetx = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdetx");
+      auto dvmindfromdety = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdety");
+      auto dvmindfromdetz = getObject<std::vector<float>>(ev, "hitMaker", "dvmindfromdetz");
       SVs.clear();
 
       unsigned int nSVs = svs.size();
@@ -671,6 +730,15 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         float lxy = TMath::Sqrt((x-PV_x)*(x-PV_x)+(y-PV_y)*(y-PV_y));
         SVs.lxy.push_back(lxy);
         SVs.l3d.push_back(TMath::Sqrt(lxy*lxy+(z-PV_z)*(z-PV_z)));
+        SVs.onModule.push_back(dvonmodule.at(iSV));
+        SVs.onModuleWithinUnc.push_back(dvonmodulewithinunc.at(iSV));
+        SVs.closestDet_x.push_back(dvdetxmind.at(iSV));
+        SVs.closestDet_y.push_back(dvdetymind.at(iSV));
+        SVs.closestDet_z.push_back(dvdetzmind.at(iSV));
+        SVs.minDistanceFromDet.push_back(dvmindfromdet.at(iSV));
+        SVs.minDistanceFromDet_x.push_back(dvmindfromdetx.at(iSV));
+        SVs.minDistanceFromDet_y.push_back(dvmindfromdety.at(iSV));
+        SVs.minDistanceFromDet_z.push_back(dvmindfromdetz.at(iSV));
 
         float mindx=1e6, mindy=1e6, mindz=1e6, mindxy=1e6, mind3d=1e6;
         float maxdx=-1, maxdy=-1, maxdz=-1, maxdxy=-1, maxd3d=-1;
@@ -787,6 +855,13 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       auto mus = getObject<std::vector<Run3ScoutingMuon>>(ev, "hltScoutingMuonPacker");
       auto jets = getObject<std::vector<Run3ScoutingPFJet>>(ev, "hltScoutingPFPacker");
       auto pfs = getObject<std::vector<Run3ScoutingParticle>>(ev, "hltScoutingPFPacker");
+      auto nhitsbeforesv = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nhitsbeforesv");
+      auto ncompatible = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "ncompatible");
+      auto ncompatibletotal = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "ncompatibletotal");
+      auto nexpectedhits = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhits");
+      auto nexpectedhitsmultiple = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhitsmultiple");
+      auto nexpectedhitsmultipletotal = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhitsmultipletotal");
+      auto nexpectedhitstotal = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhitstotal");
       Muons.clear();
       unsigned int nMus = mus.size();
       nMuonAssoc=0;
@@ -863,7 +938,20 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.dze.push_back(mu.trk_dzError());
         Muons.dxysig.push_back(mu.trk_dxy()/mu.trk_dxyError());
         Muons.dzsig.push_back(mu.trk_dz()/mu.trk_dzError());
-        Muons.selected.push_back(pt>3.0);
+        Muons.selected.push_back(pt>3.0 && fabs(eta)<2.4 && mu.normalizedChi2()<3.0);
+
+        for (unsigned int iDV=0; iDV<mu.vtxIndx().size(); ++iDV) {
+	  if (mu.vtxIndx().at(iDV)==bestAssocSVIdx) {
+            Muons.nhitsbeforesv.push_back(nhitsbeforesv.at(iMu).at(iDV));
+            Muons.ncompatible.push_back(ncompatible.at(iMu).at(iDV));
+            Muons.ncompatibletotal.push_back(ncompatibletotal.at(iMu).at(iDV));
+            Muons.nexpectedhits.push_back(nexpectedhits.at(iMu).at(iDV));
+            Muons.nexpectedhitsmultiple.push_back(nexpectedhitsmultiple.at(iMu).at(iDV));
+            Muons.nexpectedhitsmultipletotal.push_back(nexpectedhitsmultipletotal.at(iMu).at(iDV));
+            Muons.nexpectedhitstotal.push_back(nexpectedhitstotal.at(iMu).at(iDV));
+            break;
+          }
+        }
 
         float bestSVPosition_x, bestSVPosition_y;
         if (bestAssocSVOverlapIdx!=-1) {
@@ -882,14 +970,23 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         muVec.SetPtEtaPhiM(pt, eta, phiCorr, MUON_MASS);
         Muons.vec.push_back(muVec);
 
-        const auto pfIsos = getPFIsolation(muVec, pfs);
-        const auto pfIsoChg = std::get<0>(pfIsos);
-        const auto pfIsoAll = pfIsoChg + std::max(0.0, std::get<1>(pfIsos)+std::get<2>(pfIsos)-0.5*std::get<3>(pfIsos));
-        Muons.PFIsoChg.push_back(pfIsoChg);
-        Muons.PFIsoAll.push_back(pfIsoAll);;
-        Muons.PFRelIsoChg.push_back(pfIsoChg/pt);
-        Muons.PFRelIsoAll.push_back(pfIsoAll/pt);
-        Muons.mindrPF.push_back(std::get<4>(pfIsos));
+        const auto pfIsos0p3 = getPFIsolation(muVec, pfs, 0.3);
+        const auto pfIsoChg0p3 = std::get<0>(pfIsos0p3);
+        const auto pfIsoAll0p3 = pfIsoChg0p3 + std::max(0.0, std::get<1>(pfIsos0p3)+std::get<2>(pfIsos0p3)-0.5*std::get<3>(pfIsos0p3));
+        Muons.PFIsoChg0p3.push_back(pfIsoChg0p3);
+        Muons.PFIsoAll0p3.push_back(pfIsoAll0p3);;
+        Muons.PFRelIsoChg0p3.push_back(pfIsoChg0p3/pt);
+        Muons.PFRelIsoAll0p3.push_back(pfIsoAll0p3/pt);
+        Muons.mindrPF0p3.push_back(std::get<4>(pfIsos0p3));
+
+        const auto pfIsos0p4 = getPFIsolation(muVec, pfs, 0.4);
+        const auto pfIsoChg0p4 = std::get<0>(pfIsos0p4);
+        const auto pfIsoAll0p4 = pfIsoChg0p4 + std::max(0.0, std::get<1>(pfIsos0p4)+std::get<2>(pfIsos0p4)-0.5*std::get<3>(pfIsos0p4));
+        Muons.PFIsoChg0p4.push_back(pfIsoChg0p4);
+        Muons.PFIsoAll0p4.push_back(pfIsoAll0p4);;
+        Muons.PFRelIsoChg0p4.push_back(pfIsoChg0p4/pt);
+        Muons.PFRelIsoAll0p4.push_back(pfIsoAll0p4/pt);
+        Muons.mindrPF0p4.push_back(std::get<4>(pfIsos0p4));
 
         float mindr=1e6;
         float maxdr=-1;
@@ -921,14 +1018,22 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.maxdr.push_back(maxdr);
 
         float mindrJet=1e6;
+        float mindphiJet=1e6;
+        float mindetaJet=1e6;
         for (auto jet : jets) {
           if (!(jet.pt()>20.0 && fabs(jet.eta())<3.0))
             continue;
           TLorentzVector jetVec; jetVec.SetPtEtaPhiM(jet.pt(), jet.eta(), jet.phi(), jet.m());
           float dr = muVec.DeltaR(jetVec);
-          if (dr<mindrJet) mindrJet = dr;
+          if (dr<mindrJet) {
+	    mindrJet = dr;
+	    mindphiJet = fabs(muVec.DeltaPhi(jetVec));
+	    mindetaJet = fabs(muVec.Eta()-jetVec.Eta());
+	  }
         }
         Muons.mindrJet.push_back(mindrJet);
+        Muons.mindphiJet.push_back(mindphiJet);
+        Muons.mindetaJet.push_back(mindetaJet);
       }
       if (Muons.pt.size() < 2)
         continue;
@@ -946,4 +1051,3 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
   return;
 }
-

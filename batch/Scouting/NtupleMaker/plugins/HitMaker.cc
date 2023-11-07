@@ -27,24 +27,24 @@ propagatorToken_(esConsumes(edm::ESInputTag("", "PropagatorWithMaterial")))
     dvToken_ = consumes<Run3ScoutingVertexCollection>(iConfig.getParameter<InputTag>("dvInputTag"));
     measurementTrackerEventToken_ = consumes<MeasurementTrackerEvent>(iConfig.getParameter<InputTag>("measurementTrackerEventInputTag"));
 
-    produces<vector<vector<bool> > >("isbarrel").setBranchAlias("Muon_hit_barrel");
-    produces<vector<vector<bool> > >("ispixel").setBranchAlias("Muon_hit_pixel");
-    produces<vector<vector<bool> > >("isactive").setBranchAlias("Muon_hit_active");
-    produces<vector<vector<int> > >("layernum").setBranchAlias("Muon_hit_layer");
-    produces<vector<vector<int> > >("ndet").setBranchAlias("Muon_hit_ndet");
-    produces<vector<vector<float> > >("x").setBranchAlias("Muon_hit_x");
-    produces<vector<vector<float> > >("y").setBranchAlias("Muon_hit_y");
-    produces<vector<vector<float> > >("z").setBranchAlias("Muon_hit_z");
-    produces<vector<int> >("nhitsbeforesv").setBranchAlias("Muon_nHitsBeforeSV");
-    produces<vector<int> >("nexpectedhits").setBranchAlias("Muon_nExpectedPixelHits");
-    produces<vector<int> >("ncompatible").setBranchAlias("Muon_nCompatiblePixelLayers");
-    produces<vector<int> >("nexpectedhitsmultiple").setBranchAlias("Muon_nExpectedPixelHitsMultiple");
-    produces<vector<int> >("ncompatibletotal").setBranchAlias("Muon_nCompatibleTrackerLayers");
-    produces<vector<int> >("nexpectedhitsmultipletotal").setBranchAlias("Muon_nExpectedTrackerHitsMultiple");
-    produces<vector<int> >("nexpectedhitstotal").setBranchAlias("Muon_nExpectedTrackerHits");
-    produces<vector<float> >("pxatdv").setBranchAlias("Muon_pxatdv");
-    produces<vector<float> >("pyatdv").setBranchAlias("Muon_pyatdv");
-    produces<vector<float> >("pzatdv").setBranchAlias("Muon_pzatdv");
+    produces<vector<vector<vector<bool> > > >("isbarrel").setBranchAlias("Muon_hit_barrel");
+    produces<vector<vector<vector<bool> > > >("ispixel").setBranchAlias("Muon_hit_pixel");
+    produces<vector<vector<vector<bool> > > >("isactive").setBranchAlias("Muon_hit_active");
+    produces<vector<vector<vector<int> > > >("layernum").setBranchAlias("Muon_hit_layer");
+    produces<vector<vector<vector<int> > > >("ndet").setBranchAlias("Muon_hit_ndet");
+    produces<vector<vector<vector<float> > > >("x").setBranchAlias("Muon_hit_x");
+    produces<vector<vector<vector<float> > > >("y").setBranchAlias("Muon_hit_y");
+    produces<vector<vector<vector<float> > > >("z").setBranchAlias("Muon_hit_z");
+    produces<vector<vector<int> > >("nhitsbeforesv").setBranchAlias("Muon_nHitsBeforeSV");
+    produces<vector<vector<int> > >("nexpectedhits").setBranchAlias("Muon_nExpectedPixelHits");
+    produces<vector<vector<int> > >("ncompatible").setBranchAlias("Muon_nCompatiblePixelLayers");
+    produces<vector<vector<int> > >("nexpectedhitsmultiple").setBranchAlias("Muon_nExpectedPixelHitsMultiple");
+    produces<vector<vector<int> > >("ncompatibletotal").setBranchAlias("Muon_nCompatibleTrackerLayers");
+    produces<vector<vector<int> > >("nexpectedhitsmultipletotal").setBranchAlias("Muon_nExpectedTrackerHitsMultiple");
+    produces<vector<vector<int> > >("nexpectedhitstotal").setBranchAlias("Muon_nExpectedTrackerHits");
+    produces<vector<vector<float> > >("pxatdv").setBranchAlias("Muon_pxatdv");
+    produces<vector<vector<float> > >("pyatdv").setBranchAlias("Muon_pyatdv");
+    produces<vector<vector<float> > >("pzatdv").setBranchAlias("Muon_pzatdv");
     produces<vector<bool> >("dvonmodule").setBranchAlias("Vertex_onModule");
     produces<vector<bool> >("dvonmodulewithinunc").setBranchAlias("Vertex_onModule_withinUnc");
     produces<vector<float> >("dvmindfromdet").setBranchAlias("Vertex_minDistanceFromDet");
@@ -145,24 +145,24 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // nlohmann::json j;
 
-    unique_ptr<vector<vector<bool> > > v_isbarrel(new vector<vector<bool> >);
-    unique_ptr<vector<vector<bool> > > v_ispixel(new vector<vector<bool> >);
-    unique_ptr<vector<vector<bool> > > v_isactive(new vector<vector<bool> >);
-    unique_ptr<vector<vector<int> > > v_layernum(new vector<vector<int> >);
-    unique_ptr<vector<vector<int> > > v_ndet(new vector<vector<int> >);
-    unique_ptr<vector<vector<float> > > v_hitx(new vector<vector<float> >);
-    unique_ptr<vector<vector<float> > > v_hity(new vector<vector<float> >);
-    unique_ptr<vector<vector<float> > > v_hitz(new vector<vector<float> >);
-    unique_ptr<vector<int> > v_nhitsbeforesv(new vector<int>);
-    unique_ptr<vector<int> > v_nexpectedhits(new vector<int>);
-    unique_ptr<vector<int> > v_ncompatible(new vector<int>);
-    unique_ptr<vector<int> > v_nexpectedhitsmultiple(new vector<int>);
-    unique_ptr<vector<int> > v_nexpectedhitstotal(new vector<int>);
-    unique_ptr<vector<int> > v_ncompatibletotal(new vector<int>);
-    unique_ptr<vector<int> > v_nexpectedhitsmultipletotal(new vector<int>);
-    unique_ptr<vector<float> > v_pxatdv(new vector<float>);
-    unique_ptr<vector<float> > v_pyatdv(new vector<float>);
-    unique_ptr<vector<float> > v_pzatdv(new vector<float>);
+    unique_ptr<vector<vector<vector<bool> > > > v_isbarrel(new vector<vector<vector<bool> > >);
+    unique_ptr<vector<vector<vector<bool> > > > v_ispixel(new vector<vector<vector<bool> > >);
+    unique_ptr<vector<vector<vector<bool> > > > v_isactive(new vector<vector<vector<bool> > >);
+    unique_ptr<vector<vector<vector<int> > > > v_layernum(new vector<vector<vector<int> > >);
+    unique_ptr<vector<vector<vector<int> > > > v_ndet(new vector<vector<vector<int> > >);
+    unique_ptr<vector<vector<vector<float> > > > v_hitx(new vector<vector<vector<float> > >);
+    unique_ptr<vector<vector<vector<float> > > > v_hity(new vector<vector<vector<float> > >);
+    unique_ptr<vector<vector<vector<float> > > > v_hitz(new vector<vector<vector<float> > >);
+    unique_ptr<vector<vector<int> > > v_nhitsbeforesv(new vector<vector<int> >);
+    unique_ptr<vector<vector<int> > > v_nexpectedhits(new vector<vector<int> >);
+    unique_ptr<vector<vector<int> > > v_ncompatible(new vector<vector<int> >);
+    unique_ptr<vector<vector<int> > > v_nexpectedhitsmultiple(new vector<vector<int> >);
+    unique_ptr<vector<vector<int> > > v_nexpectedhitstotal(new vector<vector<int> >);
+    unique_ptr<vector<vector<int> > > v_ncompatibletotal(new vector<vector<int> >);
+    unique_ptr<vector<vector<int> > > v_nexpectedhitsmultipletotal(new vector<vector<int> >);
+    unique_ptr<vector<vector<float> > > v_pxatdv(new vector<vector<float> >);
+    unique_ptr<vector<vector<float> > > v_pyatdv(new vector<vector<float> >);
+    unique_ptr<vector<vector<float> > > v_pzatdv(new vector<vector<float> >);
     unique_ptr<vector<bool> > dv_onmodule(new vector<bool>);
     unique_ptr<vector<bool> > dv_onmodule_withinunc(new vector<bool>);
     unique_ptr<vector<float> > dv_mindfromdet(new vector<float>);
@@ -265,32 +265,30 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
    
     for (auto const& muon : *muonHandle) {
-        vector<int> vertex_indices = muon.vtxIndx();
-        int best_index = -1;
-        float maxprob = -1.0;
-        for (auto idx : vertex_indices) {
-            if (idx >= 0 && idx < (int)(*dvHandle).size()) {
-                float chi2_=(*dvHandle).at(idx).chi2();
-                int ndof_=(*dvHandle).at(idx).ndof();
-                float prob_ = TMath::Prob(chi2_,ndof_);
-                if (prob_ > maxprob) {
-                   maxprob = prob_;
-                   best_index = idx;
-                }
-            }
-        }
-        float dv_x = 0;
-        float dv_y = 0;
-        float dv_z = 0;
-        if (best_index >= 0) {
-            Run3ScoutingVertex dv = (*dvHandle).at(best_index);
-            dv_x = dv.x();
-            dv_y = dv.y();
-            dv_z = dv.z();
-        }
+
+	vector<int> dv_nhitsbeforesv;
+	vector<vector<bool>> dv_isbarrel;
+	vector<vector<bool>> dv_ispixel;
+	vector<vector<bool>> dv_isactive;
+	vector<vector<int>> dv_layernum;
+	vector<vector<int>> dv_ndet;
+	vector<vector<float>> dv_hitx;
+	vector<vector<float>> dv_hity;
+	vector<vector<float>> dv_hitz;
+        vector<int> dv_nexpectedhits;
+	vector<int> dv_ncompatible;
+	vector<int> dv_nexpectedhitsmultiple;
+	vector<int> dv_nexpectedhitstotal;
+	vector<int> dv_ncompatibletotal;
+	vector<int> dv_nexpectedhitsmultipletotal;
+	vector<float> dv_pxatdv;
+	vector<float> dv_pyatdv;
+	vector<float> dv_pzatdv;
+
         TLorentzVector lv;
         lv.SetPtEtaPhiM(muon.pt(), muon.eta(), muon.phi(), 0.10566);
 
+        // Muon track
         float track_px = lv.Px();
         float track_py = lv.Py();
         float track_pz = lv.Pz();
@@ -323,70 +321,7 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         float track_vx = -sinphi*track_dxy - (cosphi/sinlmb)*track_dsz + (cosphi/tanlmb)*track_vz;
         float track_vy =  cosphi*track_dxy - (sinphi/sinlmb)*track_dsz + (sinphi/tanlmb)*track_vz;
 
-        // Is track reference point inside a cylinder with the DV? This should always be true from what I've seen.
-        bool track_ref_inside_dv = (track_vx*track_vx+track_vy*track_vy) < (dv_x*dv_x+dv_y*dv_y);
-
-        // Get the hit pattern of the muon and count the number of hits in a cylinder with the DV
-        int nhitsbeforesv = 0; // counter
-        Run3ScoutingHitPatternPOD hitPattern = muon.trk_hitPattern();
-        reco::HitPattern theHitPattern(hitPattern);
-        const TrackingGeometry::DetContainer& dets = theGeo_->dets();
-        for (int i = 0; i < theHitPattern.numberOfAllHits(reco::HitPattern::TRACK_HITS); i++) {
-          uint16_t hit = theHitPattern.getHitPattern(reco::HitPattern::TRACK_HITS, i);
-          if (!theHitPattern.validHitFilter(hit))
-            continue;
-          uint16_t subDet = theHitPattern.getSubStructure(hit);
-          uint16_t layer = theHitPattern.getLayer(hit);
-          std::pair<uint16_t, uint16_t> detInfo(subDet, layer);
-          for (unsigned int i = 0; i < dets.size(); i++) {
-            auto detId = dets[i]->geographicalId();
-            if (subDet==detId.subdetId() && layer==ttopo_->layer(detId)) {
-              if(subDet==1 || subDet==3 || subDet==5) {
-                if ((dets[i]->position().perp()*dets[i]->position().perp()) < (dv_x*dv_x+dv_y*dv_y))
-                  nhitsbeforesv++;
-              } else {
-                if (std::abs(dets[i]->position().z()) < dv_z)
-                  nhitsbeforesv++;
-              }
-              break;
-            }
-          }
-        }
-        v_nhitsbeforesv->push_back(nhitsbeforesv);
-
-        if (debug) {
-            std::cout << "=== Muon "
-                << " nDV=" << vertex_indices.size()
-                << " (pt,eta,phi)=(" << muon.pt() << "," << muon.eta() << "," << muon.phi() << ")"
-                << " (px,py,pz)=(" << track_px << "," << track_py << "," << track_pz << ")"
-                << " (dvx,dvy,dvz)=(" << dv_x << "," << dv_y << "," << dv_z << ")"
-                << " (tvx,tvy,tvz)=(" << track_vx << "," << track_vy << "," << track_vz << ")"
-                << " trkindv=" << track_ref_inside_dv
-                << " q=" << track_charge
-                << " nvalid=" << nvalidpixelhits
-                << std::endl;
-
-            // j["event"] = iEvent.id().event();
-            // j["nMuon"] = (*muonHandle).size();
-            // j["nDV"] = (*dvHandle).size();
-            // j["Muon_pt"] = muon.pt();
-            // j["Muon_eta"] = muon.eta();
-            // j["Muon_phi"] = muon.phi();
-            // j["Muon_px"] = track_px;
-            // j["Muon_py"] = track_py;
-            // j["Muon_pz"] = track_pz;
-            // j["Muon_nDV"] = vertex_indices.size();
-            // j["Muon_dvx"] = dv_x;
-            // j["Muon_dvy"] = dv_y;
-            // j["Muon_dvz"] = dv_z;
-            // j["Muon_tvx"] = track_vx;
-            // j["Muon_tvy"] = track_vy;
-            // j["Muon_tvz"] = track_vz;
-            // j["Muon_trkindv"] = track_ref_inside_dv;
-            // j["Muon_charge"] = track_charge;
-            // j["Muon_nvalid"] = nvalidpixelhits;
-        }
-
+        // Covariance matrix
         reco::TrackBase::CovarianceMatrix track_cov;
         track_cov(0,0) = pow(track_qoverpError,2);
         track_cov(1,1) = pow(track_lambdaError,2);
@@ -395,178 +330,279 @@ void HitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         track_cov(4,4) = pow(track_dszError,2);
 
         CurvilinearTrajectoryError err(track_cov);
-        // Default parameters according to https://github.com/cms-sw/cmssw/blob/master/TrackingTools/KalmanUpdators/interface/Chi2MeasurementEstimatorParams.h
-        Chi2MeasurementEstimator estimator(30., 3., 0.5, 2.0, 0.5, 1.e12);
+        // Loop over the vertices
+        vector<int> vertex_indices = muon.vtxIndx();
+        for (auto idx : vertex_indices) {
+            if (!(idx >= 0 && idx < (int)(*dvHandle).size())) 
+                continue;
+        
+	    Run3ScoutingVertex dv = (*dvHandle).at(idx);
 
-        GlobalVector startingMomentum(track_px, track_py, track_pz);
-        GlobalPoint startingPosition;
-        if (track_ref_inside_dv) {
-            startingPosition = GlobalPoint(track_vx, track_vy, track_vz);
-        } else {
-            // If the ref point is outside the DV cylinder (due to rounding issues or DV not corresponding to the right muon), just use the DV cylinder
-            startingPosition = GlobalPoint(dv_x, dv_y, dv_z);
+	    //float chi2_=dv.chi2();
+	    //int ndof_=dv.ndof();
+	    //float prob_ = TMath::Prob(chi2_,ndof_);
+	    float dv_x = dv.x();
+	    float dv_y = dv.y();
+	    float dv_z = dv.z();
+
+	    // Is track reference point inside a cylinder with the DV? This should always be true from what I've seen.
+	    bool track_ref_inside_dv = (track_vx*track_vx+track_vy*track_vy) < (dv_x*dv_x+dv_y*dv_y);
+
+	    // Get the hit pattern of the muon and count the number of hits in a cylinder with the DV
+	    int nhitsbeforesv = 0; // counter
+	    Run3ScoutingHitPatternPOD hitPattern = muon.trk_hitPattern();
+	    reco::HitPattern theHitPattern(hitPattern);
+	    const TrackingGeometry::DetContainer& dets = theGeo_->dets();
+	    for (int i = 0; i < theHitPattern.numberOfAllHits(reco::HitPattern::TRACK_HITS); i++) {
+	      uint16_t hit = theHitPattern.getHitPattern(reco::HitPattern::TRACK_HITS, i);
+	      if (!theHitPattern.validHitFilter(hit))
+		continue;
+	      uint16_t subDet = theHitPattern.getSubStructure(hit);
+	      uint16_t layer = theHitPattern.getLayer(hit);
+	      std::pair<uint16_t, uint16_t> detInfo(subDet, layer);
+	      for (unsigned int i = 0; i < dets.size(); i++) {
+		auto detId = dets[i]->geographicalId();
+		if (subDet==detId.subdetId() && layer==ttopo_->layer(detId)) {
+		  if(subDet==1 || subDet==3 || subDet==5) {
+		    if ((dets[i]->position().perp()*dets[i]->position().perp()) < (dv_x*dv_x+dv_y*dv_y)) {
+		      //std::cout << "subDet: " << subDet << ", Rho: " << dets[i]->position().perp() << std::endl; 
+		      nhitsbeforesv++;
+		    }
+		  } else {
+		    if (std::abs(dets[i]->position().z()) < std::abs(dv_z)) {
+		      //std::cout << "subDet: " << subDet << ", Z: " << dets[i]->position().z() << std::endl; 
+		      nhitsbeforesv++;
+		    }
+		  }
+		  break;
+		}
+	      }
+	    }
+	    dv_nhitsbeforesv.push_back(nhitsbeforesv);
+	    //std::cout << "Number of hits: " << nhitsbeforesv << "\t, and pt: " << muon.pt() << std::endl;
+
+	    if (debug) {
+		std::cout << "=== Muon "
+		    << " nDV=" << vertex_indices.size()
+		    << " (pt,eta,phi)=(" << muon.pt() << "," << muon.eta() << "," << muon.phi() << ")"
+		    << " (px,py,pz)=(" << track_px << "," << track_py << "," << track_pz << ")"
+		    << " (dvx,dvy,dvz)=(" << dv_x << "," << dv_y << "," << dv_z << ")"
+		    << " (tvx,tvy,tvz)=(" << track_vx << "," << track_vy << "," << track_vz << ")"
+		    << " trkindv=" << track_ref_inside_dv
+		    << " q=" << track_charge
+		    << " nvalid=" << nvalidpixelhits
+		    << std::endl;
+
+		// j["event"] = iEvent.id().event();
+		// j["nMuon"] = (*muonHandle).size();
+		// j["nDV"] = (*dvHandle).size();
+		// j["Muon_pt"] = muon.pt();
+		// j["Muon_eta"] = muon.eta();
+		// j["Muon_phi"] = muon.phi();
+		// j["Muon_px"] = track_px;
+		// j["Muon_py"] = track_py;
+		// j["Muon_pz"] = track_pz;
+		// j["Muon_nDV"] = vertex_indices.size();
+		// j["Muon_dvx"] = dv_x;
+		// j["Muon_dvy"] = dv_y;
+		// j["Muon_dvz"] = dv_z;
+		// j["Muon_tvx"] = track_vx;
+		// j["Muon_tvy"] = track_vy;
+		// j["Muon_tvz"] = track_vz;
+		// j["Muon_trkindv"] = track_ref_inside_dv;
+		// j["Muon_charge"] = track_charge;
+		// j["Muon_nvalid"] = nvalidpixelhits;
+	    }
+
+	    // Default parameters according to https://github.com/cms-sw/cmssw/blob/master/TrackingTools/KalmanUpdators/interface/Chi2MeasurementEstimatorParams.h
+	    Chi2MeasurementEstimator estimator(30., 3., 0.5, 2.0, 0.5, 1.e12);
+
+	    GlobalVector startingMomentum(track_px, track_py, track_pz);
+	    GlobalPoint startingPosition;
+	    if (track_ref_inside_dv) {
+		startingPosition = GlobalPoint(track_vx, track_vy, track_vz);
+	    } else {
+		// If the ref point is outside the DV cylinder (due to rounding issues or DV not corresponding to the right muon), just use the DV cylinder
+		startingPosition = GlobalPoint(dv_x, dv_y, dv_z);
+	    }
+
+	    PlaneBuilder pb;
+	    auto startingPlane = pb.plane(startingPosition, rotation(startingMomentum));
+
+	    TrajectoryStateOnSurface startingStateP(
+		    GlobalTrajectoryParameters(startingPosition, startingMomentum, track_charge, magfield_.product()),
+		    err, *startingPlane
+		    );
+
+	    // float cylx = dv_x;
+	    // float cyly = dv_y;
+	    // float cylz = dv_z;
+
+	    if (track_ref_inside_dv) {
+		float dv_rho = sqrt(dv_x*dv_x+dv_y*dv_y);
+		if (debug) {
+		    std::cout << "   Before propagating trk ref to DV cyl POS/MOM: " << startingStateP.globalPosition() << "/" << startingStateP.globalMomentum() << std::endl;
+		}
+		// https://github.com/cms-sw/cmssw/blob/949a7b9d2c1bfde1458e01da1c14da0cd53a0ccf/HLTriggerOffline/Muon/src/PropagateToMuon.cc#L159
+		// https://github.com/cms-sw/cmssw/blob/c9b012f3388a39f64eb05980e3732d0484539f14/DataFormats/GeometrySurface/interface/Cylinder.h
+		double valid_distance = prop.propagateWithPath(startingStateP, Cylinder(dv_rho)).second;
+		if(valid_distance<=0)  //rarely (test 24 muons in 105181 evts, 5893 passing filters) the propagation seems to give seg faults
+				       //since this is very rare (0.2% of muons, assuming 2 per evt) I just check the distance and use dummy values 
+		{
+		    if (debug) std::cout << "UNSUCCESFUL propagation to the starting point" << std::endl;
+		    dv_isbarrel.push_back(vector<bool>());
+		    dv_ispixel.push_back(vector<bool>());
+		    dv_isactive.push_back(vector<bool>());
+		    dv_layernum.push_back(vector<int>());
+		    dv_ndet.push_back(vector<int>());
+		    dv_hitx.push_back(vector<float>());
+		    dv_hity.push_back(vector<float>());
+		    dv_hitz.push_back(vector<float>());
+		    dv_nexpectedhits.push_back(-1);
+		    dv_ncompatible.push_back(-1);
+		    dv_nexpectedhitsmultiple.push_back(-1);
+		    dv_nexpectedhitstotal.push_back(-1);
+		    dv_ncompatibletotal.push_back(-1);
+		    dv_nexpectedhitsmultipletotal.push_back(-1);
+		    dv_pxatdv.push_back(0);
+		    dv_pyatdv.push_back(0);
+		    dv_pzatdv.push_back(0);
+		    continue;//skip the rest for the given vertex, it should happend very rarely
+		}
+
+		startingStateP = prop.propagate(startingStateP, Cylinder(dv_rho));
+		// cylx = startingStateP.globalPosition().x();
+		// cyly = startingStateP.globalPosition().y();
+		// cylz = startingStateP.globalPosition().z();
+		if (debug) {
+		    std::cout << "   After propagating trk ref to DV cyl POS/MOM: " << startingStateP.globalPosition() << "/" << startingStateP.globalMomentum() << std::endl;
+		    // j["Muon_dvcylx"] = cylx;
+		    // j["Muon_dvcyly"] = cyly;
+		    // j["Muon_dvcylz"] = cylz;
+		}
+	    }
+
+	    float pxatdv = startingStateP.globalMomentum().x();
+	    float pyatdv = startingStateP.globalMomentum().y();
+	    float pzatdv = startingStateP.globalMomentum().z();
+
+	    // or could get searchGeom.allLayers() and require layer->subDetector() enum is PixelBarrel/PixelEndcap 
+	    //vector<DetLayer const*> layers_pixel;
+	    //for (auto layer : searchGeom.pixelBarrelLayers()) layers_pixel.push_back(layer);
+	    //for (auto layer : searchGeom.negPixelForwardLayers()) layers_pixel.push_back(layer);
+	    //for (auto layer : searchGeom.posPixelForwardLayers()) layers_pixel.push_back(layer);
+	    vector<bool> isbarrel;
+	    vector<bool> ispixel;
+	    vector<bool> isactive;
+	    vector<int> layernum;
+	    vector<int> ndet;
+	    vector<float> hitx;
+	    vector<float> hity;
+	    vector<float> hitz;
+	    int nexpectedhits = 0;
+	    int nexpectedhitsmultiple = 0;
+	    int nexpectedhitsmultipleraw = 0;
+	    int nexpectedhitstotal = 0;
+	    int nexpectedhitsmultipletotal = 0;
+	    auto tsos = startingStateP;
+	    int ncompatible = 0;
+	    int ncompatibletotal = 0;
+	    for (auto const& layer : searchGeom.allLayers()) {
+		if(debug) std::cout << (int)layer->subDetector() << " " << layer->subDetector() << " layers subdet" << std::endl;
+		bool pixel=((int)layer->subDetector())<2; // pixel barrel = 0, endcap = 1
+		bool compatible = layer->compatible(tsos, prop, estimator).first;
+		if (debug) std::cout << "compatible=" << compatible << std::endl;
+		if (pixel) ncompatible += compatible;
+		ncompatibletotal += compatible;
+		// auto tsos = startingStateP;
+		// /cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw/CMSSW_10_2_5/src/TrackingTools/DetLayers/src/BarrelDetLayer.cc
+		auto const& detWithState = layer->compatibleDets(tsos, prop, estimator);
+		if (debug) std::cout << "detWithState.size()=" << detWithState.size() << std::endl;
+		if (!detWithState.size()) continue;
+		tsos = detWithState.front().second;
+		DetId did = detWithState.front().first->geographicalId();
+		MeasurementDetWithData measDet = measurementTracker_->idToDet(did, *measurementTrackerEvent);
+		bool active = measDet.isActive() && measDet.isValid(); // From what I see, isValid is always true, but just be safe.
+		bool barrel = layer->isBarrel();
+		int seq = layer->seqNum();
+		int sdet = detWithState.size();
+		auto pos = tsos.globalPosition();
+		if (debug) {
+		    std::cout << "HIT subdet=" << layer->subDetector()
+			<< " layer=" << seq 
+			<< " detSize=" << sdet
+			<< " pos=" << pos
+			<< " active=" << active 
+			<< std::endl;
+		}
+		for (auto ds : detWithState) {
+		    auto did2 = ds.first->geographicalId();
+		    auto md = measurementTracker_->idToDet(did2, *measurementTrackerEvent);
+		    if (debug) std::cout << "   subhit active=" << md.isActive() << " valid=" << md.isValid() << std::endl;
+		    if (pixel) nexpectedhitsmultiple += md.isActive()*md.isValid();
+		    nexpectedhitsmultipletotal += md.isActive()*md.isValid();
+		    nexpectedhitsmultipleraw += 1;
+		}
+		isbarrel.push_back(barrel);
+		ispixel.push_back(pixel);
+		isactive.push_back(active);
+		layernum.push_back(seq);
+		ndet.push_back(sdet);
+		hitx.push_back(pos.x());
+		hity.push_back(pos.y());
+		hitz.push_back(pos.z());
+		if (pixel) nexpectedhits += active;
+		nexpectedhitstotal += active;
+	    }
+	    dv_isbarrel.push_back(isbarrel);
+	    dv_ispixel.push_back(ispixel);
+	    dv_isactive.push_back(isactive);
+	    dv_layernum.push_back(layernum);
+	    dv_ndet.push_back(ndet);
+	    dv_hitx.push_back(hitx);
+	    dv_hity.push_back(hity);
+	    dv_hitz.push_back(hitz);
+	    dv_nexpectedhits.push_back(nexpectedhits);
+	    dv_ncompatible.push_back(ncompatible);
+	    dv_nexpectedhitsmultiple.push_back(nexpectedhitsmultiple);
+	    dv_nexpectedhitstotal.push_back(nexpectedhitstotal);
+	    dv_ncompatibletotal.push_back(ncompatibletotal);
+	    dv_nexpectedhitsmultipletotal.push_back(nexpectedhitsmultipletotal);
+	    dv_pxatdv.push_back(pxatdv);
+	    dv_pyatdv.push_back(pyatdv);
+	    dv_pzatdv.push_back(pzatdv);
+
+	    if (debug) {
+		std::cout <<  " valid: " << nvalidpixelhits <<  " exp: " << nexpectedhits <<  " expmultiple: " << nexpectedhitsmultiple 
+			  <<  " valid-exp: " << nvalidpixelhits-nexpectedhits <<  " valid-expmultiple: " << nvalidpixelhits-nexpectedhitsmultiple <<  std::endl;
+		// j["Muon_expected"] = nexpectedhits;
+		// j["Muon_expectedmultiple"] = nexpectedhitsmultiple;
+		// j["Muon_expectedmultipleraw"] = nexpectedhitsmultipleraw;
+
+	    }
+
         }
-
-        PlaneBuilder pb;
-        auto startingPlane = pb.plane(startingPosition, rotation(startingMomentum));
-
-        TrajectoryStateOnSurface startingStateP(
-                GlobalTrajectoryParameters(startingPosition, startingMomentum, track_charge, magfield_.product()),
-                err, *startingPlane
-                );
-
-        // float cylx = dv_x;
-        // float cyly = dv_y;
-        // float cylz = dv_z;
-
-        if (track_ref_inside_dv) {
-            float dv_rho = sqrt(dv_x*dv_x+dv_y*dv_y);
-            if (debug) {
-                std::cout << "   Before propagating trk ref to DV cyl POS/MOM: " << startingStateP.globalPosition() << "/" << startingStateP.globalMomentum() << std::endl;
-            }
-            // https://github.com/cms-sw/cmssw/blob/949a7b9d2c1bfde1458e01da1c14da0cd53a0ccf/HLTriggerOffline/Muon/src/PropagateToMuon.cc#L159
-            // https://github.com/cms-sw/cmssw/blob/c9b012f3388a39f64eb05980e3732d0484539f14/DataFormats/GeometrySurface/interface/Cylinder.h
-            double valid_distance = prop.propagateWithPath(startingStateP, Cylinder(dv_rho)).second;
-            if(valid_distance<=0)  //rarely (test 24 muons in 105181 evts, 5893 passing filters) the propagation seems to give seg faults
-                                   //since this is very rare (0.2% of muons, assuming 2 per evt) I just check the distance and use dummy values 
-            {
-                if (debug) std::cout << "UNSUCCESFUL propagation to the starting point" << std::endl;
-                v_isbarrel->push_back(vector<bool>());
-                v_ispixel->push_back(vector<bool>());
-                v_isactive->push_back(vector<bool>());
-                v_layernum->push_back(vector<int>());
-                v_ndet->push_back(vector<int>());
-                v_hitx->push_back(vector<float>());
-                v_hity->push_back(vector<float>());
-                v_hitz->push_back(vector<float>());
-                v_nexpectedhits->push_back(-1);
-                v_ncompatible->push_back(-1);
-                v_nexpectedhitsmultiple->push_back(-1);
-                v_nexpectedhitstotal->push_back(-1);
-                v_ncompatibletotal->push_back(-1);
-                v_nexpectedhitsmultipletotal->push_back(-1);
-                v_pxatdv->push_back(0);
-                v_pyatdv->push_back(0);
-                v_pzatdv->push_back(0);
-                continue;//skip the rest for the given muon, it should happend very rarely
-            }
-
-            startingStateP = prop.propagate(startingStateP, Cylinder(dv_rho));
-            // cylx = startingStateP.globalPosition().x();
-            // cyly = startingStateP.globalPosition().y();
-            // cylz = startingStateP.globalPosition().z();
-            if (debug) {
-                std::cout << "   After propagating trk ref to DV cyl POS/MOM: " << startingStateP.globalPosition() << "/" << startingStateP.globalMomentum() << std::endl;
-                // j["Muon_dvcylx"] = cylx;
-                // j["Muon_dvcyly"] = cyly;
-                // j["Muon_dvcylz"] = cylz;
-            }
-        }
-
-        float pxatdv = startingStateP.globalMomentum().x();
-        float pyatdv = startingStateP.globalMomentum().y();
-        float pzatdv = startingStateP.globalMomentum().z();
-
-        // or could get searchGeom.allLayers() and require layer->subDetector() enum is PixelBarrel/PixelEndcap 
-        //vector<DetLayer const*> layers_pixel;
-        //for (auto layer : searchGeom.pixelBarrelLayers()) layers_pixel.push_back(layer);
-        //for (auto layer : searchGeom.negPixelForwardLayers()) layers_pixel.push_back(layer);
-        //for (auto layer : searchGeom.posPixelForwardLayers()) layers_pixel.push_back(layer);
-        vector<bool> isbarrel;
-        vector<bool> ispixel;
-        vector<bool> isactive;
-        vector<int> layernum;
-        vector<int> ndet;
-        vector<float> hitx;
-        vector<float> hity;
-        vector<float> hitz;
-        int nexpectedhits = 0;
-        int nexpectedhitsmultiple = 0;
-        int nexpectedhitsmultipleraw = 0;
-        int nexpectedhitstotal = 0;
-        int nexpectedhitsmultipletotal = 0;
-        auto tsos = startingStateP;
-        int ncompatible = 0;
-        int ncompatibletotal = 0;
-        for (auto const& layer : searchGeom.allLayers()) {
-            if(debug) std::cout << (int)layer->subDetector() << " " << layer->subDetector() << " layers subdet" << std::endl;
-            bool pixel=((int)layer->subDetector())<2; // pixel barrel = 0, endcap = 1
-            bool compatible = layer->compatible(tsos, prop, estimator).first;
-            if (debug) std::cout << "compatible=" << compatible << std::endl;
-            if (pixel) ncompatible += compatible;
-            ncompatibletotal += compatible;
-            // auto tsos = startingStateP;
-            // /cvmfs/cms.cern.ch/slc6_amd64_gcc700/cms/cmssw/CMSSW_10_2_5/src/TrackingTools/DetLayers/src/BarrelDetLayer.cc
-            auto const& detWithState = layer->compatibleDets(tsos, prop, estimator);
-            if (debug) std::cout << "detWithState.size()=" << detWithState.size() << std::endl;
-            if (!detWithState.size()) continue;
-            tsos = detWithState.front().second;
-            DetId did = detWithState.front().first->geographicalId();
-            MeasurementDetWithData measDet = measurementTracker_->idToDet(did, *measurementTrackerEvent);
-            bool active = measDet.isActive() && measDet.isValid(); // From what I see, isValid is always true, but just be safe.
-            bool barrel = layer->isBarrel();
-            int seq = layer->seqNum();
-            int sdet = detWithState.size();
-            auto pos = tsos.globalPosition();
-            if (debug) {
-                std::cout << "HIT subdet=" << layer->subDetector()
-                    << " layer=" << seq 
-                    << " detSize=" << sdet
-                    << " pos=" << pos
-                    << " active=" << active 
-                    << std::endl;
-            }
-            for (auto ds : detWithState) {
-                auto did2 = ds.first->geographicalId();
-                auto md = measurementTracker_->idToDet(did2, *measurementTrackerEvent);
-                if (debug) std::cout << "   subhit active=" << md.isActive() << " valid=" << md.isValid() << std::endl;
-                if (pixel) nexpectedhitsmultiple += md.isActive()*md.isValid();
-                nexpectedhitsmultipletotal += md.isActive()*md.isValid();
-                nexpectedhitsmultipleraw += 1;
-            }
-            isbarrel.push_back(barrel);
-            ispixel.push_back(pixel);
-            isactive.push_back(active);
-            layernum.push_back(seq);
-            ndet.push_back(sdet);
-            hitx.push_back(pos.x());
-            hity.push_back(pos.y());
-            hitz.push_back(pos.z());
-            if (pixel) nexpectedhits += active;
-            nexpectedhitstotal += active;
-        }
-        v_isbarrel->push_back(isbarrel);
-        v_ispixel->push_back(ispixel);
-        v_isactive->push_back(isactive);
-        v_layernum->push_back(layernum);
-        v_ndet->push_back(ndet);
-        v_hitx->push_back(hitx);
-        v_hity->push_back(hity);
-        v_hitz->push_back(hitz);
-        v_nexpectedhits->push_back(nexpectedhits);
-        v_ncompatible->push_back(ncompatible);
-        v_nexpectedhitsmultiple->push_back(nexpectedhitsmultiple);
-        v_nexpectedhitstotal->push_back(nexpectedhitstotal);
-        v_ncompatibletotal->push_back(ncompatibletotal);
-        v_nexpectedhitsmultipletotal->push_back(nexpectedhitsmultipletotal);
-        v_pxatdv->push_back(pxatdv);
-        v_pyatdv->push_back(pyatdv);
-        v_pzatdv->push_back(pzatdv);
-
-        if (debug) {
-            std::cout <<  " valid: " << nvalidpixelhits <<  " exp: " << nexpectedhits <<  " expmultiple: " << nexpectedhitsmultiple 
-                      <<  " valid-exp: " << nvalidpixelhits-nexpectedhits <<  " valid-expmultiple: " << nvalidpixelhits-nexpectedhitsmultiple <<  std::endl;
-            // j["Muon_expected"] = nexpectedhits;
-            // j["Muon_expectedmultiple"] = nexpectedhitsmultiple;
-            // j["Muon_expectedmultipleraw"] = nexpectedhitsmultipleraw;
-
-        }
-
+	v_isbarrel->push_back(dv_isbarrel);
+	v_ispixel->push_back(dv_ispixel);
+	v_isactive->push_back(dv_isactive);
+	v_layernum->push_back(dv_layernum);
+	v_ndet->push_back(dv_ndet);
+	v_hitx->push_back(dv_hitx);
+	v_hity->push_back(dv_hity);
+	v_hitz->push_back(dv_hitz);
+        v_nhitsbeforesv->push_back(dv_nhitsbeforesv);
+	v_nexpectedhits->push_back(dv_nexpectedhits);
+	v_ncompatible->push_back(dv_ncompatible);
+	v_nexpectedhitsmultiple->push_back(dv_nexpectedhitsmultiple);
+	v_nexpectedhitstotal->push_back(dv_nexpectedhitstotal);
+	v_ncompatibletotal->push_back(dv_ncompatibletotal);
+	v_nexpectedhitsmultipletotal->push_back(dv_nexpectedhitsmultipletotal);
+	v_pxatdv->push_back(dv_pxatdv);
+	v_pyatdv->push_back(dv_pyatdv);
+	v_pzatdv->push_back(dv_pzatdv);
         if (debug) {
             // std::cout << "JSON: " << j.dump(-1) << std::endl;
         }
-
-
     }
 
     iEvent.put(std::move(v_isbarrel), "isbarrel");
