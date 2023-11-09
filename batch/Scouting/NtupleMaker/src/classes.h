@@ -14,7 +14,14 @@ namespace {
       std::vector<std::vector<int> > vi2d;
       edm::Wrapper<std::vector<std::vector<int> > > wvi2d;
 
-      
+      std::vector<std::vector<std::vector<float> > > vf3d;
+      edm::Wrapper<std::vector<std::vector<std::vector<float> > > > wvf3d;
+
+      std::vector<std::vector<std::vector<bool> > > vb3d;
+      edm::Wrapper<std::vector<std::vector<std::vector<bool> > > > wvb3d;
+
+      std::vector<std::vector<std::vector<int> > > vi3d;
+      edm::Wrapper<std::vector<std::vector<std::vector<int> > > > wvi3d;
       
    };
 }
