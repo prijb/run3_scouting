@@ -571,6 +571,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   if ( !isMC ) {
     if ( year == "2022" )
       set_goodrun_file_json("../data/Cert_Collisions2022_355100_362760_Golden.json");
+    else if ( year == "2023" )
+      set_goodrun_file_json("../data/Cert_Collisions2023_366442_370790_Golden.json");
   }
 
   // File loop

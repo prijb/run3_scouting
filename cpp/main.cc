@@ -110,6 +110,22 @@ int main(int argc, char **argv) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Aug-24-2023/Data/2022G/", startFile, nFiles, isCondor);
     process = "DataG";
   }
+  if ( sampleArg=="Data2023B" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Sep-19-2023/Data/2023B/", startFile, nFiles, isCondor);
+    process = "Data2023B";
+  }
+  if ( sampleArg=="Data2023C-triggerV10" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Sep-19-2023/Data/2023C-triggerV10/", startFile, nFiles, isCondor);
+    process = "Data2023C-triggerV10";
+  }
+  if ( sampleArg=="Data2023C" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Sep-19-2023/Data/2023C/", startFile, nFiles, isCondor);
+    process = "Data2023C";
+  }
+  if ( sampleArg=="Data2023D" ) {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Sep-19-2023/Data/2023D/", startFile, nFiles, isCondor);
+    process = "Data2023D";
+  }
   //
   // Sample list: Monte Carlo
   if ( sampleArg=="DileptonMinBias" ) {
