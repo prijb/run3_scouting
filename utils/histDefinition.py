@@ -30,6 +30,28 @@ def hist2dDefinition(nbinsX, lowX, highX, xtitle2d, nbinsY, lowY, highY, ytitle2
     ztitle2d   ["yvsx"] = "Number of SVs"
     variablesXY["yvsx"] = ["t.SV_x[v]","t.SV_y[v]"]
 
+    nbinsX     ["mindvslxy"] = 1000
+    lowX       ["mindvslxy"] = 0.0
+    highX      ["mindvslxy"] = 40.0
+    nbinsY     ["mindvslxy"] = 200
+    lowY       ["mindvslxy"] = 0.0
+    highY      ["mindvslxy"] = 5.0
+    xtitle2d   ["mindvslxy"] = "SV l_{xy} (from PV) [cm]"
+    ytitle2d   ["mindvslxy"] = "Min. distance to module"
+    ztitle2d   ["mindvslxy"] = "Number of SVs"
+    variablesXY["mindvslxy"] = ["t.SV_lxy[v]", "t.SV_minDistanceFromDet[v]"]
+
+    nbinsX     ["mindxyvslxy"] = 1000
+    lowX       ["mindxyvslxy"] = 0.0
+    highX      ["mindxyvslxy"] = 40.0
+    nbinsY     ["mindxyvslxy"] = 200
+    lowY       ["mindxyvslxy"] = 0.0
+    highY      ["mindxyvslxy"] = 5.0
+    xtitle2d   ["mindxyvslxy"] = "SV l_{xy} (from PV) [cm]"
+    ytitle2d   ["mindxyvslxy"] = "Min. xy distance to module"
+    ztitle2d   ["mindxyvslxy"] = "Number of SVs"
+    variablesXY["mindxyvslxy"] = ["t.SV_lxy[v]", "((t.SV_minDistanceFromDet_x[v])**2.0 + (t.SV_minDistanceFromDet_y[v])**2.0)**0.5"]
+
     nbinsX     ["lxyvslxygen"] = 110
     lowX       ["lxyvslxygen"] = 0
     highX      ["lxyvslxygen"] = 110
@@ -40,6 +62,18 @@ def hist2dDefinition(nbinsX, lowX, highX, xtitle2d, nbinsY, lowY, highY, ytitle2
     ytitle2d   ["lxyvslxygen"] = "Reconstructed l_{xy} [cm]"
     ztitle2d   ["lxyvslxygen"] = "Gen-matched dimuons"
     variablesXY["lxyvslxygen"] = ["lxygen","lxy"]
+
+    nbinsX     ["pfisovspt"] = 100
+    lowX       ["pfisovspt"] = 0
+    highX      ["pfisovspt"] = 100
+    nbinsY     ["pfisovspt"] = 30
+    lowY       ["pfisovspt"] = 0
+    highY      ["pfisovspt"] = 30
+    xtitle2d   ["pfisovspt"] = "Muon p_{T} [GeV]"
+    ytitle2d   ["pfisovspt"] = "Muon PF-all isolation (#DeltaR<0.4) [GeV]"
+    ztitle2d   ["pfisovspt"] = "Number of muons"
+    variablesXY["pfisovspt"] = ["t.Muon_pt[m]","t.Muon_PFIsoAll0p4[m]"]
+
 
 def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     # 1D histograms
@@ -378,50 +412,50 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
 
     nbins   ["muecaliso"] = 40
     low     ["muecaliso"] = 0
-    high    ["muecaliso"] = 20
+    high    ["muecaliso"] = 10
     xtitle  ["muecaliso"] = "Muon ECAL isolation [GeV]"
     ytitle  ["muecaliso"] = "Events / 0.5 GeV"
     variable["muecaliso"] = "t.Muon_ecalIso[m]"
 
     nbins   ["muhcaliso"] = 40
     low     ["muhcaliso"] = 0
-    high    ["muhcaliso"] = 20
+    high    ["muhcaliso"] = 10
     xtitle  ["muhcaliso"] = "Muon HCAL isolation [GeV]"
     ytitle  ["muhcaliso"] = "Events / 0.5 GeV"
     variable["muhcaliso"] = "t.Muon_hcalIso[m]"
 
     nbins   ["mutrkiso"] = 40
     low     ["mutrkiso"] = 0
-    high    ["mutrkiso"] = 20
+    high    ["mutrkiso"] = 10
     xtitle  ["mutrkiso"] = "Muon track isolation [GeV]"
     ytitle  ["mutrkiso"] = "Events / 0.5 GeV"
     variable["mutrkiso"] = "t.Muon_trackIso[m]"
 
     nbins   ["mupfalliso0p3"] = 40
     low     ["mupfalliso0p3"] = 0
-    high    ["mupfalliso0p3"] = 20
+    high    ["mupfalliso0p3"] = 10
     xtitle  ["mupfalliso0p3"] = "Muon PF-all isolation (#DeltaR<0.3, #delta#beta-corrected) [GeV]"
     ytitle  ["mupfalliso0p3"] = "Events / 0.5 GeV"
     variable["mupfalliso0p3"] = "t.Muon_PFIsoAll0p3[m]"
 
     nbins   ["mupfchgiso0p3"] = 40
     low     ["mupfchgiso0p3"] = 0
-    high    ["mupfchgiso0p3"] = 20
+    high    ["mupfchgiso0p3"] = 10
     xtitle  ["mupfchgiso0p3"] = "Muon PF-charged isolation (#DeltaR<0.3) [GeV]"
     ytitle  ["mupfchgiso0p3"] = "Events / 0.5 GeV"
     variable["mupfchgiso0p3"] = "t.Muon_PFIsoChg0p3[m]"
 
     nbins   ["mupfalliso0p4"] = 40
     low     ["mupfalliso0p4"] = 0
-    high    ["mupfalliso0p4"] = 20
+    high    ["mupfalliso0p4"] = 10
     xtitle  ["mupfalliso0p4"] = "Muon PF-all isolation (#DeltaR<0.4, #delta#beta-corrected) [GeV]"
     ytitle  ["mupfalliso0p4"] = "Events / 0.5 GeV"
     variable["mupfalliso0p4"] = "t.Muon_PFIsoAll0p4[m]"
 
     nbins   ["mupfchgiso0p4"] = 40
     low     ["mupfchgiso0p4"] = 0
-    high    ["mupfchgiso0p4"] = 20
-    xtitle  ["mupfchgiso0p4"] = "Muon PF-charged isolation (#DeltaR<0.3, #delta#beta-corrected) [GeV]"
+    high    ["mupfchgiso0p4"] = 10
+    xtitle  ["mupfchgiso0p4"] = "Muon PF-charged isolation (#DeltaR<0.4, #delta#beta-corrected) [GeV]"
     ytitle  ["mupfchgiso0p4"] = "Events / 0.5 GeV"
     variable["mupfchgiso0p4"] = "t.Muon_PFIsoChg0p4[m]"
 
@@ -641,6 +675,13 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     xtitle  ["mutrackerlayers"] = "Number of tracker layers"
     ytitle  ["mutrackerlayers"] = "Events"
     variable["mutrackerlayers"] = "t.Muon_trkLayers[m]"
+
+    nbins   ["muhitsbeforesv"] = 10
+    low     ["muhitsbeforesv"] = 0
+    high    ["muhitsbeforesv"] = 10
+    xtitle  ["muhitsbeforesv"] = "Number of hits before SV"
+    ytitle  ["muhitsbeforesv"] = "Events"
+    variable["muhitsbeforesv"] = "t.Muon_nhitsbeforesv[m]"
 
     nbins   ["muobsmexplayers"] = 20
     low     ["muobsmexplayers"] = -10
@@ -870,12 +911,26 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["dimuups3danglesvl3d"] = "Events / 0.1 cm"
     variable["dimuups3danglesvl3d"] = "sina3dsvl3du"
 
+    nbins   ["totalmuhitsbeforesv"] = 10
+    low     ["totalmuhitsbeforesv"] = 0
+    high    ["totalmuhitsbeforesv"] = 10
+    xtitle  ["totalmuhitsbeforesv"] = "Number of hits before SV"
+    ytitle  ["totalmuhitsbeforesv"] = "Events"
+    variable["totalmuhitsbeforesv"] = "nhitsbeforesvtotal"
+
     nbins   ["dimugenmatchingdr"] = 100
     low     ["dimugenmatchingdr"] = 0
     high    ["dimugenmatchingdr"] = 3.0 
     xtitle  ["dimugenmatchingdr"] = "Min. #DeltaR(#vec{(#mu, #mu)}, gen))"
     ytitle  ["dimugenmatchingdr"] = "Events / 0.1 cm"
     variable["dimugenmatchingdr"] = "drgen"
+
+    nbins   ["dimuisocat"] = 3
+    low     ["dimuisocat"] = 0
+    high    ["dimuisocat"] = 3.0 
+    xtitle  ["dimuisocat"] = "Dimuon isolation category"
+    ytitle  ["dimuisocat"] = "Events / Category"
+    variable["dimuisocat"] = "isocat"
 
     # Four-muon
 
@@ -1541,6 +1596,12 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname2d["svsel"].append("hsvsel_yvsx")
         histtype2d[histname2d["svsel"][-1]]="yvsx"
         #
+        histname2d["svsel"].append("hsvsel_mindvslxy")
+        histtype2d[histname2d["svsel"][-1]]="mindvslxy"
+        #
+        histname2d["svsel"].append("hsvsel_mindxyvslxy")
+        histtype2d[histname2d["svsel"][-1]]="mindxyvslxy"
+        #
     ##
     histname["nsvselass"] = []
     histname["svselass"] = []
@@ -1639,6 +1700,12 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname2d["svselass"].append("hsvselass_yvsx")
         histtype2d[histname2d["svselass"][-1]]="yvsx"
         #
+        histname2d["svselass"].append("hsvselass_mindvslxy")
+        histtype2d[histname2d["svselass"][-1]]="mindvslxy"
+        #
+        histname2d["svselass"].append("hsvselass_mindxyvslxy")
+        histtype2d[histname2d["svselass"][-1]]="mindxyvslxy"
+        #
         ##
         #
         histname["nsvselass_osv"].append("h_nsvselass_osv")
@@ -1727,6 +1794,12 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname2d["svselass_osv"].append("hsvselass_osv_yvsx")
         histtype2d[histname2d["svselass_osv"][-1]]="yvsx"
+        #
+        histname2d["svselass_osv"].append("hsvselass_osv_mindvslxy")
+        histtype2d[histname2d["svselass_osv"][-1]]="mindvslxy"
+        #
+        histname2d["svselass_osv"].append("hsvselass_osv_mindxyvslxy")
+        histtype2d[histname2d["svselass_osv"][-1]]="mindxyvslxy"
         #
     ##
     histname["nsvselass_fourmu"] = []
@@ -1999,6 +2072,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname["muon"].append("hmuon_pfreliso0p4chg")
         histtype[histname["muon"][-1]]="mupfchgreliso0p4"
         #
+        histname2d["muon"].append("hmuon_pfiso0p4allvspt")
+        histtype2d[histname2d["muon"][-1]]="pfisovspt"
+        #
         histname["muon"].append("hmuon_mindrjet")
         histtype[histname["muon"][-1]]="mumindrjet"
         #
@@ -2064,6 +2140,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["muon"].append("hmuon_ntrackerlayers")
         histtype[histname["muon"][-1]]="mutrackerlayers"
+        #
+        histname["muon"].append("hmuon_nhitsbeforesv")
+        histtype[histname["muon"][-1]]="muhitsbeforesv"
         #
         histname["muon"].append("hmuon_nobsmexplayers")
         histtype[histname["muon"][-1]]="muobsmexplayers"
@@ -2153,6 +2232,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname["selmuon"].append("hselmuon_pfreliso0p4chg")
         histtype[histname["selmuon"][-1]]="mupfchgreliso0p4"
         #
+        histname2d["selmuon"].append("hselmuon_pfiso0p4allvspt")
+        histtype2d[histname2d["selmuon"][-1]]="pfisovspt"
+        #
         histname["selmuon"].append("hselmuon_mindrjet")
         histtype[histname["selmuon"][-1]]="mumindrjet"
         #
@@ -2224,6 +2306,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["selmuon"].append("hselmuon_ntrackerlayers")
         histtype[histname["selmuon"][-1]]="mutrackerlayers"
+        #
+        histname["selmuon"].append("hselmuon_nhitsbeforesv")
+        histtype[histname["selmuon"][-1]]="muhitsbeforesv"
         #
         histname["selmuon"].append("hselmuon_nobsmexplayers")
         histtype[histname["selmuon"][-1]]="muobsmexplayers"
@@ -2305,6 +2390,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname["selmuon_osv"].append("hselmuon_osv_pfreliso0p4chg")
         histtype[histname["selmuon_osv"][-1]]="mupfchgreliso0p4"
         #
+        histname2d["selmuon_osv"].append("hselmuon_osv_pfiso0p4allvspt")
+        histtype2d[histname2d["selmuon_osv"][-1]]="pfisovspt"
+        #
         histname["selmuon_osv"].append("hselmuon_osv_mindrjet")
         histtype[histname["selmuon_osv"][-1]]="mumindrjet"
         #
@@ -2376,6 +2464,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["selmuon_osv"].append("hselmuon_osv_ntrackerlayers")
         histtype[histname["selmuon_osv"][-1]]="mutrackerlayers"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_nhitsbeforesv")
+        histtype[histname["selmuon_osv"][-1]]="muhitsbeforesv"
         #
         histname["selmuon_osv"].append("hselmuon_osv_nobsmexplayers")
         histtype[histname["selmuon_osv"][-1]]="muobsmexplayers"
@@ -2531,6 +2622,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["selmuon_fourmu"].append("hselmuon_fourmu_ntrackerlayers")
         histtype[histname["selmuon_fourmu"][-1]]="mutrackerlayers"
+        #
+        histname["selmuon_fourmu"].append("hselmuon_fourmu_nhitsbeforesv")
+        histtype[histname["selmuon_fourmu"][-1]]="muhitsbeforesv"
         #
     ##
     histname["selmuon_fourmu_osv"] = []
@@ -2770,6 +2864,12 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname["dimuon"].append("hdimuon_uphi_s3danglesvl3d")
         histtype[histname["dimuon"][-1]]="dimuups3danglesvl3d"
         #
+        histname["dimuon"].append("hdimuon_hitsbeforesv")
+        histtype[histname["dimuon"][-1]]="totalmuhitsbeforesv"
+        #
+        histname["dimuon"].append("hdimuon_isocategory")
+        histtype[histname["dimuon"][-1]]="dimuisocat"
+        #
         histname["dimuon"].append("hdimuon_isgenmatched")
         histtype[histname["dimuon"][-1]]="isgen"
         #
@@ -2782,11 +2882,17 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname["dimuon"].append("hdimuon_gen_recolxy")
         histtype[histname["dimuon"][-1]]="lxy"
         #
+        histname["dimuon"].append("hdimuon_gen_recomass")
+        histtype[histname["dimuon"][-1]]="dimumass"
+        #
         histname["dimuon"].append("hdimuon_genjpsi_genlxy")
         histtype[histname["dimuon"][-1]]="jpsilxy"
         #
         histname["dimuon"].append("hdimuon_genjpsi_recolxy")
         histtype[histname["dimuon"][-1]]="lxy"
+        #
+        histname["dimuon"].append("hdimuon_genjpsi_recomass")
+        histtype[histname["dimuon"][-1]]="dimumass"
         #
         histname2d["dimuon"].append("hdimuon_gen_lxycomp")
         histtype2d[histname2d["dimuon"][-1]]="lxyvslxygen"
@@ -2884,6 +2990,12 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["dimuon_osv"].append("hdimuon_osv_uphi_s3danglesvl3d")
         histtype[histname["dimuon_osv"][-1]]="dimuups3danglesvl3d"
+        #
+        histname["dimuon_osv"].append("hdimuon_osv_hitsbeforesv")
+        histtype[histname["dimuon_osv"][-1]]="totalmuhitsbeforesv"
+        #
+        histname["dimuon_osv"].append("hdimuon_osv_isocategory")
+        histtype[histname["dimuon_osv"][-1]]="dimuisocat"
         #
         histname["dimuon_osv"].append("hdimuon_osv_isgenmatched")
         histtype[histname["dimuon_osv"][-1]]="isgen"
@@ -3026,6 +3138,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["fourmuon_osv"].append("hfourmuon_osv_uphi_s3danglesvl3d")
         histtype[histname["fourmuon_osv"][-1]]="fourmuups3danglesvl3d"
+        #
+        histname["fourmuon_osv"].append("hfourmuon_osv_hitsbeforesv")
+        histtype[histname["fourmuon_osv"][-1]]="totalmuhitsbeforesv"
         #
     ##
     # Four-muon
@@ -3218,6 +3333,9 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["fourmuon"].append("hfourmuon_uphi_maxs3danglesvl3d")
         histtype[histname["fourmuon"][-1]]="fourmuupmaxs3danglesvl3d"
+        #
+        histname["fourmuon"].append("hfourmuon_hitsbeforesv")
+        histtype[histname["fourmuon"][-1]]="totalmuhitsbeforesv"
         #
     return histname,histtype,histname2d,histtype2d
 
