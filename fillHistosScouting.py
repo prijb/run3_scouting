@@ -637,8 +637,8 @@ for e in range(firste,laste):
             if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
                  abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]])/(lxy*mass/pt)<0.1 ):
                 continue
-            if ( abs(t.Muon_dxysig[dmuidxs[int(vn*2)]]  )<2.0 or
-                 abs(t.Muon_dxysig[dmuidxs[int(vn*2)+1]])<2.0 ):
+            if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]/t.Muon_dxye[dmuidxs[int(vn*2)]]))<2.0 or
+                 abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]]/t.Muon_dxye[dmuidxs[int(vn*2)+1]]))<2.0 ):
                 continue
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs[int(vn*2)+1]]))
