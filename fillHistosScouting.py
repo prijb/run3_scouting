@@ -44,6 +44,7 @@ parser.add_argument("--lzSel", default=[], nargs="+", help="Selection on lz: fir
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--noMaterialVeto", default=False, action="store_true", help="Do not apply material vertex veto")
 parser.add_argument("--noMuonIPSel", default=False, action="store_true", help="Do not apply selection on muon IP")
+parser.add_argument("--noMuonHitSel", default=False, action="store_true", help="Do not apply selection on muon hits")
 parser.add_argument("--noDiMuonAngularSel", default=False, action="store_true", help="Do not apply selection on dimuon angular variables")
 parser.add_argument("--noPreSel", default=False, action="store_true", help="Do not fill pre-selection/association histograms")
 parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not fill dimuon histograms")
@@ -188,6 +189,7 @@ if not os.path.exists(outdir):
 applyMaterialVeto = not args.noMaterialVeto
 applyMuonIPSel = not args.noMuonIPSel
 applyDiMuonAngularSel = not args.noDiMuonAngularSel
+applyMuonHitSel = not args.noMuonHitSel
 
 isData = args.data
 if "Data" in args.inSample:
@@ -637,9 +639,15 @@ for e in range(firste,laste):
             if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
                  abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]])/(lxy*mass/pt)<0.1 ):
                 continue
-            if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]/t.Muon_dxye[dmuidxs[int(vn*2)]]))<2.0 or
-                 abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]]/t.Muon_dxye[dmuidxs[int(vn*2)+1]]))<2.0 ):
+            if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]/t.Muon_dxye[dmuidxs[int(vn*2)]])<2.0 or abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]]/t.Muon_dxye[dmuidxs[int(vn*2)+1]])<2.0 ):
                 continue
+        if applyMuonHitSel:
+            if lxy > 2.7 and lxy < 11.0:
+                if ( nhitsbeforesvtotal > 0):
+                    continue
+            elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 2):
+                    continue
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs[int(vn*2)+1]].Eta())
@@ -772,9 +780,15 @@ for e in range(firste,laste):
             if ( abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
                  abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)+1]])/(lxy*mass/pt)<0.1 ):
                 continue
-            if ( abs(t.Muon_dxysig[dmuidxs_osv[int(vn*2)]]  )<2.0 or
-                 abs(t.Muon_dxysig[dmuidxs_osv[int(vn*2)+1]])<2.0 ):
+            if ( abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)]]/t.Muon_dxye[dmuidxs_osv[int(vn*2)]])<2.0 or abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)+1]]/t.Muon_dxye[dmuidxs_osv[int(vn*2)+1]])<2.0 ):
                 continue
+        if applyMuonHitSel:
+            if lxy > 2.7 and lxy < 11.0:
+                if ( nhitsbeforesvtotal > 0):
+                    continue
+            elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 2):
+                    continue
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Eta())
@@ -1310,11 +1324,15 @@ for e in range(firste,laste):
             mass = (dmuvec[vn]).M()
             pt =  (dmuvec[vn]).Pt()
             phi =  (dmuvec[vn]).Phi()
+            svphi = abs(t.Muon_vec[m].Vect().DeltaPhi(svvec[vn]))
+            svphiu = abs(dmu_muvecdp[dmuidxs.index(m)].Vect().DeltaPhi(svvec[vn]))
         else:
             lxy = t.SVOverlap_lxy[osvidx[vn]]
             mass = (dmuvec_osv[vn]).M()
             pt =  (dmuvec_osv[vn]).Pt()
             phi =  (dmuvec_osv[vn]).Phi()
+            svphi = abs(t.Muon_vec[m].Vect().DeltaPhi(osvvec[vn]))
+            svphiu = abs(dmu_muvecdp_osv[dmuidxs_osv.index(m)].Vect().DeltaPhi(osvvec[vn]))
         dxysign = getIPSign(t.Muon_phiCorr[m], phi)
         for h in h1d["selmuon"]:
             tn = h.GetName()

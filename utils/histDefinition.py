@@ -711,6 +711,20 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["muobsmexppixhits"] = "Events"
     variable["muobsmexppixhits"] = "t.Muon_pixHits[m]-t.Muon_nexpectedhitsmultiple[m]"
 
+    nbins   ["mudphisv"] = 320
+    low     ["mudphisv"] = 0
+    high    ["mudphisv"] = 3.2
+    xtitle  ["mudphisv"] = "|#Delta#phi(#mu, #vec{SV})| [rad]"
+    ytitle  ["mudphisv"] = "Events / 0.01 rad"
+    variable["mudphisv"] = "svphi"
+
+    nbins   ["mudphisvu"] = 320
+    low     ["mudphisvu"] = 0
+    high    ["mudphisvu"] = 3.2
+    xtitle  ["mudphisvu"] = "|#Delta#phi(#mu, #vec{SV})| [rad]"
+    ytitle  ["mudphisvu"] = "Events / 0.01 rad"
+    variable["mudphisvu"] = "svphiu"
+
     #Di-muon
 
     nbins   ["dimumass"] = 15000
@@ -2322,6 +2336,12 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname["selmuon"].append("hselmuon_nobsmexppixelhits")
         histtype[histname["selmuon"][-1]]="muobsmexppixhits"
         #
+        histname["selmuon"].append("hselmuon_dphisv")
+        histtype[histname["selmuon"][-1]]="mudphisv"
+        #
+        histname["selmuon"].append("hselmuon_uphi_dphisv")
+        histtype[histname["selmuon"][-1]]="mudphisvu"
+        #
         ##
         #
         histname["selmuon_osv"].append("hselmuon_osv_pt")
@@ -2479,6 +2499,12 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["selmuon_osv"].append("hselmuon_osv_nobsmexppixelhits")
         histtype[histname["selmuon_osv"][-1]]="muobsmexppixhits"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_dphisv")
+        histtype[histname["selmuon_osv"][-1]]="mudphisv"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_uphi_dphisv")
+        histtype[histname["selmuon_osv"][-1]]="mudphisvu"
         #
     ##
     histname["selmuon_fourmu"] = []
