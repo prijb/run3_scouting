@@ -262,7 +262,7 @@ inf = []
 
 ncl = 1
 xol = 0.35
-if len(samples)>3 or len(inmultidirs)>3:
+if len(samples)>5 or len(inmultidirs)>5:
     ncl=2
     xol=0.5
 leg = ROOT.TLegend(0.62-xol, 0.89-0.06*max(len(samples),len(inmultidirs)+1)/ncl, 0.89, 0.89)

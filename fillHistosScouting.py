@@ -665,6 +665,8 @@ for e in range(firste,laste):
         a3dmmu = abs(dmu_muvecdp[int(vn*2)].Angle(dmu_muvecdp[int(vn*2)+1].Vect()))
         #
         dphisv = abs(v.Vect().DeltaPhi(svvec[vn]))
+        dphisv1 = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Vect().DeltaPhi(svvec[vn]))
+        dphisv2 = abs(t.Muon_vec[dmuidxs[int(vn*2)+1]].Vect().DeltaPhi(svvec[vn]))
         detasv = abs(v.Vect().Eta()-svvec[vn].Eta())
         detadphisv = 1e6
         if dphisv>0.0:
@@ -686,6 +688,8 @@ for e in range(firste,laste):
         #
         vu = (dmu_muvecdp[int(vn*2)]+dmu_muvecdp[int(vn*2)+1])
         dphisvu = abs(vu.Vect().DeltaPhi(svvec[vn]))
+        dphisv1u = abs(dmu_muvecdp[int(vn*2)].Vect().DeltaPhi(svvec[vn]))
+        dphisv2u = abs(dmu_muvecdp[int(vn*2)+1].Vect().DeltaPhi(svvec[vn]))
         detasvu = abs(vu.Vect().Eta()-svvec[vn].Eta())
         detadphisvu = 1e6
         if dphisvu>0.0:
@@ -716,7 +720,7 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
         #
         #  Apply categorization and selection on muon isolation
@@ -806,6 +810,8 @@ for e in range(firste,laste):
         a3dmmu = abs(dmu_muvecdp_osv[int(vn*2)].Angle(dmu_muvecdp_osv[int(vn*2)+1].Vect()))
         #
         dphisv = abs(v.Vect().DeltaPhi(osvvec[vn]))
+        dphisv1 = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Vect().DeltaPhi(osvvec[vn]))
+        dphisv2 = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Vect().DeltaPhi(osvvec[vn]))
         detasv = abs(v.Vect().Eta()-osvvec[vn].Eta())
         detadphisv = 1e6
         if dphisv>0.0:
@@ -827,6 +833,8 @@ for e in range(firste,laste):
         #
         vu = (dmu_muvecdp_osv[int(vn*2)]+dmu_muvecdp_osv[int(vn*2)+1])
         dphisvu = abs(vu.Vect().DeltaPhi(osvvec[vn]))
+        dphisv1u = abs(dmu_muvecdp_osv[int(vn*2)].Vect().DeltaPhi(osvvec[vn]))
+        dphisv2u = abs(dmu_muvecdp_osv[int(vn*2)+1].Vect().DeltaPhi(osvvec[vn]))
         detasvu = abs(vu.Vect().Eta()-osvvec[vn].Eta())
         detadphisvu = 1e6
         if dphisvu>0.0:
@@ -857,7 +865,7 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
          #
         #  Apply categorization and selection on muon isolation
