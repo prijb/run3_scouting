@@ -30,6 +30,7 @@ parser.add_argument("--splitPace", default="250000", help="Split pace")
 parser.add_argument("--dimuonMassSel", default=[], nargs="+", help="Selection on dimuon mass: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--dimuonMassSidebandSel", default=[], nargs="+", help="Selection on dimuon mass sidebands: first pair of values is left sideband, second (optional) is right sideband")
 parser.add_argument("--dimuonPtSel", default=[], nargs="+", help="Selection on dimuon pT: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--dimuonIsoCatSel", default=-99, help="Selection on dimuon isolation category: 0 (non-iso), 1 (part-iso) or 2 (iso)")
 parser.add_argument("--fourmuonMassSel", default=[], nargs="+", help="Selection on four-muon mass: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--fourmuonPtSel", default=[], nargs="+", help="Selection on four-muon pT: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--dimuonMassSelForFourMuon", default=[], nargs="+", help="Selection on dimuon mass in four-muon system: first (or only) value is lower cut, second (optional) value is upper cut")
@@ -39,14 +40,17 @@ parser.add_argument("--dimuonMassSelForFourMuonOSV", default=[], nargs="+", help
 parser.add_argument("--dimuonMassDiffSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon mass difference / mean in four-muon system from overlapping SV: first (or only) value is *upper* cut, second (optional) value is *lower* cut")
 parser.add_argument("--dimuonPtSelForFourMuonOSV", default=[], nargs="+", help="Selection on dimuon pT in four-muon system from overlapping SV: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
+parser.add_argument("--lzSel", default=[], nargs="+", help="Selection on lz: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--noMaterialVeto", default=False, action="store_true", help="Do not apply material vertex veto")
 parser.add_argument("--noMuonIPSel", default=False, action="store_true", help="Do not apply selection on muon IP")
+parser.add_argument("--noMuonHitSel", default=False, action="store_true", help="Do not apply selection on muon hits")
 parser.add_argument("--noDiMuonAngularSel", default=False, action="store_true", help="Do not apply selection on dimuon angular variables")
 parser.add_argument("--noPreSel", default=False, action="store_true", help="Do not fill pre-selection/association histograms")
 parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not fill dimuon histograms")
 parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems")
 parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems from overlapping SVs")
+parser.add_argument("--noSeed", default=[], nargs="+", help="Exclude L1 seeds from the acceptance")
 parser.add_argument("--doGen", default=False, action="store_true", help="Fill generation information histograms")
 args = parser.parse_args()
 
@@ -118,6 +122,14 @@ def applyLxySelection(lxy):
         selected = selected and (lxy < float(args.lxySel[1]))
     return selected
 
+def applyLzSelection(lz):
+    selected = True
+    if len(args.lzSel)>0:
+        selected = selected and (lxy > float(args.lzSel[0]))
+    if len(args.lzSel)>1:
+        selected = selected and (lxy < float(args.lzSel[1]))
+    return selected
+
 def applyFourMuonLxySelection(lxymin,lxymax):
     selected = True
     if len(args.lxySelForFourMuon)>0:
@@ -139,6 +151,25 @@ def muonType(isGlobal, isTracker, isStandAlone):
     elif not isGlobal and not isTracker and not isStandAlone:
         return 4.5
 
+# Isolation category
+def dimuonIsoCategory(iso1, pt1, iso2, pt2):
+    isocat = -99
+    #if (iso1>8.0 and iso2>8.0 ):
+    if ((iso1>8.0 and iso1/pt1 > 0.2) and (iso2>8.0 and iso2/pt2 > 0.2) ):
+        isocat = 0
+    elif ((iso1<8.0 or iso1/pt1 < 0.2) and (iso2<8.0 or iso2/pt2 < 0.2) ):
+        isocat = 2
+    else:
+        isocat = 1
+    return isocat
+
+# Evaluate L1 with the possibility of excluding one
+def evaluateSeeds(tree, seedList):
+    for seed in seedList: 
+        if eval('tree.'+seed):
+            return True
+    return False
+
 # Muon IP sign
 def getIPSign(mphi, dmphi):
     dxydir = ROOT.TVector3(-ROOT.TMath.Sin(mphi), ROOT.TMath.Cos(mphi), 0.0)
@@ -158,6 +189,7 @@ if not os.path.exists(outdir):
 applyMaterialVeto = not args.noMaterialVeto
 applyMuonIPSel = not args.noMuonIPSel
 applyDiMuonAngularSel = not args.noDiMuonAngularSel
+applyMuonHitSel = not args.noMuonHitSel
 
 isData = args.data
 if "Data" in args.inSample:
@@ -242,6 +274,16 @@ for cat in h2d.keys():
         else:
             h.Sumw2()
 ###
+L1seeds = []
+branch_list = t.GetListOfBranches()
+for branch in branch_list:
+    if branch.GetName().startswith('L1'):
+        L1seeds.append(branch.GetName())
+effL1seeds = [s for s in L1seeds if s not in args.noSeed]
+print('List of L1 seeds: ', L1seeds)
+if args.noSeed:
+    print('but excluding: ', args.noSeed)
+###
 
 elist = [] # for duplicate removal
 print("Starting loop over %d events"%t.GetEntries())
@@ -258,6 +300,10 @@ for e in range(firste,laste):
     t.GetEntry(e)
     #if e%1000==0:
     #    print("At entry %d"%e)
+    if len(args.noSeed) > 0:
+        passL1 = evaluateSeeds(t, effL1seeds)
+        if not passL1:
+            continue
     if removeDuplicates:
         # Run, event number & lumisection
         eid  = t.evtn
@@ -323,7 +369,7 @@ for e in range(firste,laste):
             break
         if not t.SV_selected[v]:
             continue
-        if applyMaterialVeto and t.SV_onModuleWithinUnc[v]:
+        if applyMaterialVeto and (t.SV_onModuleWithinUnc[v] or (abs(t.SV_minDistanceFromDet_x[v]) < 0.81 and abs(t.SV_minDistanceFromDet_y[v]) < 3.24 and abs(t.SV_minDistanceFromDet_z[v]) < 0.0145)):
             continue
         nSVsel = nSVsel+1
         lxy = t.SV_lxy[v]
@@ -421,7 +467,7 @@ for e in range(firste,laste):
         vpos = -1
         # First, identify muons from overlapping SVs
         if t.Muon_bestAssocSVOverlapIdx[m]>-1:
-            if applyMaterialVeto and t.SV_onModuleWithinUnc[t.SVOverlap_vtxIdxs[t.Muon_bestAssocSVOverlapIdx[m]][0]]:
+            if applyMaterialVeto and (t.SV_onModuleWithinUnc[t.SVOverlap_vtxIdxs[t.Muon_bestAssocSVOverlapIdx[m]][0]] or (abs(t.SV_minDistanceFromDet_x[t.SVOverlap_vtxIdxs[t.Muon_bestAssocSVOverlapIdx[m]][0]]) < 0.81 and abs(t.SV_minDistanceFromDet_y[t.SVOverlap_vtxIdxs[t.Muon_bestAssocSVOverlapIdx[m]][0]]) < 3.24 and abs(t.SV_minDistanceFromDet_z[t.SVOverlap_vtxIdxs[t.Muon_bestAssocSVOverlapIdx[m]][0]]) < 0.0145)):
                 continue
             ovidx = t.Muon_bestAssocSVOverlapIdx[m]
             ovpos = ovidx
@@ -429,7 +475,7 @@ for e in range(firste,laste):
         elif t.Muon_bestAssocSVIdx[m]>-1:
             vidx = t.Muon_bestAssocSVIdx[m]
             for v in range(len(t.SV_index)):
-                if applyMaterialVeto and t.SV_onModuleWithinUnc[v]:
+                if applyMaterialVeto and (t.SV_onModuleWithinUnc[v] or (abs(t.SV_minDistanceFromDet_x[v]) < 0.81 and abs(t.SV_minDistanceFromDet_y[v]) < 3.24 and abs(t.SV_minDistanceFromDet_z[v]) < 0.0145)):
                     continue
                 if t.SV_index[v]==vidx:
                     vpos = v
@@ -582,13 +628,26 @@ for e in range(firste,laste):
         lxy  = t.SV_lxy[svidx[vn]]
         if not applyLxySelection(lxy):
             continue
+        lz  = abs(t.SV_z[svidx[vn]])
+        if not applyLzSelection(lz):
+            continue
         mass = v.M()
         pt   = v.Pt()
+        nhitsbeforesvtotal = t.Muon_nhitsbeforesv[dmuidxs[int(vn*2)]] + t.Muon_nhitsbeforesv[dmuidxs[int(vn*2)+1]]
         #  Apply selection on muon lifetime-scaled dxy
         if applyMuonIPSel:
             if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
                  abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]])/(lxy*mass/pt)<0.1 ):
                 continue
+            if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]/t.Muon_dxye[dmuidxs[int(vn*2)]])<2.0 or abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]]/t.Muon_dxye[dmuidxs[int(vn*2)+1]])<2.0 ):
+                continue
+        if applyMuonHitSel:
+            if lxy > 2.7 and lxy < 11.0:
+                if ( nhitsbeforesvtotal > 0):
+                    continue
+            elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 2):
+                    continue
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs[int(vn*2)+1]].Eta())
@@ -606,6 +665,8 @@ for e in range(firste,laste):
         a3dmmu = abs(dmu_muvecdp[int(vn*2)].Angle(dmu_muvecdp[int(vn*2)+1].Vect()))
         #
         dphisv = abs(v.Vect().DeltaPhi(svvec[vn]))
+        dphisv1 = abs(t.Muon_vec[dmuidxs[int(vn*2)]].Vect().DeltaPhi(svvec[vn]))
+        dphisv2 = abs(t.Muon_vec[dmuidxs[int(vn*2)+1]].Vect().DeltaPhi(svvec[vn]))
         detasv = abs(v.Vect().Eta()-svvec[vn].Eta())
         detadphisv = 1e6
         if dphisv>0.0:
@@ -627,6 +688,8 @@ for e in range(firste,laste):
         #
         vu = (dmu_muvecdp[int(vn*2)]+dmu_muvecdp[int(vn*2)+1])
         dphisvu = abs(vu.Vect().DeltaPhi(svvec[vn]))
+        dphisv1u = abs(dmu_muvecdp[int(vn*2)].Vect().DeltaPhi(svvec[vn]))
+        dphisv2u = abs(dmu_muvecdp[int(vn*2)+1].Vect().DeltaPhi(svvec[vn]))
         detasvu = abs(vu.Vect().Eta()-svvec[vn].Eta())
         detadphisvu = 1e6
         if dphisvu>0.0:
@@ -657,8 +720,13 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
+        #
+        #  Apply categorization and selection on muon isolation
+        isocat = dimuonIsoCategory(t.Muon_PFIsoAll0p4[dmuidxs[int(vn*2)]], t.Muon_pt[dmuidxs[int(vn*2)]], t.Muon_PFIsoAll0p4[dmuidxs[int(vn*2)+1]], t.Muon_pt[dmuidxs[int(vn*2)+1]])
+        if float(args.dimuonIsoCatSel) > -1 and isocat!=float(args.dimuonIsoCatSel):
+            continue
         #
         # Check if the dimuon is gen-matched
         isgen = False
@@ -705,13 +773,26 @@ for e in range(firste,laste):
         lxy  = t.SVOverlap_lxy[osvidx[vn]]
         if not applyLxySelection(lxy):
             continue
+        lz  = abs(t.SVOverlap_z[osvidx[vn]])
+        if not applyLzSelection(lz):
+            continue
         mass = v.M()
         pt   = v.Pt()
+        nhitsbeforesvtotal = t.Muon_nhitsbeforesv[dmuidxs_osv[int(vn*2)]] + t.Muon_nhitsbeforesv[dmuidxs_osv[int(vn*2)+1]]
         #  Apply selection on muon lifetime-scaled dxy
         if applyMuonIPSel:
             if ( abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
                  abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)+1]])/(lxy*mass/pt)<0.1 ):
                 continue
+            if ( abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)]]/t.Muon_dxye[dmuidxs_osv[int(vn*2)]])<2.0 or abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)+1]]/t.Muon_dxye[dmuidxs_osv[int(vn*2)+1]])<2.0 ):
+                continue
+        if applyMuonHitSel:
+            if lxy > 2.7 and lxy < 11.0:
+                if ( nhitsbeforesvtotal > 0):
+                    continue
+            elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 2):
+                    continue
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
         dpmm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaPhi(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]]))
         demm = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Eta()-t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Eta())
@@ -729,6 +810,8 @@ for e in range(firste,laste):
         a3dmmu = abs(dmu_muvecdp_osv[int(vn*2)].Angle(dmu_muvecdp_osv[int(vn*2)+1].Vect()))
         #
         dphisv = abs(v.Vect().DeltaPhi(osvvec[vn]))
+        dphisv1 = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)]].Vect().DeltaPhi(osvvec[vn]))
+        dphisv2 = abs(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]].Vect().DeltaPhi(osvvec[vn]))
         detasv = abs(v.Vect().Eta()-osvvec[vn].Eta())
         detadphisv = 1e6
         if dphisv>0.0:
@@ -750,6 +833,8 @@ for e in range(firste,laste):
         #
         vu = (dmu_muvecdp_osv[int(vn*2)]+dmu_muvecdp_osv[int(vn*2)+1])
         dphisvu = abs(vu.Vect().DeltaPhi(osvvec[vn]))
+        dphisv1u = abs(dmu_muvecdp_osv[int(vn*2)].Vect().DeltaPhi(osvvec[vn]))
+        dphisv2u = abs(dmu_muvecdp_osv[int(vn*2)+1].Vect().DeltaPhi(osvvec[vn]))
         detasvu = abs(vu.Vect().Eta()-osvvec[vn].Eta())
         detadphisvu = 1e6
         if dphisvu>0.0:
@@ -780,8 +865,13 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
+         #
+        #  Apply categorization and selection on muon isolation
+        isocat = dimuonIsoCategory(t.Muon_PFIsoAll0p4[dmuidxs_osv[int(vn*2)]], t.Muon_pt[dmuidxs_osv[int(vn*2)]], t.Muon_PFIsoAll0p4[dmuidxs_osv[int(vn*2)+1]], t.Muon_pt[dmuidxs_osv[int(vn*2)+1]])
+        if float(args.dimuonIsoCatSel) > -1 and isocat!=float(args.dimuonIsoCatSel):
+            continue
         #
         # Check if the dimuon is gen-matched
         isgen = False
@@ -875,6 +965,7 @@ for e in range(firste,laste):
         selqmuvecs_osv.append(vn)
         mass = v.M()
         pt   = v.Pt()
+        nhitsbeforesvtotal = t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+1]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+2]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+3]]
         for m in range(vn*4,vn*4+4):
             for mm in range(m+1,vn*4+4):
                 drmm = t.Muon_vec[qmuidxs_osv[m]].DeltaR(t.Muon_vec[qmuidxs_osv[mm]])
@@ -1037,6 +1128,7 @@ for e in range(firste,laste):
         pt    = v.Pt()
         minpt = min(qmu_dmuvecminlxy[vn].Pt(), qmu_dmuvecmaxlxy[vn].Pt())
         maxpt = max(qmu_dmuvecminlxy[vn].Pt(), qmu_dmuvecmaxlxy[vn].Pt())
+        nhitsbeforesvtotal = t.Muon_nhitsbeforesv[qmuidxs[vn*4]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+1]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+2]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+3]]
         for m in range(vn*4,vn*4+4):
             if not m%2==0:
                 continue
@@ -1240,11 +1332,15 @@ for e in range(firste,laste):
             mass = (dmuvec[vn]).M()
             pt =  (dmuvec[vn]).Pt()
             phi =  (dmuvec[vn]).Phi()
+            svphi = abs(t.Muon_vec[m].Vect().DeltaPhi(svvec[vn]))
+            svphiu = abs(dmu_muvecdp[dmuidxs.index(m)].Vect().DeltaPhi(svvec[vn]))
         else:
             lxy = t.SVOverlap_lxy[osvidx[vn]]
             mass = (dmuvec_osv[vn]).M()
             pt =  (dmuvec_osv[vn]).Pt()
             phi =  (dmuvec_osv[vn]).Phi()
+            svphi = abs(t.Muon_vec[m].Vect().DeltaPhi(osvvec[vn]))
+            svphiu = abs(dmu_muvecdp_osv[dmuidxs_osv.index(m)].Vect().DeltaPhi(osvvec[vn]))
         dxysign = getIPSign(t.Muon_phiCorr[m], phi)
         for h in h1d["selmuon"]:
             tn = h.GetName()

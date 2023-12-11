@@ -317,7 +317,7 @@ struct Muon {
   std::vector<float> mindrJet, mindphiJet, mindetaJet;
   std::vector<TLorentzVector> vec;
   std::vector<bool> selected;
-  std::vector<int> ncompatible, ncompatibletotal, nexpectedhits, nexpectedhitsmultiple, nexpectedhitsmultipletotal, nexpectedhitstotal;
+  std::vector<int> nhitsbeforesv, ncompatible, ncompatibletotal, nexpectedhits, nexpectedhitsmultiple, nexpectedhitsmultipletotal, nexpectedhitstotal;
 
   void clear() {
   vtxIdxs.clear();
@@ -344,7 +344,7 @@ struct Muon {
   mindrJet.clear(); mindphiJet.clear(); mindetaJet.clear();
   vec.clear();
   selected.clear();
-  ncompatible.clear(), ncompatibletotal.clear(), nexpectedhits.clear(), nexpectedhitsmultiple.clear(), nexpectedhitsmultipletotal.clear(), nexpectedhitstotal.clear();
+  nhitsbeforesv.clear(), ncompatible.clear(), ncompatibletotal.clear(), nexpectedhits.clear(), nexpectedhitsmultiple.clear(), nexpectedhitsmultipletotal.clear(), nexpectedhitstotal.clear();
   }
 
   void sort() {
@@ -431,6 +431,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   SVOverlap SVOverlaps;
   int nMuonAssoc;
   Muon Muons;
+  TFile *file0 = TFile::Open(inputFiles[0]);
+  Event ev0(file0);
+  ev0.toBegin();
+  auto l1Names = getObject<std::vector<std::string>>(ev0, "triggerMaker", "l1name");
+  bool l1fired[l1Names.size()] = {false};
 
   // Branch definition
   tout->Branch("run", &run);
@@ -438,6 +443,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("evtn", &evtn);
 
   tout->Branch("passL1", &passL1);
+  for (unsigned int iL1=0; iL1<l1Names.size(); ++iL1) {
+    tout->Branch(TString(l1Names[iL1]), &l1fired[iL1]);
+  }
   tout->Branch("passHLT", &passHLT);
 
   tout->Branch("nPV", &nPV);
@@ -613,9 +621,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
       passL1 = false;
       for (unsigned int iL1=0; iL1<l1s.size(); ++iL1) {
+        l1fired[iL1] = l1s[iL1];
         if (l1s[iL1]==true && l1Prescales[iL1]==1) { // L1 trigger fired and is not prescaled
           passL1 = true;
-          break;
         }
       }
       if (!passL1)
@@ -855,12 +863,13 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       auto mus = getObject<std::vector<Run3ScoutingMuon>>(ev, "hltScoutingMuonPacker");
       auto jets = getObject<std::vector<Run3ScoutingPFJet>>(ev, "hltScoutingPFPacker");
       auto pfs = getObject<std::vector<Run3ScoutingParticle>>(ev, "hltScoutingPFPacker");
-      auto ncompatible = getObject<std::vector<int>>(ev, "hitMaker", "ncompatible");
-      auto ncompatibletotal = getObject<std::vector<int>>(ev, "hitMaker", "ncompatibletotal");
-      auto nexpectedhits = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhits");
-      auto nexpectedhitsmultiple = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhitsmultiple");
-      auto nexpectedhitsmultipletotal = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhitsmultipletotal");
-      auto nexpectedhitstotal = getObject<std::vector<int>>(ev, "hitMaker", "nexpectedhitstotal");
+      auto nhitsbeforesv = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nhitsbeforesv");
+      auto ncompatible = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "ncompatible");
+      auto ncompatibletotal = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "ncompatibletotal");
+      auto nexpectedhits = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhits");
+      auto nexpectedhitsmultiple = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhitsmultiple");
+      auto nexpectedhitsmultipletotal = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhitsmultipletotal");
+      auto nexpectedhitstotal = getObject<std::vector<std::vector<int>>>(ev, "hitMaker", "nexpectedhitstotal");
       Muons.clear();
       unsigned int nMus = mus.size();
       nMuonAssoc=0;
@@ -938,12 +947,18 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.dxysig.push_back(mu.trk_dxy()/mu.trk_dxyError());
         Muons.dzsig.push_back(mu.trk_dz()/mu.trk_dzError());
         Muons.selected.push_back(pt>3.0 && fabs(eta)<2.4 && mu.normalizedChi2()<3.0);
-        Muons.ncompatible.push_back(ncompatible.at(iMu));
-        Muons.ncompatibletotal.push_back(ncompatibletotal.at(iMu));
-        Muons.nexpectedhits.push_back(nexpectedhits.at(iMu));
-        Muons.nexpectedhitsmultiple.push_back(nexpectedhitsmultiple.at(iMu));
-        Muons.nexpectedhitsmultipletotal.push_back(nexpectedhitsmultipletotal.at(iMu));
-        Muons.nexpectedhitstotal.push_back(nexpectedhitstotal.at(iMu));
+
+        for (unsigned int iDV=0; iDV<mu.vtxIndx().size(); ++iDV) {
+          if (mu.vtxIndx().at(iDV)==bestAssocSVIdx) {
+            Muons.ncompatible.push_back(ncompatible.at(iMu).at(iDV));
+            Muons.ncompatibletotal.push_back(ncompatibletotal.at(iMu).at(iDV));
+            Muons.nexpectedhits.push_back(nexpectedhits.at(iMu).at(iDV));
+            Muons.nexpectedhitsmultiple.push_back(nexpectedhitsmultiple.at(iMu).at(iDV));
+            Muons.nexpectedhitsmultipletotal.push_back(nexpectedhitsmultipletotal.at(iMu).at(iDV));
+            Muons.nexpectedhitstotal.push_back(nexpectedhitstotal.at(iMu).at(iDV));
+            break;
+          }
+        }
 
         float bestSVPosition_x, bestSVPosition_y;
         if (bestAssocSVOverlapIdx!=-1) {
