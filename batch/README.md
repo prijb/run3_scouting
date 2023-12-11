@@ -11,22 +11,41 @@ The RAW data are skimmed and/or slimmed first, as in Run 2. The skim requires at
   * submit with
 
 ```bash
-python3 crabcfg_run3.py B
-python3 crabcfg_run3.py C
-python3 crabcfg_run3.py D
-python3 crabcfg_run3.py E
-python3 crabcfg_run3.py F
-python3 crabcfg_run3.py G
+#For data/PFMonitor/public mc
+python3 crabcfg_run3.py 2022B
+python3 crabcfg_run3.py 2022C
+python3 crabcfg_run3.py 2022D
+python3 crabcfg_run3.py 2022E
+python3 crabcfg_run3.py 2022F
+python3 crabcfg_run3.py 2022G
+python3 crabcfg_run3.py 2022B PFMonitor
+python3 crabcfg_run3.py 2022C PFMonitor
+python3 crabcfg_run3.py 2022D PFMonitor
+python3 crabcfg_run3.py 2022E PFMonitor
+python3 crabcfg_run3.py 2022F PFMonitor
+python3 crabcfg_run3.py 2022G PFMonitor
+python3 crabcfg_run3.py 2022X /InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8/Run3Summer22DR-Pilot_124X_mcRun3_2022_realistic_v12-v4/AODSIM
+python3 crabcfg_run3.py 2022X /HTo2ZdTo2mu2x_MZd-10_Epsilon-1e-06_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEDRPremix-124X_mcRun3_2022_realistic_postEE_v1-v2/AODSIM
+python3 crabcfg_run3.py 2022X /HTo2ZdTo2mu2x_MZd-10_Epsilon-1e-07_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEDRPremix-124X_mcRun3_2022_realistic_postEE_v1-v2/AODSIM
+python3 crabcfg_run3.py 2022X /HTo2ZdTo2mu2x_MZd-10_Epsilon-3e-08_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEDRPremix-124X_mcRun3_2022_realistic_postEE_v1-v2/AODSIM
+python3 crabcfg_run3.py 2022X /HTo2ZdTo2mu2x_MZd-10_Epsilon-5e-07_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEDRPremix-124X_mcRun3_2022_realistic_postEE_v1-v2/AODSIM
+
+#For local MC
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v0p30_AODSIM_v0p30
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v1p3_AODSIM_v1p3
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v1p4_AODSIM_v1p4
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/isuarez/ProjectMetis/DarkShower_ScenarioA_default_Run3Summer22GS_v1p5_AODSIM_v1p5
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower_ScenarioB_default_Run3Summer22GS_v0p32_AODSIM_v0p32
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower_ScenarioC_default_Run3Summer22GS_v0p34_AODSIM_v0p34
-python3 crabcfg_run3_2023.py B ""
-python3 crabcfg_run3_2023.py C -triggerV10
-python3 crabcfg_run3_2023.py C ""
+python3 crabcfg_run3_mc.py ///path to mc signal sample, but must be on T2 ucsd for this cfg to work///
+
+#2023 data - must launch from separate env under cms 13_1_X
+python3 crabcfg_run3.py 2023B
+python3 crabcfg_run3.py 2023C  triggerV10
+python3 crabcfg_run3.py 2023C
+python3 crabcfg_run3.py 2023D
 ```
+
 
 ## Run2 Info
 

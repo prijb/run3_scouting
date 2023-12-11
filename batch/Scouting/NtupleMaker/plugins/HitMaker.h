@@ -21,7 +21,10 @@
 #include "DataFormats/Scouting/interface/ScoutingVertex.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingMuon.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingVertex.h"
+#include "DataFormats/Scouting/interface/Run3ScoutingHitPatternPOD.h"
 
+#include "DataFormats/TrackReco/interface/HitPattern.h"
+#include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 #include "DataFormats/GeometrySurface/interface/Cylinder.h"
 #include "DataFormats/GeometrySurface/interface/PlaneBuilder.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
@@ -72,7 +75,7 @@ private:
   virtual void endJob();
   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
-  float getMinDetDistance(const GeomDet *det,  Local3DPoint point, GlobalPoint& retPoint);
+  std::vector<float> getMinDetDistance(const GeomDet *det,  Local3DPoint point, GlobalPoint& retPoint);
 
   edm::EDGetToken muonToken_;
   edm::EDGetToken dvToken_;
@@ -85,6 +88,7 @@ private:
   edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magFieldToken_;
   edm::ESGetToken<GlobalTrackingGeometry, GlobalTrackingGeometryRecord> trackingGeometryToken_;
   edm::ESGetToken<MeasurementTracker, CkfComponentsRecord> measurementTrackerToken_; 
+  edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> trackerTopologyToken_;
  
   edm::ESHandle<Propagator> propagatorHandle_;
   edm::ESGetToken<Propagator, TrackingComponentsRecord> propagatorToken_;

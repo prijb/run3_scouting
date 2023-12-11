@@ -6,7 +6,7 @@ if [ $# -gt 0 ]
 then
     if [ ${1} == "2023" ]
     then
-	release=CMSSW_13_0_9
+	release=CMSSW_13_0_10
     fi
 fi
 

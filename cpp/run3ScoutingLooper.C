@@ -344,7 +344,7 @@ struct Muon {
   mindrJet.clear(); mindphiJet.clear(); mindetaJet.clear();
   vec.clear();
   selected.clear();
-  nhitsbeforesv.clear(), ncompatible.clear(), ncompatibletotal.clear(), nexpectedhits.clear(), nexpectedhitsmultiple.clear(), nexpectedhitsmultipletotal.clear(), nexpectedhitstotal.clear();
+  nhitsbeforesv.clear(); ncompatible.clear(); ncompatibletotal.clear(); nexpectedhits.clear(); nexpectedhitsmultiple.clear(); nexpectedhitsmultipletotal.clear(); nexpectedhitstotal.clear();
   }
 
   void sort() {
@@ -405,6 +405,7 @@ struct Muon {
     apply_permutation_in_place(mindetaJet, comp);
     apply_permutation_in_place(vec, comp);
     apply_permutation_in_place(selected, comp);
+    apply_permutation_in_place(nhitsbeforesv, comp);
     apply_permutation_in_place(ncompatible, comp);
     apply_permutation_in_place(ncompatibletotal, comp);
     apply_permutation_in_place(nexpectedhits, comp);
@@ -560,6 +561,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("Muon_mindetaJet", &Muons.mindetaJet);
   tout->Branch("Muon_vec", &Muons.vec);
   tout->Branch("Muon_selected", &Muons.selected);
+  tout->Branch("Muon_nhitsbeforesv", &Muons.nhitsbeforesv);
   tout->Branch("Muon_ncompatible", &Muons.ncompatible);
   tout->Branch("Muon_ncompatibletotal", &Muons.ncompatibletotal);
   tout->Branch("Muon_nexpectedhits", &Muons.nexpectedhits);
@@ -586,7 +588,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   // File loop
   unsigned int iFile = 1;
   for (auto inputFile : inputFiles) {
-    std::cout << "File number: " << iFile << "\n";
+    std::cout << "File number: " << iFile << "\t" << inputFile <<  "\n";
     TFile *file = TFile::Open(inputFile);
     auto nEventsFile = ((TTree*)file->Get("Events"))->GetEntries();
     Event ev(file);
@@ -949,7 +951,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.selected.push_back(pt>3.0 && fabs(eta)<2.4 && mu.normalizedChi2()<3.0);
 
         for (unsigned int iDV=0; iDV<mu.vtxIndx().size(); ++iDV) {
-          if (mu.vtxIndx().at(iDV)==bestAssocSVIdx) {
+	        if (mu.vtxIndx().at(iDV)==bestAssocSVIdx) {
+            Muons.nhitsbeforesv.push_back(nhitsbeforesv.at(iMu).at(iDV));
             Muons.ncompatible.push_back(ncompatible.at(iMu).at(iDV));
             Muons.ncompatibletotal.push_back(ncompatibletotal.at(iMu).at(iDV));
             Muons.nexpectedhits.push_back(nexpectedhits.at(iMu).at(iDV));

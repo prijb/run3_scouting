@@ -5,7 +5,7 @@ from CRABAPI.RawCommand import crabCommand
 config = config()
 
 era = "2022" 
-ntuple_version = "2"
+ntuple_version = "4"
 
 config.General.requestName = 'skim__{}_{}'.format(
         era,
@@ -45,7 +45,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1 #can be larger
 
 #edit the area and user name
-config.Data.outLFNDirBase = '/store/user/legianni/testRAWScouting_'+ntuple_version # DB no
+config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_version # DB no
 config.Data.publication = False
 config.Site.storageSite = "T2_US_UCSD"
 
