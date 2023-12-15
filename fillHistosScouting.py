@@ -6,6 +6,7 @@ import numpy as np
 from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
 import histDefinition
+import math
 
 ROOT.EnableImplicitMT(2)
 
@@ -295,6 +296,29 @@ if index>=0:
     laste  = min((index+1)*pace,t.GetEntries())
 if firste >= t.GetEntries():
     exit()
+
+## Init RooDataSets
+# Dimuon binning
+lxybins = [0.0, 2.7, 6.5, 11.0, 16.0, 70.0]
+lxystrs = [str(l).replace('.', 'p') for l in lxybins]
+lxybinlabel = ["lxy{}to{}".format(lxystrs[l], lxystrs[l+1]) for l in range(0, len(lxystrs)-1)]
+ptcut = 100.
+# Variables
+mfit = ROOT.RooRealVar("mfit", "mfit", 0.4, 140.0)
+roow = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
+roods = {}
+dbins = []
+dbins.append("FourMu_sep")
+dbins.append("FourMu_osv")
+for label in lxybinlabel:
+    dbins.append("Dimuon_"+label+"_iso0_ptlow")
+    dbins.append("Dimuon_"+label+"_iso0_pthigh")
+    dbins.append("Dimuon_"+label+"_iso1_ptlow")
+    dbins.append("Dimuon_"+label+"_iso1_pthigh")
+for dbin in dbins:
+    dname = "d_" + dbin
+    roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
+
 print("From event %d to event %d"%(firste,laste))
 for e in range(firste,laste):
     t.GetEntry(e)
@@ -622,26 +646,6 @@ for e in range(firste,laste):
     filledcat4musep = False
     filledcat4muosv = False
     filledcat2mu = False
-    # Dimuon binning
-    lxybins = [0.0, 2.7, 6.5, 11.0, 16.0, 70.0]
-    lxystrs = [str(l).replace('.', 'p') for l in lxybins]
-    lxybinlabel = ["lxy{}to{}".format(lxystrs[l], lxystrs[l+1]) for l in range(0, len(lxystrs)-1)]
-    ptcut = 100.
-    # Variables
-    mfit = ROOT.RooRealVar("mfit", "mfit", 0.4, 140.0)
-    roow = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
-    roods = {}
-    dbins = []
-    dbins.append("FourMu_sep")
-    dbins.append("FourMu_osv")
-    for label in lxybinlabel:
-        dbins.append("Dimuon_"+label+"_iso0_ptlow")
-        dbins.append("Dimuon_"+label+"_iso0_pthigh")
-        dbins.append("Dimuon_"+label+"_iso1_ptlow")
-        dbins.append("Dimuon_"+label+"_iso1_pthigh")
-    for dbin in dbins:
-        dname = "d_" + dbin
-        roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
 
 
     # Apply selections and fill histograms for four-muon systems from non-overlapping SVs
@@ -1190,13 +1194,13 @@ for e in range(firste,laste):
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             for l in range(len(lxybins)-1):
                 label = lxybinlabel[l]  
-                if lxy > lxybins[l] and lxybins[l+1]:
+                if lxy > lxybins[l] and lxy < lxybins[l+1]:
                     break
             if isocat==2:
                 if pt < ptcut:
-                    slice = "Dimuon_"+label+"_iso0_ptlow"
+                    slice = "Dimuon_"+label+"_iso1_ptlow"
                 else:
-                    slice = "Dimuon_"+label+"_iso0_pthigh"
+                    slice = "Dimuon_"+label+"_iso1_pthigh"
             else:
                 if pt < ptcut:
                     slice = "Dimuon_"+label+"_iso0_ptlow"
@@ -1355,13 +1359,13 @@ for e in range(firste,laste):
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             for l in range(len(lxybins)-1):
                 label = lxybinlabel[l]  
-                if lxy > lxybins[l] and lxybins[l+1]:
+                if lxy > lxybins[l] and lxy < lxybins[l+1]:
                     break
             if isocat==2:
                 if pt < ptcut:
-                    slice = "Dimuon_"+label+"_iso0_ptlow"
+                    slice = "Dimuon_"+label+"_iso1_ptlow"
                 else:
-                    slice = "Dimuon_"+label+"_iso0_pthigh"
+                    slice = "Dimuon_"+label+"_iso1_pthigh"
             else:
                 if pt < ptcut:
                     slice = "Dimuon_"+label+"_iso0_ptlow"
@@ -1416,15 +1420,31 @@ for e in range(firste,laste):
             mass = (dmuvec[vn]).M()
             pt =  (dmuvec[vn]).Pt()
             phi =  (dmuvec[vn]).Phi()
-            svphi = abs(t.Muon_vec[m].Vect().DeltaPhi(svvec[vn]))
-            svphiu = abs(dmu_muvecdp[dmuidxs.index(m)].Vect().DeltaPhi(svvec[vn]))
+            ssvphi = t.Muon_vec[m].Vect().DeltaPhi(svvec[vn])
+            ssvphiu = dmu_muvecdp[dmuidxs.index(m)].Vect().DeltaPhi(svvec[vn])
+            svphi = abs(ssvphi)
+            svphiu = abs(ssvphiu)
+            mmuphi = t.Muon_vec[m].Vect().DeltaPhi(dmuvec[vn].Vect())
+            mmuphiu = dmu_muvecdp[dmuidxs.index(m)].Vect().DeltaPhi(dmuvec[vn].Vect())
+            mmtheta = abs(mmuphi - math.copysign(ROOT.TMath.PiOver2(), ssvphi)) 
+            mmthetau = abs(mmuphiu - math.copysign(ROOT.TMath.PiOver2(), ssvphiu)) 
+            mmtheta_mmsign = abs(mmuphi - math.copysign(ROOT.TMath.PiOver2(), mmuphi)) 
+            mmthetau_mmsign = abs(mmuphiu - math.copysign(ROOT.TMath.PiOver2(), mmuphiu)) 
         else:
             lxy = t.SVOverlap_lxy[osvidx[vn]]
             mass = (dmuvec_osv[vn]).M()
             pt =  (dmuvec_osv[vn]).Pt()
             phi =  (dmuvec_osv[vn]).Phi()
-            svphi = abs(t.Muon_vec[m].Vect().DeltaPhi(osvvec[vn]))
-            svphiu = abs(dmu_muvecdp_osv[dmuidxs_osv.index(m)].Vect().DeltaPhi(osvvec[vn]))
+            ssvphi = t.Muon_vec[m].Vect().DeltaPhi(osvvec[vn])
+            ssvphiu = dmu_muvecdp_osv[dmuidxs_osv.index(m)].Vect().DeltaPhi(osvvec[vn])
+            svphi = abs(ssvphi)
+            svphiu = abs(ssvphiu)
+            mmuphi = t.Muon_vec[m].Vect().DeltaPhi(dmuvec_osv[vn].Vect())
+            mmuphiu = dmu_muvecdp_osv[dmuidxs_osv.index(m)].Vect().DeltaPhi(dmuvec_osv[vn].Vect())
+            mmtheta = abs(mmuphi - math.copysign(ROOT.TMath.PiOver2(), ssvphi))
+            mmthetau = abs(mmuphiu - math.copysign(ROOT.TMath.PiOver2(), ssvphiu))
+            mmtheta_mmsign = abs(mmuphi - math.copysign(ROOT.TMath.PiOver2(), mmuphi)) 
+            mmthetau_mmsign = abs(mmuphiu - math.copysign(ROOT.TMath.PiOver2(), mmuphiu)) 
         dxysign = getIPSign(t.Muon_phiCorr[m], phi)
         for h in h1d["selmuon"]:
             tn = h.GetName()
@@ -1470,6 +1490,7 @@ for e in range(firste,laste):
             for h in h2d["selmuon_fourmu_osv"]:
                 tn = h.GetName()
                 h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+
 
 ### Write histograms
 foname = "%s/histograms_%s_all.root"%(outdir,args.year)
