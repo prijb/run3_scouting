@@ -234,6 +234,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     RooRealVar mfit("mfit", "mfit", std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     (*mmumu).Print();
+    if ((*mmumu).numEntries() < 1)
+      return;
     RooRealVar x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
     x.Print();
     x.setRange("fitRange",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
@@ -506,7 +508,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       frame->SetTitleSize(0.025,"Y");
       frame->SetXTitle("Dimuon mass [GeV]");
       frame->Draw();
-      can->SaveAs(Form("%s/%s_fitSignal_%s_%s_M%.0f_ch%d.png",outDir,(*mmumu).GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
+      //can->SaveAs(Form("%s/%s_fitSignal_%s_%s_M%.0f_ch%d.png",outDir,(*mmumu).GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
+      can->SaveAs(Form("%s/%s_fitSignal_%s_%s_M%.0f_ch%d.png",outDir,mmumuAll.GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
       can->Update();
       can->Clear();
       can->Close();
@@ -520,7 +523,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       TCanvas *can = new TCanvas("can","",600,600);
       can->cd();
       frameres->Draw();
-      can->SaveAs(Form("%s/%s_fitResidual_%s_%s_M%.0f_ch%d.png",outDir,(*mmumu).GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
+      //can->SaveAs(Form("%s/%s_fitResidual_%s_%s_M%.0f_ch%d.png",outDir,(*mmumu).GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
+      can->SaveAs(Form("%s/%s_fitResidual_%s_%s_M%.0f_ch%d.png",outDir,mmumuAll.GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
       can->Update();
       can->Clear();
     
@@ -530,7 +534,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       framepull->SetXTitle("Dimuon mass [GeV]");
       can->cd();
       framepull->Draw();
-      can->SaveAs(Form("%s/%s_fitPull_%s_%s_M%.0f_ch%d.png",outDir,(*mmumu).GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
+      //can->SaveAs(Form("%s/%s_fitPull_%s_%s_M%.0f_ch%d.png",outDir,(*mmumu).GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
+      can->SaveAs(Form("%s/%s_fitPull_%s_%s_M%.0f_ch%d.png",outDir,mmumuAll.GetName(),sigshape.Data(),sigmodel.Data(),mass,binidx));
       can->Update();
       can->Clear();
       can->Close();
@@ -551,6 +556,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     //////Get RooRealVar from RooDataSet
     RooRealVar mfit("mfit", "mfit", std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
+    if ((*mmumu).numEntries() < 1)
+      return;
     RooRealVar x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
     x.setRange("fitRange",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
     int nBins = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/binsize;
@@ -590,7 +597,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	frame->SetTitleSize(0.025,"Y");
 	frame->SetXTitle("Dimuon mass [GeV]");
 	frame->Draw();
-	can->SaveAs(Form("%s/%s_fitBackgroundTOY_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
+	//can->SaveAs(Form("%s/%s_fitBackgroundTOY_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
+	can->SaveAs(Form("%s/%s_fitBackgroundTOY_mass%.0f.png",outDir,mmumuAll.GetName(),mass));
 	can->Update();
 	can->Clear();
 	can->Close();
@@ -728,7 +736,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	frame->SetTitleSize(0.025,"Y");
 	frame->SetXTitle("Dimuon mass [GeV]");
 	frame->Draw();
-	can->SaveAs(Form("%s/%s_fitBackground_exponential_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
+	//can->SaveAs(Form("%s/%s_fitBackground_exponential_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
+	can->SaveAs(Form("%s/%s_fitBackground_exponential_mass%.0f.png",outDir,mmumuAll.GetName(),mass));
 	can->Update();
 	can->Clear();
 	can->Close();
@@ -844,7 +853,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	frame->SetTitleSize(0.025,"Y");
 	frame->SetXTitle("Dimuon mass [GeV]");
 	frame->Draw();
-	can->SaveAs(Form("%s/%s_fitBackground_powerlaw_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
+	//can->SaveAs(Form("%s/%s_fitBackground_powerlaw_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
+	can->SaveAs(Form("%s/%s_fitBackground_powerlaw_mass%.0f.png",outDir,mmumuAll.GetName(),mass));
 	can->Update();
 	can->Clear();
 	can->Close();
@@ -1067,7 +1077,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	      frame->SetTitleSize(0.025,"Y");
 	      frame->SetXTitle("Dimuon mass [GeV]");
 	      frame->Draw();
-	      can->SaveAs(Form("%s/%s_fitBackground_bernstein_order%d_mass%.0f.png",outDir,(*mmumuFit).GetName(),tto+1,mass));
+	      //can->SaveAs(Form("%s/%s_fitBackground_bernstein_order%d_mass%.0f.png",outDir,(*mmumuFit).GetName(),tto+1,mass));
+	      can->SaveAs(Form("%s/%s_fitBackground_bernstein_order%d_mass%.0f.png",outDir,mmumuAll.GetName(),tto+1,mass));
 	      can->Update();
 	      can->Clear();
 	      can->Close();

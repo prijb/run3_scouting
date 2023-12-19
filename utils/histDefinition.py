@@ -725,6 +725,48 @@ def hist1dDefinition(nbins, low, high, xtitle, ytitle, labels, variable):
     ytitle  ["mudphisvu"] = "Events / 0.01 rad"
     variable["mudphisvu"] = "svphiu"
 
+    nbins   ["mudphimm"] = 320
+    low     ["mudphimm"] = -3.2/2.0
+    high    ["mudphimm"] = 3.2/2.0
+    xtitle  ["mudphimm"] = "|#Delta#phi(#mu, #vec{#mu#mu})| [rad]"
+    ytitle  ["mudphimm"] = "Events / 0.01 rad"
+    variable["mudphimm"] = "mmuphi"
+
+    nbins   ["mudphimmu"] = 320
+    low     ["mudphimmu"] = -3.2/2.0
+    high    ["mudphimmu"] = 3.2/2.0
+    xtitle  ["mudphimmu"] = "|#Delta#phi(#mu, #vec{#mu#mu})| [rad]"
+    ytitle  ["mudphimmu"] = "Events / 0.01 rad"
+    variable["mudphimmu"] = "mmuphiu"
+
+    nbins   ["mutheta"] = 320
+    low     ["mutheta"] = 0.0
+    high    ["mutheta"] = 3.2
+    xtitle  ["mutheta"] = "|#Delta#phi(IP, #vec{#mu#mu})| [rad]"
+    ytitle  ["mutheta"] = "Events / 0.01 rad"
+    variable["mutheta"] = "mmtheta"
+
+    nbins   ["muthetau"] = 320
+    low     ["muthetau"] = 0.0
+    high    ["muthetau"] = 3.2
+    xtitle  ["muthetau"] = "|#Delta#phi(IP, #vec{#mu#mu})| [rad]"
+    ytitle  ["muthetau"] = "Events / 0.01 rad"
+    variable["muthetau"] = "mmthetau"
+
+    nbins   ["muthetamm"] = 320
+    low     ["muthetamm"] = 0.0
+    high    ["muthetamm"] = 3.2
+    xtitle  ["muthetamm"] = "|#Delta#phi(IP, #vec{#mu#mu})| [rad]"
+    ytitle  ["muthetamm"] = "Events / 0.01 rad"
+    variable["muthetamm"] = "mmtheta_mmsign"
+
+    nbins   ["muthetammu"] = 320
+    low     ["muthetammu"] = 0.0
+    high    ["muthetammu"] = 3.2
+    xtitle  ["muthetammu"] = "|#Delta#phi(IP, #vec{#mu#mu})| [rad]"
+    ytitle  ["muthetammu"] = "Events / 0.01 rad"
+    variable["muthetammu"] = "mmthetau_mmsign"
+
     #Di-muon
 
     nbins   ["dimumass"] = 15000
@@ -2342,6 +2384,24 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         histname["selmuon"].append("hselmuon_uphi_dphisv")
         histtype[histname["selmuon"][-1]]="mudphisvu"
         #
+        histname["selmuon"].append("hselmuon_mudphimm")
+        histtype[histname["selmuon"][-1]]="mudphimm"
+        #
+        histname["selmuon"].append("hselmuon_uphi_mudphimm")
+        histtype[histname["selmuon"][-1]]="mudphimmu"
+        #
+        histname["selmuon"].append("hselmuon_mutheta")
+        histtype[histname["selmuon"][-1]]="mutheta"
+        #
+        histname["selmuon"].append("hselmuon_uphi_mutheta")
+        histtype[histname["selmuon"][-1]]="muthetau"
+        #
+        histname["selmuon"].append("hselmuon_muthetamm")
+        histtype[histname["selmuon"][-1]]="muthetamm"
+        #
+        histname["selmuon"].append("hselmuon_uphi_muthetamm")
+        histtype[histname["selmuon"][-1]]="muthetammu"
+        #
         ##
         #
         histname["selmuon_osv"].append("hselmuon_osv_pt")
@@ -2505,6 +2565,24 @@ def histBooking(presel=True, dimuon=True, fourmuon=True, fourmuonosv=True):
         #
         histname["selmuon_osv"].append("hselmuon_osv_uphi_dphisv")
         histtype[histname["selmuon_osv"][-1]]="mudphisvu"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_mudphimm")
+        histtype[histname["selmuon_osv"][-1]]="mudphimm"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_uphi_mudphimm")
+        histtype[histname["selmuon_osv"][-1]]="mudphimmu"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_mutheta")
+        histtype[histname["selmuon_osv"][-1]]="mutheta"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_uphi_mutheta")
+        histtype[histname["selmuon_osv"][-1]]="muthetau"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_muthetamm")
+        histtype[histname["selmuon_osv"][-1]]="muthetamm"
+        #
+        histname["selmuon_osv"].append("hselmuon_osv_uphi_muthetamm")
+        histtype[histname["selmuon_osv"][-1]]="muthetammu"
         #
     ##
     histname["selmuon_fourmu"] = []
