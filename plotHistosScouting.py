@@ -633,6 +633,7 @@ for hn,hnn in enumerate(h1dn):
                 maxY[hn]=tmaxY
 
 ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetFrameLineWidth(2);
 can = ROOT.TCanvas("can","",600, 600)
 minR = []
 maxR = []
