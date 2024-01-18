@@ -4,6 +4,7 @@ import socket
 import time
 
 import dask
+import glob
 from distributed import Client, LocalCluster
 from dask.distributed import progress
 import uproot
@@ -28,9 +29,49 @@ def get_muons(events, branch="Run3ScoutingMuons_hltScoutingMuonPacker__HLT.obj."
         'eta': events[f'{branch}eta_'],
         'phi': events[f'{branch}phi_'],
         'mass': events[f'{branch}m_'],
-        'charge': events[f'{branch}charge_']
+        'charge': events[f'{branch}charge_'],
+        'trackIso': events[f'{branch}trackIso_'],
+        'ecalIso': events[f'{branch}ecalIso_'],
+        'hcalIso': events[f'{branch}hcalIso_'],
+        }, with_name="PtEtaPhiMLorentzVector")
+
+def get_tracks(events, branch="Run3ScoutingTracks_hltScoutingTrackPacker__HLT.obj."):
+    from coffea.nanoevents.methods import vector
+    import awkward as ak
+    ak.behavior.update(vector.behavior)
+    return ak.zip({
+        'pt': events[f'{branch}pt_'],
+        'eta': events[f'{branch}eta_'],
+        'phi': events[f'{branch}phi_'],
+        'mass': events[f'{branch}m_'],
+        'charge': events[f'{branch}charge_'],
         #'trackIso': events[f'{branch}trackIso'],
         }, with_name="PtEtaPhiMLorentzVector")
+
+def get_pfcands(events, branch="Run3ScoutingTracks_hltScoutingTrackPacker__HLT.obj."):
+    from coffea.nanoevents.methods import vector
+    import awkward as ak
+    ak.behavior.update(vector.behavior)
+    return ak.zip({
+        'pt': events[f'{branch}pt_'],
+        'eta': events[f'{branch}eta_'],
+        'phi': events[f'{branch}phi_'],
+        'mass': events[f'{branch}m_'],
+        'charge': events[f'{branch}charge_'],
+        #'trackIso': events[f'{branch}trackIso'],
+        }, with_name="PtEtaPhiMLorentzVector")
+
+def get_vertices(events, branch="Run3ScoutingVertexs_hltScoutingMuonPacker_displacedVtx_HLT.obj."):
+    from coffea.nanoevents.methods import vector
+    import awkward as ak
+    ak.behavior.update(vector.behavior)
+    return ak.zip({
+        'x': events[f'{branch}x_'],
+        'y': events[f'{branch}y_'],
+        'z': events[f'{branch}z_'],
+        #'trackIso': events[f'{branch}trackIso'],
+        }, with_name="ThreeVector")
+
 
 test_files = [
     '/store/data/Run2022C/ScoutingPFRun3/RAW/v1/000/357/479/00000/e68468b2-1e5a-4f1c-8f68-1dac20389864.root',
@@ -72,11 +113,19 @@ def make_simple_hist(f_in):
         dataset_axis,
         N_axis,
     )
+    results['vertices'] = hist.Hist(
+        dataset_axis,
+        hist.axis.Regular(1000, -10, 10, name="x", label=r"$x (cm)$"),
+        hist.axis.Regular(1000, -10, 10, name="y", label=r"$y (cm)$"),
+        hist.axis.Regular(100, -5, 5, name="z", label=r"$z (cm)$"),
+    )
     try:
         with uproot.open(f_in, timeout=300) as f:
             events = f["Events"]
             muons = events["Run3ScoutingMuons_hltScoutingMuonPacker__HLT./Run3ScoutingMuons_hltScoutingMuonPacker__HLT.obj"].arrays()
+            vertices = events["Run3ScoutingVertexs_hltScoutingMuonPacker_displacedVtx_HLT./Run3ScoutingVertexs_hltScoutingMuonPacker_displacedVtx_HLT.obj"].arrays()
             muons4 = get_muons(muons)
+            vert = get_vertices(vertices)
             dimuon = choose(muons4, 2)
             OS_dimuon   = dimuon[((dimuon['0'].charge*dimuon['1'].charge)<0)]
             results['mass'].fill(
@@ -85,6 +134,12 @@ def make_simple_hist(f_in):
                 #pt=ak.flatten(OS_dimuon.pt, axis=1),
                 #pt=events["double_hltScoutingPFPacker_pfMetPt_HLT./double_hltScoutingPFPacker_pfMetPt_HLT.obj"].arrays(),
             )
+            results['vertices'].fill(
+                dataset=f_in,
+                x=ak.flatten(vert.x, axis=1),
+                y=ak.flatten(vert.y, axis=1),
+                z=ak.flatten(vert.z, axis=1),
+            )
             results['nmuons'].fill(
                 dataset=f_in,
                 n=ak.num(muons4, axis=1),
@@ -92,6 +147,8 @@ def make_simple_hist(f_in):
     except OSError:
         print(f"Could not open file {f_in}, skipping.")
         #raise
+    except ValueError:
+        print(f"Array missing")
     return results
 
 
@@ -104,7 +161,10 @@ if __name__ == '__main__':
     argParser.add_argument('--cluster', action='store_true', default=False, help="Run on a cluster")
     argParser.add_argument('--small', action='store_true', default=False, help="Run on a small subset")
     argParser.add_argument('--workers', action='store', default=4,  help="Set the number of workers for the DASK cluster")
+    argParser.add_argument('--input', action='store', default=None,  help="Provide input file")
     args = argParser.parse_args()
+
+    print("Preparing")
 
     local = not args.cluster
     workers = int(args.workers)
@@ -113,7 +173,7 @@ if __name__ == '__main__':
     print("Starting cluster")
     if local:
         cluster = LocalCluster(
-            n_workers=2,
+            n_workers=workers,
             threads_per_worker=1,
         )
     else:
@@ -128,19 +188,18 @@ if __name__ == '__main__':
     cluster.adapt(minimum=0, maximum=workers)
     client = Client(cluster)
 
-    #files = das_wrapper('/ScoutingPFRun3/Run2022C-v1/RAW', query='file', mask='site=T2_US_Caltech')  # MIT sucks, T2_US_Caltech only has the empty files copied over...
-    #all_files = [redirectors["fnal"] + x for x in files][15:30]
-    files = das_wrapper('/ScoutingPFRun3/Run2022B-v1/RAW', query='file', mask=' | grep file.name, file.nevents')  # can't filter only files on Caltech...
-    #new_files = []
-    #for f in files:
-    #    new_files += das_wrapper(f, qualifier="file", query="file", mask=" | grep file.name, file.nevents")
-    # adding the redirector + weed out useless empty files
-    # unfortunately,
-    nmax = 10 if args.small else int(1e7)
-    all_files = [redirectors["fnal"] + x.split()[0] for x in files if int(x.split()[1])>10][:nmax]
-    n_events = [int(x.split()[1]) for x in files if int(x.split()[1])>10][:nmax]
+    if args.input:
+        all_files = glob.glob("/ceph/cms/store/user/legianni/testRAWScouting_0/ScoutingPFRun3/crab_skim_2022D_0/230613_184336/0000/*.root")[:100]
+        #all_files = [args.input]
+        n_events = [350248]  # this is for my example /ceph/cms/store/user/legianni/testRAWScouting_0/ScoutingPFRun3/crab_skim_2022D_0/230613_184336/0000/output_91.root
+    else:
 
-    #all_files = test_files
+        print("Querying files. This should get cached.")
+        files = das_wrapper('/ScoutingPFRun3/Run2022B-v1/RAW', query='file', mask=' | grep file.name, file.nevents')  # can't filter only files on Caltech...
+        # adding the redirector + weed out useless empty files
+        nmax = 10 if args.small else int(1e7)
+        all_files = [redirectors["fnal"] + x.split()[0] for x in files if int(x.split()[1])>10][:nmax]
+        n_events = [int(x.split()[1]) for x in files if int(x.split()[1])>10][:nmax]
 
     print("Computing the results")
     tic = time.time()
@@ -186,8 +245,9 @@ if __name__ == '__main__':
     fig.savefig(f'{plot_dir}/dimuon_mass.png')
 
     total_hist = sum(results_t['nmuons'])
+    vert_hist = sum(results_t['vertices'])
     #total_hist[{"dataset":sum, "pt":sum}].show(columns=100)
-    total_hist[{"dataset":sum}].show(columns=100)
+    total_hist[{"dataset":sum}].show(columns=50)
 
 
     fig, ax = plt.subplots(figsize=(8, 8))
@@ -207,3 +267,23 @@ if __name__ == '__main__':
     )
     ax.set_yscale('log')
     fig.savefig(f'{plot_dir}/nmuons.png')
+
+    from matplotlib.colors import LogNorm
+    fig, ax = plt.subplots(figsize=(8, 8))
+    vert_hist[:, -10.0j:10.0j:2j, -10.0j:10.0j:2j, :][{"dataset":sum, 'z':sum}].plot2d(
+        #histtype="step",
+        ax=ax,
+        norm=LogNorm(),
+    )
+
+    hep.cms.label(
+        "Preliminary",
+        data=True,
+        lumi='0.086',
+        com=13.6,
+        loc=0,
+        ax=ax,
+        fontsize=15,
+    )
+    #ax.set_zscale('log')
+    fig.savefig(f'{plot_dir}/vertices.png')

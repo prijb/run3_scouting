@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: Configuration/GenProduction/python/darkshower_fragment.py --customise_commands process.source.numberEventsInLuminosityBlock=cms.untracked.uint32(6) --python_filename darkshower_cfg.py --eventcontent RAWSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM --fileout file:output.root --conditions 124X_mcRun3_2022_realistic_v12 --beamspot Realistic25ns13p6TeVEarly2022Collision --step GEN,SIM --geometry DB:Extended --era Run3 --no_exec --mc -n 6
+# with command line options: Configuration/GenProduction/python/scenB1_30_9p9_4p8_ctau_26_filter.py --python_filename darkshower_B1_cfg.py --eventcontent RAWSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM --fileout file:output_gensim.root --conditions 124X_mcRun3_2022_realistic_v12 --beamspot Realistic25ns13p6TeVEarly2022Collision --customise_commands process.source.numberEventsInLuminosityBlock=cms.untracked.uint32(100) --step GEN,SIM --geometry DB:Extended --era Run3 --no_exec --mc -n 5
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.Eras.Era_Run3_cff import Run3
@@ -26,7 +26,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(6),
+    input = cms.untracked.int32(5),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -65,7 +65,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('Configuration/GenProduction/python/darkshower_fragment.py nevts:6'),
+    annotation = cms.untracked.string('Configuration/GenProduction/python/scenB1_30_9p9_4p8_ctau_26_filter.py nevts:5'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -97,7 +97,17 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '124X_mcRun3_2022_realistic_v12', '')
 
-process.generator = cms.EDFilter("Pythia8GeneratorFilter",
+process.MuFilter = cms.EDFilter("PythiaFilter",
+    MaxEta = cms.untracked.double(10),
+    MinEta = cms.untracked.double(-10),
+    MinPt = cms.untracked.double(2),
+    MotherID = cms.untracked.int32(999999),
+    ParticleID = cms.untracked.int32(13),
+    Status = cms.untracked.int32(0)
+)
+
+
+process.generator = cms.EDFilter("Pythia8ConcurrentGeneratorFilter",
     PythiaParameters = cms.PSet(
         parameterSets = cms.vstring(
             'pythia8CommonSettings',
@@ -129,36 +139,36 @@ process.generator = cms.EDFilter("Pythia8GeneratorFilter",
             'HiddenValley:FSR = on',
             'HiddenValley:alphaOrder = 1',
             'HiddenValley:setLambda = on',
-            'HiddenValley:Lambda = 20',
-            'HiddenValley:pTminFSR = 22.0',
+            'HiddenValley:Lambda = 30',
+            'HiddenValley:pTminFSR = 33.0',
             'HiddenValley:spinFv=0',
             'HiddenValley:probVector=0.75',
             'HiddenValley:separateFlav = on',
             'HiddenValley:probKeepEta1 = 1.0',
-            '4900101:m0 = 20.561544168551873',
-            '4900102:m0 = 20.688455831448127',
-            '4900111:m0 = 5',
-            '4900211:m0 = 5',
-            '4900221:m0 = 20',
-            '4900113:m0 = 20',
-            '4900213:m0 = 20',
+            '4900101:m0 = 31.551517243857766',
+            '4900102:m0 = 31.715482756142233',
+            '4900111:m0 = 9.9',
+            '4900211:m0 = 9.9',
+            '4900221:m0 = 30',
+            '4900113:m0 = 30',
+            '4900213:m0 = 30',
             '4900113:addChannel = 1 1.00 91 4900211 -4900211',
             '4900213:addChannel = 1 1.00 91 4900211 4900111',
-            '999999:all = GeneralResonance void 1 0 0 1.2 0.001 0. 0. 0.',
-            '999999:addChannel = 1 0.343 91 11 -11',
-            '999999:addChannel = 1 0.343 91 13 -13',
-            '999999:addChannel = 1 0.0887 91 211 -211',
-            '999999:addChannel = 1 0.041 91 321 -321',
-            '999999:addChannel = 1 0.024 91 211 -211 111',
-            '999999:addChannel = 1 0.0471 91 211 -211 211 -211',
-            '999999:addChannel = 1 0.0935 91 211 -211 111 111',
-            '999999:tau0 = 9.310000000000001e-05',
+            '999999:all = GeneralResonance void 1 0 0 4.8 0.001 0. 0. 0.',
+            '999999:addChannel = 1 0.0541 91 1 -1',
+            '999999:addChannel = 1 0.217 91 2 -2',
+            '999999:addChannel = 1 0.0541 91 3 -3',
+            '999999:addChannel = 1 0.211 91 4 -4',
+            '999999:addChannel = 1 0.162 91 11 -11',
+            '999999:addChannel = 1 0.162 91 13 -13',
+            '999999:addChannel = 1 0.139 91 15 -15',
+            '999999:tau0 = 1.1e-05',
             '4900221:addChannel = 1 0.5 91 4900211 4900211 4900111',
             '4900221:addChannel = 1 0.5 91 -4900211 -4900211 4900111',
             '4900221:tau0 = 0.0',
             '4900111:addChannel = 1 1.0 91 999999 999999',
-            '4900211:onMode = 0',
-            '4900111:tau0 = 23.1',
+            '4900111:tau0 = 26.099999999999998',
+            '4900211:onMode = 0'
         ),
         pythia8CP5Settings = cms.vstring(
             'Tune:pp 14',
@@ -199,6 +209,8 @@ process.generator = cms.EDFilter("Pythia8GeneratorFilter",
 )
 
 
+process.ProductionFilterSequence = cms.Sequence(process.generator+process.MuFilter)
+
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen)
 process.simulation_step = cms.Path(process.psim)
@@ -212,7 +224,7 @@ from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 # filter all path with the production filter sequence
 for path in process.paths:
-	getattr(process,path).insert(0, process.generator)
+	getattr(process,path).insert(0, process.ProductionFilterSequence)
 
 # customisation of the process.
 
@@ -227,9 +239,8 @@ process = addMonitoring(process)
 
 # Customisation from command line
 
-process.source.numberEventsInLuminosityBlock=cms.untracked.uint32(5000)
+process.source.numberEventsInLuminosityBlock=cms.untracked.uint32(100)
 # Add early deletion of temporary data products to reduce peak memory need
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
 process = customiseEarlyDelete(process)
 # End adding early deletion
-process.source.firstLuminosityBlock = cms.untracked.uint32(1)

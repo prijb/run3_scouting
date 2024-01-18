@@ -46,11 +46,19 @@ scram tool info pythia8 # check whether it is correctly linked to the standalone
 
 ``` shell
 mkdir -p Configuration/GenProduction/python/
-cp ../../signal/darkshower_fragment.py Configuration/GenProduction/python/
+cp ../../signal/*.py Configuration/GenProduction/python/
 scram b
 
 cmsDriver.py Configuration/GenProduction/python/darkshower_fragment.py --python_filename darkshower_cfg.py --eventcontent RAWSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM --fileout file:output_gensim.root --conditions 124X_mcRun3_2022_realistic_v12 --beamspot Realistic25ns13p6TeVEarly2022Collision --customise_commands process.source.numberEventsInLuminosityBlock="cms.untracked.uint32(100)" --step GEN,SIM --geometry DB:Extended --era Run3 --no_exec --mc -n 5
+```
+Make sure you remove the following lines from the cmsrun cfg:
 
+``` python
+            'ParticleDecays:limitTau0 = on',
+            'ParticleDecays:tau0Max = 10',
+```
+
+``` shell
 cmsRun darkshower_cfg.py
 ```
 
