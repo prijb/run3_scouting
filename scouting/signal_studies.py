@@ -494,7 +494,8 @@ if __name__ == '__main__':
         #"ScenA_mpi5p0_mA2p4_ctau5p0": glob.glob("/ceph/cms/store/user/fernance/Run3ScoutingOutput/looperOutput_Sep-22-2023/output_Signal_ScenarioA_mpi5p0_mA2p4_ctau5p0_2022_*.root"),
         #"ScenB1_30_9p9_4p8_ctau_26": glob.glob("/ceph/cms/store/user/dspitzba/Run3ScoutingOutput/testLooper/output_Signal_ScenB1_30_9p9_4p8_ctau_26_2022_*.root"),
         "ScenB1_30_9p9_4p8_ctau_26": glob.glob("/ceph/cms/store/user/dspitzba/Run3ScoutingOutput/testLooper/output_Signal_ScenB1_30_9p9_4p8_ctau_26_v7_2022_*.root"),
-        "ScenA_20_5p0_1p2_ctau_23": glob.glob("/ceph/cms/store/user/dspitzba/Run3ScoutingOutput/testLooper/output_Signal_ScenA_20_5p0_1p2_ctau_23_2022_*.root"),
+        #"ScenA_20_5p0_1p2_ctau_23": glob.glob("/ceph/cms/store/user/dspitzba/Run3ScoutingOutput/testLooper/output_Signal_ScenA_20_5p0_1p2_ctau_23_2022_*.root"),
+        "ScenA_20_5p0_1p2_ctau_23": glob.glob("/ceph/cms/store/user/dspitzba/Run3ScoutingOutput/testLooper/output_ScenA_20_5p0_1p2_ctau_23_filter_v7_2022_*.root"),
     }
 
     local = False
