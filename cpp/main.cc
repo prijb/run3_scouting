@@ -170,6 +170,36 @@ int main(int argc, char **argv) {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/ScenB1_30_9p9_4p8_ctau_100mm_2022/", startFile, nFiles, isCondor); 
     process = "Signal_ScenB1_30_9p9_4p8_ctau_100mm";
   }
+  //
+  // Sample list: PF Monitor 2022
+  if ( sampleArg=="MonDataTest" && year=="2022") {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022Test/", startFile, nFiles, isCondor);  // 1 files
+    process = "MonDataTest";
+  }
+  if ( sampleArg=="MonDataB" && year=="2022") {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022B/", startFile, nFiles, isCondor);  // 5 files
+    process = "MonDataB";
+  }
+  if ( sampleArg=="MonDataC" && year=="2022") {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022C/", startFile, nFiles, isCondor);  // 24 files
+    process = "MonDataC";
+  }
+  if ( sampleArg=="MonDataD" && year=="2022") {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022D/", startFile, nFiles, isCondor);  // 5 files
+    process = "MonDataD";
+  }
+  if ( sampleArg=="MonDataE" && year=="2022") {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022E/", startFile, nFiles, isCondor);  // 6 files
+    process = "MonDataE";
+  }
+  if ( sampleArg=="MonDataF" && year=="2022") {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022F/", startFile, nFiles, isCondor);  // 13 files
+    process = "MonDataF";
+  }
+  if ( sampleArg=="MonDataG" && year=="2022") {
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022G/", startFile, nFiles, isCondor);  // 5 files
+    process = "MonDataG";
+  }
   std::cout << "################################## \n";
   std::cout << "Number of files to process: " << files.size() << "\n";
   std::cout << "################################## \n";

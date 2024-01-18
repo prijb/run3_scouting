@@ -438,15 +438,32 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   auto l1Names = getObject<std::vector<std::string>>(ev0, "triggerMaker", "l1name");
   bool l1fired[l1Names.size()] = {false};
 
+  auto hltNames = getObject<std::vector<std::string>>(ev0, "triggerMaker", "hltname");
+  bool hltfired[hltNames.size()] = {false};
+
+
   // Branch definition
   tout->Branch("run", &run);
   tout->Branch("lumi", &lumi);
   tout->Branch("evtn", &evtn);
 
   tout->Branch("passL1", &passL1);
+
+  std::cout << "Found the following L1 seeds:" << std::endl;
+  std::cout << " - Total number of seeds " << l1Names.size() << std::endl;
   for (unsigned int iL1=0; iL1<l1Names.size(); ++iL1) {
     tout->Branch(TString(l1Names[iL1]), &l1fired[iL1]);
+    std::cout << TString(l1Names[iL1]) << std::endl;
   }
+
+  std::cout << "Found the following HLT paths:" << std::endl;
+  std::cout << " - Total number of paths " << hltNames.size() << std::endl;
+  for (unsigned int iHLT=0; iHLT<hltNames.size(); ++iHLT) {
+    tout->Branch(TString(hltNames[iHLT]), &hltfired[iHLT]);
+    std::cout << TString(hltNames[iHLT]) << std::endl;
+  }
+
+
   tout->Branch("passHLT", &passHLT);
 
   tout->Branch("nPV", &nPV);
