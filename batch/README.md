@@ -39,11 +39,15 @@ python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower_ScenarioC_default_Run3Summer22GS_v0p34_AODSIM_v0p34
 python3 crabcfg_run3_mc.py ///path to mc signal sample, but must be on T2 ucsd for this cfg to work///
 
-#2023 data - must launch from separate env under cms 13_1_X
+#2023 data/PFMonitor - must launch from separate env under cms 13_1_X
 python3 crabcfg_run3.py 2023B
 python3 crabcfg_run3.py 2023C  triggerV10
 python3 crabcfg_run3.py 2023C
 python3 crabcfg_run3.py 2023D
+python3 crabcfg_run3.py 2023B PFMonitor
+python3 crabcfg_run3.py 2023C PFMonitor triggerV10
+python3 crabcfg_run3.py 2023C PFMonitor
+python3 crabcfg_run3.py 2023D PFMonitor
 ```
 
 
