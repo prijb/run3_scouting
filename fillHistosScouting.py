@@ -646,6 +646,9 @@ for e in range(firste,laste):
                 if ( nhitsbeforesvtotal > 0):
                     continue
             elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 1):
+                    continue
+            elif lxy > 16.0:
                 if ( nhitsbeforesvtotal > 2):
                     continue
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
@@ -720,7 +723,8 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            #if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2(): # Future note, if we want to apply the cut per muon
+            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
         #
         #  Apply categorization and selection on muon isolation
@@ -791,6 +795,9 @@ for e in range(firste,laste):
                 if ( nhitsbeforesvtotal > 0):
                     continue
             elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 1):
+                    continue
+            elif lxy > 16.0:
                 if ( nhitsbeforesvtotal > 2):
                     continue
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
@@ -865,7 +872,8 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            #if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2(): # Future note, if we want to apply the cut per muon
+            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
                 continue
          #
         #  Apply categorization and selection on muon isolation
