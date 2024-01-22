@@ -432,6 +432,15 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   SVOverlap SVOverlaps;
   int nMuonAssoc;
   Muon Muons;
+  TFile *file0 = TFile::Open(inputFiles[0]);
+  Event ev0(file0);
+  ev0.toBegin();
+  auto l1Names = getObject<std::vector<std::string>>(ev0, "triggerMaker", "l1name");
+  bool l1fired[l1Names.size()] = {false};
+
+  auto hltNames = getObject<std::vector<std::string>>(ev0, "triggerMaker", "hltname");
+  bool hltfired[hltNames.size()] = {false};
+
 
   // Branch definition
   tout->Branch("run", &run);
@@ -439,6 +448,22 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("evtn", &evtn);
 
   tout->Branch("passL1", &passL1);
+
+  std::cout << "Found the following L1 seeds:" << std::endl;
+  std::cout << " - Total number of seeds " << l1Names.size() << std::endl;
+  for (unsigned int iL1=0; iL1<l1Names.size(); ++iL1) {
+    tout->Branch(TString(l1Names[iL1]), &l1fired[iL1]);
+    std::cout << TString(l1Names[iL1]) << std::endl;
+  }
+
+  std::cout << "Found the following HLT paths:" << std::endl;
+  std::cout << " - Total number of paths " << hltNames.size() << std::endl;
+  for (unsigned int iHLT=0; iHLT<hltNames.size(); ++iHLT) {
+    tout->Branch(TString(hltNames[iHLT]), &hltfired[iHLT]);
+    std::cout << TString(hltNames[iHLT]) << std::endl;
+  }
+
+
   tout->Branch("passHLT", &passHLT);
 
   tout->Branch("nPV", &nPV);
@@ -573,6 +598,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   if ( !isMC ) {
     if ( year == "2022" )
       set_goodrun_file_json("../data/Cert_Collisions2022_355100_362760_Golden.json");
+    else if ( year == "2023" )
+      set_goodrun_file_json("../data/Cert_Collisions2023_366442_370790_Golden.json");
   }
 
   // File loop
@@ -613,9 +640,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       auto l1Prescales = getObject<std::vector<double>>(ev, "triggerMaker", "l1prescale");
       passL1 = false;
       for (unsigned int iL1=0; iL1<l1s.size(); ++iL1) {
+        l1fired[iL1] = l1s[iL1];
         if (l1s[iL1]==true && l1Prescales[iL1]==1) { // L1 trigger fired and is not prescaled
           passL1 = true;
-          break;
         }
       }
       if (!passL1)
@@ -941,7 +968,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.selected.push_back(pt>3.0 && fabs(eta)<2.4 && mu.normalizedChi2()<3.0);
 
         for (unsigned int iDV=0; iDV<mu.vtxIndx().size(); ++iDV) {
-	  if (mu.vtxIndx().at(iDV)==bestAssocSVIdx) {
+	        if (mu.vtxIndx().at(iDV)==bestAssocSVIdx) {
             Muons.nhitsbeforesv.push_back(nhitsbeforesv.at(iMu).at(iDV));
             Muons.ncompatible.push_back(ncompatible.at(iMu).at(iDV));
             Muons.ncompatibletotal.push_back(ncompatibletotal.at(iMu).at(iDV));

@@ -43,6 +43,7 @@ gtag=""
 if opts.data:
     if '2022' in opts.era:
         gtag="124X_dataRun3_Prompt_v10" # latest prompt RECO GT
+        #gtag="124X_dataRun3_Prompt_v4"
         #gtag="124X_dataRun3_HLT_v7" # latest HLT GT
     else:
         gtag="130X_dataRun3_Prompt_frozen_v3" # latest prompt RECO GT (CMSSW>=13_0_10)
@@ -156,7 +157,7 @@ if '2022' in opts.era or '2023B' in opts.era or '2023C-triggerV10' in opts.era:
         ]
         L1Info = L1Info + [
             "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleJet160er2p5", "L1_SingleJet180", "L1_SingleJet200", "L1_SingleTau120er2p1", "L1_SingleTau130er2p1", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60"
-        ]        
+        ]
         L1Info = list(set(L1Info))
 else:
     # for run >=367621 (during era Run2023C)
@@ -216,7 +217,7 @@ process.triggerMaker = cms.EDProducer("TriggerMaker",
         triggerSelection = cms.vstring(list(zip(*HLTInfo))[1]),
         triggerConfiguration = cms.PSet(
             hltResults            = cms.InputTag('TriggerResults','','HLT'),
-            l1tResults            = cms.InputTag(''),
+            l1tResults            = cms.InputTag('','',''),
             l1tIgnoreMaskAndPrescale = cms.bool(False),
             throw                 = cms.bool(True),
             usePathStatus = cms.bool(False),
@@ -242,7 +243,10 @@ from RecoTracker.MeasurementDet.measurementTrackerEventDefault_cfi import measur
 process.MeasurementTrackerEvent = _measurementTrackerEventDefault.clone()
 
 process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
-process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" )
+if opts.monitor:
+    process.gtStage2Digis.InputLabel = cms.InputTag( "rawDataCollector", "", "LHC" )
+else:
+    process.gtStage2Digis.InputLabel = cms.InputTag( "hltFEDSelectorL1" )
 
 process.offlineBeamSpot = cms.EDProducer("BeamSpotProducer")
 
@@ -254,4 +258,3 @@ process.patTrigger.stageL1Trigger = cms.uint32(2)
 #hitMaker not needed (Mario)
 if (opts.data): process.skimpath = cms.Path(process.countmu+process.countvtx+process.gtStage2Digis+process.triggerMaker+process.offlineBeamSpot+process.beamSpotMaker+process.MeasurementTrackerEvent+process.hitMaker)
 else: process.skimpath = cms.Path(process.gtStage2Digis+process.patTrigger+process.triggerMaker+process.offlineBeamSpot+process.beamSpotMaker+process.MeasurementTrackerEvent+process.hitMaker)
-
