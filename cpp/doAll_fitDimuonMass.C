@@ -10,15 +10,19 @@
   float mF = 350.0;
   float mL = 2000.0;
 
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Dec-14-2023_allCuts_v2/";
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jan-22-2024_noFourMuonMassDiffSel/";
   //std::string inDir_str = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Dec-14-2023_allCuts_v2/";
   vector<TString> dNames = { };
   dNames.push_back("d_FourMu_sep");
   dNames.push_back("d_FourMu_osv");
-  dNames.push_back("d_Dimuon_lxy0p0to2p7_iso0_ptlow");
-  dNames.push_back("d_Dimuon_lxy0p0to2p7_iso0_pthigh");
-  dNames.push_back("d_Dimuon_lxy0p0to2p7_iso1_ptlow");
-  dNames.push_back("d_Dimuon_lxy0p0to2p7_iso1_pthigh");
+  dNames.push_back("d_Dimuon_lxy0p0to0p5_iso0_ptlow");
+  dNames.push_back("d_Dimuon_lxy0p0to0p5_iso0_pthigh");
+  dNames.push_back("d_Dimuon_lxy0p0to0p5_iso1_ptlow");
+  dNames.push_back("d_Dimuon_lxy0p0to0p5_iso1_pthigh");
+  dNames.push_back("d_Dimuon_lxy0p5to2p7_iso0_ptlow");
+  dNames.push_back("d_Dimuon_lxy0p5to2p7_iso0_pthigh");
+  dNames.push_back("d_Dimuon_lxy0p5to2p7_iso1_ptlow");
+  dNames.push_back("d_Dimuon_lxy0p5to2p7_iso1_pthigh");
   dNames.push_back("d_Dimuon_lxy2p7to6p5_iso0_ptlow");
   dNames.push_back("d_Dimuon_lxy2p7to6p5_iso0_pthigh");
   dNames.push_back("d_Dimuon_lxy2p7to6p5_iso1_ptlow");

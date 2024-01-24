@@ -71,8 +71,8 @@ bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernst
 void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, TString sigshape="dcbfastg", const char* outDir = "fitResults")
 {
 
-  if (mmumuAll.numEntries() < 1)
-      return;
+  //if (mmumuAll.numEntries() < 1)
+  //    return;
 
   int mdir = mkdir(outDir,0755);
 
@@ -277,10 +277,13 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     mmumu->SetName(Form("signalRooDataSet%s",catExt.Data()));    
     double sigNormalization =-1.0;
     int sigRawEntries = -1;
-    std::cout << "Hello5" << std::endl;
     if ( isSignalMC ) {
       sigNormalization = (*mmumu).sumEntries(fitRange.Data());
       sigRawEntries = (*mmumu).numEntries();
+      if (sigNormalization < 1e-6)
+        sigNormalization = 1e-6;
+      if (sigRawEntries < 1e-6)
+        sigRawEntries = 1e-6;
     }
     else {
       TFile *fxsec = TFile::Open("../data/xsec_interpolation_ZPrimeToMuMuSB_bestfit_13TeV_Allanach.root");
@@ -318,6 +321,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       sigNormalization = taccbb*txsecbb + taccsb*txsecsb;
       sigRawEntries = (int) ((sigNormalization/(txsecbb+txsecsb))*sigRawAll);
     }
+    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Import of the signal " << std::endl;
     RooRealVar nSig(Form("signalNorm%s",catExt.Data()),Form("signalNorm%s",catExt.Data()),sigNormalization);
     RooRealVar nSigRaw(Form("signalRawNorm%s",catExt.Data()),Form("signalRawNorm%s",catExt.Data()),sigRawEntries);
     wfit.import(*(mmumu));
