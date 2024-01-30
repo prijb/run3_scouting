@@ -186,12 +186,58 @@ for y in years:
                 finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
                 print(finame)
                 binidx=-1
-                if "nBTag1p" in finame:
+                if d=="d_Dimuon_lxy0p0to0p5_iso0_ptlow":
                     binidx=0
-                elif "nBTag1" in finame:
+                elif d=="d_Dimuon_lxy0p0to0p5_iso0_pthigh":
                     binidx=1
-                elif "nBTag2p" in finame:
+                elif d=="d_Dimuon_lxy0p0to0p5_iso1_ptlow":
                     binidx=2
+                elif d=="d_Dimuon_lxy0p0to0p5_iso1_pthigh":
+                    binidx=3
+                elif d=="d_Dimuon_lxy0p5to2p7_iso0_ptlow":
+                    binidx=4
+                elif d=="d_Dimuon_lxy0p5to2p7_iso0_pthigh":
+                    binidx=5
+                elif d=="d_Dimuon_lxy0p5to2p7_iso1_ptlow":
+                    binidx=6
+                elif d=="d_Dimuon_lxy0p5to2p7_iso1_pthigh":
+                    binidx=7
+                elif d=="d_Dimuon_lxy2p7to6p5_iso0_ptlow":
+                    binidx=8
+                elif d=="d_Dimuon_lxy2p7to6p5_iso0_pthigh":
+                    binidx=9
+                elif d=="d_Dimuon_lxy2p7to6p5_iso1_ptlow":
+                    binidx=10
+                elif d=="d_Dimuon_lxy2p7to6p5_iso1_pthigh":
+                    binidx=11
+                elif d=="d_Dimuon_lxy6p5to11p0_iso0_ptlow":
+                    binidx=12
+                elif d=="d_Dimuon_lxy6p5to11p0_iso0_pthigh":
+                    binidx=13
+                elif d=="d_Dimuon_lxy6p5to11p0_iso1_ptlow":
+                    binidx=14
+                elif d=="d_Dimuon_lxy6p5to11p0_iso1_pthigh":
+                    binidx=15
+                elif d=="d_Dimuon_lxy11p0to16p0_iso0_ptlow":
+                    binidx=16
+                elif d=="d_Dimuon_lxy11p0to16p0_iso0_pthigh":
+                    binidx=17
+                elif d=="d_Dimuon_lxy11p0to16p0_iso1_ptlow":
+                    binidx=18
+                elif d=="d_Dimuon_lxy11p0to16p0_iso1_pthigh":
+                    binidx=19
+                elif d=="d_Dimuon_lxy16p0to70p0_iso0_ptlow":
+                    binidx=20
+                elif d=="d_Dimuon_lxy16p0to70p0_iso0_pthigh":
+                    binidx=21
+                elif d=="d_Dimuon_lxy16p0to70p0_iso1_ptlow":
+                    binidx=22
+                elif d=="d_Dimuon_lxy16p0to70p0_iso1_pthigh":
+                    binidx=23
+                elif d=="d_FourMu_sep":
+                    binidx=24
+                elif d=="d_FourMu_osv":
+                    binidx=25
                 catExtS = ""
                 catExtB = ""
                 if useCategorizedSignal:
@@ -238,13 +284,13 @@ for y in years:
                     nPDF = 0
                 """
                 # Retrive BG normalization:
-                nBG = w.data("data_obs").sumEntries()
-                d = w.data("data_obs")
+                nBG = w.data("data_obs%s"%catExtB).sumEntries()
+                d = w.data("data_obs%s"%catExtB)
                 hd = x.createHistogram("hd",ROOT.RooFit.Binning(nBins,minx,maxx))                
                 d.fillHistogram(hd,ROOT.RooArgList(x))
 
-                bpdf = w.pdf("roomultipdf")
-                nPDF = w.cat("pdf_index").numTypes()
+                bpdf = w.pdf("roomultipdf%s"%catExtB)
+                nPDF = w.cat("pdf_index%s"%catExtB).numTypes()
                 p  = []
                 pn = []
                 hp = []

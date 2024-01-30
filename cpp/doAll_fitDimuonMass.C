@@ -10,7 +10,9 @@
   float mF = 350.0;
   float mL = 2000.0;
 
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jan-22-2024_noFourMuonMassDiffSel/";
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jan-22-2024_noFourMuonMassDiffSel/";
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jan-29-2024_onlyCategories_tightdPhi";
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jan-29-2024_onlyCategories_tightdPhi_loosePtmm";
   //std::string inDir_str = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Dec-14-2023_allCuts_v2/";
   vector<TString> dNames = { };
   dNames.push_back("d_FourMu_sep");
@@ -151,10 +153,12 @@
       // Fit invariant mass
       std::cout << "Prepare to fit..." << std::endl;
       if (dNames[d].BeginsWith("d_FourMu_")) {
-        fitmass(mmumu_sig[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, "dcbfastg", outDir);
+        //fitmass(mmumu_sig[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, "dcbfastg", outDir);
+        fitmass(mmumu_sig[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, "dcbfast", outDir);
         fitmass(*mmumu_bkg, "Background", true, false, false, sigsamples[isample], sigmasses_4mu[isample], wfit, "", outDir); 
       } else {
-        fitmass(mmumu_sig[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, "dcbfastg", outDir);
+        //fitmass(mmumu_sig[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, "dcbfastg", outDir);
+        fitmass(mmumu_sig[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, "dcbfast", outDir);
         fitmass(*mmumu_bkg, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], wfit, "", outDir); 
       }
     

@@ -17,8 +17,8 @@ inDir  = "%s/fitResults/"%thisDir
 #minMforSpline =  200.0
 #maxMforSpline = 2500.0
 
-useCategorizedSignal = False
-useCategorizedBackground = False
+useCategorizedSignal = True
+useCategorizedBackground = True
 
 useData = True
 intLumi = 3.51
@@ -98,14 +98,13 @@ dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh")
+dNames.append("d_FourMu_sep")
+#dNames.append("d_FourMu_osv") # Exclude for now, getting so many problems
 
 years = []
-#years.append("2018")
-#years.append("2017")
-#years.append("2016APV")
-#years.append("2016nonAPV")
+years.append("2022")
 ###
-years.append("allyears")
+##years.append("allyears")
 
 # Signals
 sigModels = []
@@ -146,9 +145,11 @@ sigma = 0.0
 for y in years:
     for s in sigModels:
         for m in sigMasses:
+            listOfBins = []
             for d in dNames:
+                print("Analyzing %s, in region %s"%(m, d))
                 #finame = "%s/%s_%s_M%s_%s_workspace.root"%(inDir,d,s,m,y)
-                finame = "%s/%s_%s_2022_workspace.root"%(inDir,d,m)
+                finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
                 binidx=-1
                 if d=="d_Dimuon_lxy0p0to0p5_iso0_ptlow":
                     binidx=0
@@ -198,21 +199,24 @@ for y in years:
                     binidx=22
                 elif d=="d_Dimuon_lxy16p0to70p0_iso1_pthigh":
                     binidx=23                
+                elif d=="d_FourMu_sep":
+                    binidx=24
+                elif d=="d_FourMu_osv":
+                    binidx=25                
                 catExtS = ""
                 catExtB = ""
                 if useCategorizedSignal:
                     catExtS = "_ch%d"%binidx
                 if useCategorizedBackground:
                     catExtB = "_ch%d"%binidx
+                listOfBins.append(binidx)
                 # Open input file with workspace
                 f = ROOT.TFile(finame)
                 # Retrieve workspace from file
                 w = f.Get(wsname)
                 # Retrieve signal normalization
                 nSig = w.var("signalNorm%s"%catExtS).getValV()
-                print("Without norm", nSig)
                 nSig = nSig*intLumi*1000.0/200000.0
-                print("After norm", nSig)
                 if doPartiaUnblinding:
                     nSig = 0.1*nSig
                 # Retrieve signal mean and std. deviation
@@ -225,9 +229,6 @@ for y in years:
                     mcstatunc = 1.0
                 # Retrive BG normalization:
                 nBG = w.data("data_obs%s"%catExtB).sumEntries()
-                # Retrieve pdf_index to save with correct binning
-                pdfidx = w.cat("pdf_index")
-                print(type(pdfidx))
                 # Close input file with workspace
                 f.Close()
                 if not doCounting:
@@ -363,7 +364,7 @@ for y in years:
                     if doCounting:
                         card.write("rate %.3f %.3f\n"%(nSig,nBG))
                     else:
-                        card.write("rate %.3f 1\n"%(nSig))
+                        card.write("rate %.3f 1\n"%(nSig)) # CELIANOTE: Is this really correct? 
                     card.write("------------\n")  
                     # Systematics
                     card.write("lumi_13TeV lnN 1.016 -\n") # Integrated luminosity uncertainty on signal (fully correlated)
@@ -387,6 +388,7 @@ for y in years:
                     else:
                         if not useSinglePDF:
                             card.write("pdf_index_ch%d discrete\n"%(binidx)) # For discrete profiling
+                            #card.write("pdf_index discrete\n") # For discrete profiling
                     card.close()
                 
                     ## text2workspace for individual cards:
@@ -398,16 +400,19 @@ for y in years:
                     #os.chdir(thisDir)
 
             ## Combine cards:
-            #if len(dNames)>1:
-            #    os.chdir(outDir)
-            #    for f in f2l:
-            #        cname = ""
-            #        if noModel and binidx > 0:
-            #            cname = "_f2b%d"%(f*100)
-            #        if noModel:
-            #            os.system("combineCards.py -S card%s_ch1_nomodel_M%s_%s.txt card%s_ch2_nomodel_M%s_%s.txt > card%s_combined_nomodel_M%s_%s.txt"%(cname,m,y,cname,m,y,cname,m,y))
-            #            os.system("text2workspace.py card%s_combined_nomodel_M%s_%s.txt -m %s"%(cname,m,y,m))
-            #        else:
-            #            os.system("combineCards.py -S card%s_ch1_%s_M%s_%s.txt card%s_ch2_%s_M%s_%s.txt > card%s_combined_%s_M%s_%s.txt"%(cname,s,m,y,cname,s,m,y,cname,s,m,y))
-            #            os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
-            #    os.chdir(thisDir)
+            if len(dNames)>1:
+                os.chdir(outDir)
+                combinedCards = ""
+                for binidx in listOfBins:
+                    cname = ""
+                    #if noModel and binidx > 0:
+                    #    cname = "_f2b%d"%(f*100)
+                    #if noModel:
+                    #    os.system("combineCards.py -S card%s_ch1_nomodel_M%s_%s.txt card%s_ch2_nomodel_M%s_%s.txt > card%s_combined_nomodel_M%s_%s.txt"%(cname,m,y,cname,m,y,cname,m,y))
+                    #    os.system("text2workspace.py card%s_combined_nomodel_M%s_%s.txt -m %s"%(cname,m,y,m))
+                    #else:
+                    #    os.system("combineCards.py -S card%s_ch1_%s_M%s_%s.txt card%s_ch2_%s_M%s_%s.txt > card%s_combined_%s_M%s_%s.txt"%(cname,s,m,y,cname,s,m,y,cname,s,m,y))
+                    #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
+                    combinedCards += "%s/card%s_ch%d_%s_M%s_%s.txt "%(outDir,cname,binidx,s,m,y)
+                os.system("combineCards.py -S %s > card%s_combined_%s_M%s_%s.txt"%(combinedCards,cname,s,m,y))
+                os.chdir(thisDir)

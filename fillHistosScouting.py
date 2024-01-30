@@ -44,14 +44,17 @@ parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: f
 parser.add_argument("--lzSel", default=[], nargs="+", help="Selection on lz: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--noMaterialVeto", default=False, action="store_true", help="Do not apply material vertex veto")
-parser.add_argument("--noMuonIPSel", default=False, action="store_true", help="Do not apply selection on muon IP")
-parser.add_argument("--noMuonHitSel", default=False, action="store_true", help="Do not apply selection on muon hits")
+parser.add_argument("--noMuonIPSel", default=False, action="store_true", help="Do not apply selection on muon IP (Not applied at four-muon level)")
+parser.add_argument("--noMuonHitSel", default=False, action="store_true", help="Do not apply selection on muon hits (Not applied at four-muon level)")
 parser.add_argument("--noDiMuonAngularSel", default=False, action="store_true", help="Do not apply selection on dimuon angular variables")
+parser.add_argument("--noFourMuonAngularSel", default=False, action="store_true", help="Do not apply selection on fourmuon angular variables")
+parser.add_argument("--noFourMuonMassDiffSel", default=False, action="store_true", help="Do not apply selection on fourmuon invariant mass difference")
 parser.add_argument("--noPreSel", default=False, action="store_true", help="Do not fill pre-selection/association histograms")
 parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do not fill dimuon histograms")
 parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems")
 parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not fill four-muon histograms for four-muon systems from overlapping SVs")
 parser.add_argument("--noSeed", default=[], nargs="+", help="Exclude L1 seeds from the acceptance")
+parser.add_argument("--noHistos", default=False, action="store_true", help="Skip histogram filling")
 parser.add_argument("--doGen", default=False, action="store_true", help="Fill generation information histograms")
 args = parser.parse_args()
 
@@ -191,6 +194,8 @@ applyMaterialVeto = not args.noMaterialVeto
 applyMuonIPSel = not args.noMuonIPSel
 applyDiMuonAngularSel = not args.noDiMuonAngularSel
 applyMuonHitSel = not args.noMuonHitSel
+applyFourMuonAngularSel = not args.noFourMuonAngularSel
+applyFourMuonMassDiffSel = not args.noFourMuonMassDiffSel
 
 isData = args.data
 if "Data" in args.inSample:
@@ -261,6 +266,11 @@ h2d = dict()
 variable2d = dict()
 #
 h1d,variable1d,h2d,variable2d = histDefinition.histInitialization(not(args.noPreSel),not(args.noDiMuon),not(args.noFourMuon),not(args.noFourMuonOSV))
+if args.noHistos:
+    for key in h1d.keys():
+        h1d[key] = []
+    for key in h2d.keys():
+        h2d[key] = []
 ###
 for cat in h1d.keys():
     for h in h1d[cat]:
@@ -299,15 +309,17 @@ if firste >= t.GetEntries():
 
 ## Init RooDataSets
 # Dimuon binning
-lxybins = [0.0, 2.7, 6.5, 11.0, 16.0, 70.0]
+lxybins = [0.0, 0.5, 2.7, 6.5, 11.0, 16.0, 70.0]
 lxystrs = [str(l).replace('.', 'p') for l in lxybins]
 lxybinlabel = ["lxy{}to{}".format(lxystrs[l], lxystrs[l+1]) for l in range(0, len(lxystrs)-1)]
-ptcut = 100.
+ptcut = 50. # Tried 25, 50 and 100
 # Variables
 mfit = ROOT.RooRealVar("mfit", "mfit", 0.4, 140.0)
 roow = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
 roods = {}
+catmass = {}
 dbins = []
+# Categories
 dbins.append("FourMu_sep")
 dbins.append("FourMu_osv")
 for label in lxybinlabel:
@@ -315,9 +327,15 @@ for label in lxybinlabel:
     dbins.append("Dimuon_"+label+"_iso0_pthigh")
     dbins.append("Dimuon_"+label+"_iso1_ptlow")
     dbins.append("Dimuon_"+label+"_iso1_pthigh")
+#
 for dbin in dbins:
     dname = "d_" + dbin
     roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
+    if 'Dimuon' in dname:
+        catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{#mu#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
+    else:
+        catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{4#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
+
 
 print("From event %d to event %d"%(firste,laste))
 for e in range(firste,laste):
@@ -359,6 +377,7 @@ for e in range(firste,laste):
         for i in range(nGEN):
             if abs(t.GenPart_pdgId[i]) != 13:
                 continue
+            isResonance = False
             for j in range(i+1, nGEN):
                 if i==j:
                     continue
@@ -366,12 +385,17 @@ for e in range(firste,laste):
                     continue
                 dmugen.append(i)
                 dmugen.append(j)
+                isResonance = True
                 for k in range(0, nGEN):
                     if t.GenPart_index[k] == t.GenPart_motherIndex[i]:
                         gvec = ROOT.TLorentzVector()
                         gvec.SetPtEtaPhiM(t.GenPart_pt[k], t.GenPart_eta[k], t.GenPart_phi[k], t.GenPart_m[k])
                         dmumot.append(gvec)
                         break
+            if isResonance:
+                for h in h1d["genmu"]:
+                    tn = h.GetName()
+                    h.Fill(eval(variable1d[h.GetName()]))
 
         for g,gp in enumerate(dmumot):
             lxygen = t.GenPart_lxy[dmugen[2*g]] 
@@ -852,6 +876,20 @@ for e in range(firste,laste):
         minsina3dsvl3du = min(minlxy_sina3dsvl3du, maxlxy_sina3dsvl3du)
         maxsina3dsvl3du = max(minlxy_sina3dsvl3du, maxlxy_sina3dsvl3du)
         #
+        if applyFourMuonAngularSel:
+            if maxa3dmmu>0.9*(ROOT.TMath.Pi()) or maxa3dmmu>0.9*(ROOT.TMath.Pi()):
+                continue
+            if maxdpmmu>0.9*(ROOT.TMath.Pi()) or mindpmmu>0.9*(ROOT.TMath.Pi()):
+                continue
+            if maxdphisvu>ROOT.TMath.PiOver2() or mindphisvu>ROOT.TMath.PiOver2():
+                continue
+            if maxa3dsvu>ROOT.TMath.PiOver2() or mina3dsvu>ROOT.TMath.PiOver2():
+                continue
+        #
+        if applyFourMuonMassDiffSel:
+            if reldmass > 0.1:
+                continue
+        #
         for h in h1d["fourmuon"]:
             tn = h.GetName()
             h.Fill(eval(variable1d[h.GetName()]))
@@ -859,10 +897,11 @@ for e in range(firste,laste):
             tn = h.GetName()
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
         # Scan:
-        if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) and reldmass < 0.1): 
+        if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
             mfit.setVal(mass)
             roow.setVal(1.0);
             roods["FourMu_sep"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            catmass["FourMu_sep"].Fill(mass);
             filledcat4musep = True
         else:
             filledcat4musep = False
@@ -1013,6 +1052,16 @@ for e in range(firste,laste):
         sina3dsvl3d = abs(ROOT.TMath.Sin(v.Vect().Angle(osvvec_qmu[vn])))*(osvvec_qmu[vn].Mag())
         sina3dsvl3du = abs(ROOT.TMath.Sin(vu.Vect().Angle(osvvec_qmu[vn])))*(osvvec_qmu[vn].Mag())
         #
+        if applyFourMuonAngularSel:
+            if maxa3dmmu>0.9*(ROOT.TMath.Pi()) or maxa3dmmu>0.9*(ROOT.TMath.Pi()):
+                continue
+            if maxdpmmu>0.9*(ROOT.TMath.Pi()) or mindpmmu>0.9*(ROOT.TMath.Pi()):
+                continue
+            if a3dsvu>ROOT.TMath.PiOver2():
+                continue
+            if dphisvu>ROOT.TMath.PiOver2():
+                continue
+        #
         for h in h1d["fourmuon_osv"]:
             tn = h.GetName()
             h.Fill(eval(variable1d[h.GetName()]))
@@ -1024,6 +1073,7 @@ for e in range(firste,laste):
             mfit.setVal(mass)
             roow.setVal(1.0);
             roods["FourMu_osv"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            catmass["FourMu_osv"].Fill(mass);
             filledcat4muosv = True
         else:
             filledcat4muosv = False
@@ -1064,6 +1114,25 @@ for e in range(firste,laste):
         mass = v.M()
         pt   = v.Pt()
         nhitsbeforesvtotal = t.Muon_nhitsbeforesv[dmuidxs[int(vn*2)]] + t.Muon_nhitsbeforesv[dmuidxs[int(vn*2)+1]]
+        #
+        # Check if the dimuon is gen-matched
+        isgen = False
+        drgen = 9999.
+        lxygen = -999.
+        idgen = 0
+        for gn,g in enumerate(dmumot):
+            tmp_drgen = g.DeltaR(v)
+            deltapt = abs(g.Pt() - v.Pt())/g.Pt()
+            if tmp_drgen < drgen:
+                drgen = tmp_drgen 
+        if drgen < 0.1:
+            isgen = True
+            lxygen = t.GenPart_lxy[dmugen[2*gn]]
+            idgen = t.GenPart_motherPdgId[dmugen[2*gn]]
+        deltalxy = (lxy - lxygen)/lxygen
+        #if not isgen or abs(deltalxy) < 0.1 or lxy < 2:
+        #    continue
+        #
         #  Apply selection on muon lifetime-scaled dxy
         if applyMuonIPSel:
             if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
@@ -1076,6 +1145,9 @@ for e in range(firste,laste):
                 if ( nhitsbeforesvtotal > 0):
                     continue
             elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 1):
+                    continue
+            elif lxy > 16.0:
                 if ( nhitsbeforesvtotal > 2):
                     continue
         drmm = t.Muon_vec[dmuidxs[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs[int(vn*2)+1]])
@@ -1150,27 +1222,15 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            #if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2(): # uncomment if we want to apply this cut per muon
+            #if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisvu>0.02 or a3dsvu>ROOT.TMath.PiOver2():
                 continue
         #
         #  Apply categorization and selection on muon isolation
         isocat = dimuonIsoCategory(t.Muon_PFIsoAll0p4[dmuidxs[int(vn*2)]], t.Muon_pt[dmuidxs[int(vn*2)]], t.Muon_PFIsoAll0p4[dmuidxs[int(vn*2)+1]], t.Muon_pt[dmuidxs[int(vn*2)+1]])
         if float(args.dimuonIsoCatSel) > -1 and isocat!=float(args.dimuonIsoCatSel):
             continue
-        #
-        # Check if the dimuon is gen-matched
-        isgen = False
-        drgen = 9999.
-        lxygen = -999.
-        idgen = 0
-        for gn,g in enumerate(dmumot):
-            tmp_drgen = g.DeltaR(v)
-            if tmp_drgen < drgen:
-                drgen = tmp_drgen 
-        if drgen < 0.1:
-            isgen = True
-            lxygen = t.GenPart_lxy[dmugen[2*gn]]
-            idgen = t.GenPart_motherPdgId[dmugen[2*gn]]
         #
         seldmuidxs.append(dmuidxs[int(vn*2)])
         seldmuidxs.append(dmuidxs[int(vn*2)+1])
@@ -1209,6 +1269,7 @@ for e in range(firste,laste):
             mfit.setVal(mass)
             roow.setVal(1.0);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            catmass[slice].Fill(mass);
             filledcat2mu = True
 
     # Apply selections and fill histograms for muon pairs from overlapping SVs
@@ -1241,6 +1302,9 @@ for e in range(firste,laste):
                 if ( nhitsbeforesvtotal > 0):
                     continue
             elif lxy > 11.0:
+                if ( nhitsbeforesvtotal > 1):
+                    continue
+            elif lxy > 16.0:
                 if ( nhitsbeforesvtotal > 2):
                     continue
         drmm = t.Muon_vec[dmuidxs_osv[int(vn*2)]].DeltaR(t.Muon_vec[dmuidxs_osv[int(vn*2)+1]])
@@ -1315,7 +1379,9 @@ for e in range(firste,laste):
                 continue
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
-            if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            #if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            #if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisvu>0.02 or a3dsvu>ROOT.TMath.PiOver2():
                 continue
          #
         #  Apply categorization and selection on muon isolation
@@ -1374,6 +1440,7 @@ for e in range(firste,laste):
             mfit.setVal(mass)
             roow.setVal(1.0);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            catmass[slice].Fill(mass);
             filledcat2mu = True
 
     # Fill histograms for selected SVs (with a selected muon pair)
@@ -1512,4 +1579,5 @@ for cat in h2d.keys():
 for dbin in dbins:
     print("RooDataSet {}  with {} entries".format(dbin, roods[dbin].sumEntries()))
     roods[dbin].Write()
+    catmass[dbin].Write()
 fout.Close()

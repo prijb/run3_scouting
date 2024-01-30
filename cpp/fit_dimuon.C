@@ -51,10 +51,10 @@ using namespace std;
 using namespace RooFit;
 
 bool doBinnedFit = false;
-//bool refitSignal = true;
-bool refitSignal = false;
-bool categorizeSignal = false;
-bool categorizeBackground = false; // true?
+bool refitSignal = true;
+//bool refitSignal = false;
+bool categorizeSignal = true;
+bool categorizeBackground = true; // true?
 bool useFixedSigma = true;
 //bool useFixedSigma = false;
 bool addBernsteinOrders = false;
@@ -254,7 +254,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     frame->SetTitle("");//Signal dimuon mass fit");
     frame->SetMinimum(0.0);
     //////Plot RooDataSet onto frame
-    //(*mmumu).plotOn(frame/*, DataError(RooAbsData::SumW2)*/);
     (*mmumu).plotOn(frame, DataError(RooAbsData::SumW2), Binning(binningPlot));
 
     //////Define fit-related variables
@@ -268,9 +267,35 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     ////// binidx=2: nB>1    
     int binidx=-1;
     TString datasetname((*mmumu).GetName());
-    if ( datasetname.Contains("nBTag1p") ) binidx=0;
-    else if ( datasetname.Contains("nBTag1") ) binidx=1;
-    else if ( datasetname.Contains("nBTag2p") ) binidx=2;
+    //if ( datasetname.Contains("nBTag1p") ) binidx=0;
+    //else if ( datasetname.Contains("nBTag1") ) binidx=1;
+    //else if ( datasetname.Contains("nBTag2p") ) binidx=2;
+    if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso0_ptlow") ) binidx=0;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso0_pthigh") ) binidx=1;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso1_ptlow") ) binidx=2;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso1_pthigh") ) binidx=3;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso0_ptlow") ) binidx=4;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso0_pthigh") ) binidx=5;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso1_ptlow") ) binidx=6;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso1_pthigh") ) binidx=7;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso0_ptlow") ) binidx=8;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso0_pthigh") ) binidx=9;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso1_ptlow") ) binidx=10;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso1_pthigh") ) binidx=11;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso0_ptlow") ) binidx=12;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso0_pthigh") ) binidx=13;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso1_ptlow") ) binidx=14;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso1_pthigh") ) binidx=15;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso0_ptlow") ) binidx=16;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso0_pthigh") ) binidx=17;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso1_ptlow") ) binidx=18;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso1_pthigh") ) binidx=19;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso0_ptlow") ) binidx=20;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso0_pthigh") ) binidx=21;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso1_ptlow") ) binidx=22;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso1_pthigh") ) binidx=23;
+    else if ( datasetname.Contains("d_FourMu_sep") ) binidx=24;
+    else if ( datasetname.Contains("d_FourMu_osv") ) binidx=25;
     TString catExt = "";
     if ( categorizeSignal ) 
       catExt = Form("_ch%d",binidx);
@@ -628,9 +653,36 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     ////// binidx=2: nB>1    
     int binidx=-1;
     TString datasetname((*mmumuFit).GetName());
-    if ( datasetname.Contains("nBTag1p") ) binidx=0;
-    else if ( datasetname.Contains("nBTag1") ) binidx=1;
-    else if ( datasetname.Contains("nBTag2p") ) binidx=2;
+    std::cout << datasetname << datasetname.Contains("d_FourMu_sep") << std::endl;
+    // if ( datasetname.Contains("nBTag1p") ) binidx=0;
+    // else if ( datasetname.Contains("nBTag1") ) binidx=1;
+    // else if ( datasetname.Contains("nBTag2p") ) binidx=2;
+    if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso0_ptlow") ) binidx=0;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso0_pthigh") ) binidx=1;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso1_ptlow") ) binidx=2;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso1_pthigh") ) binidx=3;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso0_ptlow") ) binidx=4;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso0_pthigh") ) binidx=5;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso1_ptlow") ) binidx=6;
+    else if ( datasetname.Contains("d_Dimuon_lxy0p5to2p7_iso1_pthigh") ) binidx=7;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso0_ptlow") ) binidx=8;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso0_pthigh") ) binidx=9;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso1_ptlow") ) binidx=10;
+    else if ( datasetname.Contains("d_Dimuon_lxy2p7to6p5_iso1_pthigh") ) binidx=11;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso0_ptlow") ) binidx=12;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso0_pthigh") ) binidx=13;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso1_ptlow") ) binidx=14;
+    else if ( datasetname.Contains("d_Dimuon_lxy6p5to11p0_iso1_pthigh") ) binidx=15;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso0_ptlow") ) binidx=16;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso0_pthigh") ) binidx=17;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso1_ptlow") ) binidx=18;
+    else if ( datasetname.Contains("d_Dimuon_lxy11p0to16p0_iso1_pthigh") ) binidx=19;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso0_ptlow") ) binidx=20;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso0_pthigh") ) binidx=21;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso1_ptlow") ) binidx=22;
+    else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_iso1_pthigh") ) binidx=23;
+    else if ( datasetname.Contains("d_FourMu_sep") ) binidx=24;
+    else if ( datasetname.Contains("d_FourMu_osv") ) binidx=25;
     TString catExt = "";
     if ( categorizeBackground ) 
       catExt = Form("_ch%d",binidx);
@@ -1145,10 +1197,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	    frame->remove(Form("background_bernstein_order%d",tto+1));
             }
 	    }
-            std::cout << "Are you adding this?" << std::endl;
-            std::cout << nBG.getVal() << " " << tto << std::endl;
 	    bgPDFs.add(*bernstein);
-            std::cout << "Are you adding this? 2" << std::endl;
 	    if ( useOnlyBernstein )
 	      wfit.import(*bernstein);
 	}
