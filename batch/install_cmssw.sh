@@ -4,6 +4,10 @@ thisdir=$(pwd)
 release=CMSSW_12_6_0_patch1
 if [ $# -gt 0 ]
 then
+    if [ ${1} == "2022central" ]
+    then
+	release=CMSSW_12_4_16
+    fi
     if [ ${1} == "2023" ]
     then
 	release=CMSSW_13_0_10
