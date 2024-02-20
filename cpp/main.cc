@@ -133,6 +133,27 @@ int main(int argc, char **argv) {
     process = "DileptonMinBias";
   }
   //
+  // Sample list: Central Signal
+  std::ifstream centralFiles;
+  std::string line,sampleName,samplePath;
+  std::string delimiter = ",";
+  centralFiles.open("input/centralDatasets.txt");
+  if (centralFiles.is_open()){
+    while(centralFiles) {
+      getline(centralFiles, line);
+      std::string s = line;
+      sampleName = s.substr(0, s.find(delimiter));
+      s.erase(0, s.find(delimiter) + delimiter.length());
+      samplePath = s;
+      if (sampleName==sampleArg) {
+        files = getFiles(samplePath, startFile, nFiles, isCondor);
+        process = sampleArg;
+        break;
+      }
+      line = "";
+    }
+  }
+  //
   // Sample list: Signal
   if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-1mm" && year=="2022") {
     files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-2p0_ctau-1mm_2022/", startFile, nFiles, isCondor); 

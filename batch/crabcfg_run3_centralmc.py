@@ -6,7 +6,7 @@ from CRABAPI.RawCommand import crabCommand
 
 import sys
 
-era = sys.argv[1] # [2022, 2022postEE or 2023]
+era = sys.argv[1] # [2022, 2022postEE, 2023 or 2023BPix]
 signal = sys.argv[2] # HTo2ZdTo2mu2x
 
 year=0
@@ -129,7 +129,10 @@ if (len(sys.argv)>2):
                 dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEDRPremix-124X_mcRun3_2022_realistic_postEE_v1-v2/AODSIM'.format(m, t)
                 config_list[-1].Data.inputDataset = dataset_name
             elif era=="2023":
-                dataset_name = 'Not ready yet'.format(m, t)
+                dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23DRPremix-130X_mcRun3_2023_realistic_v14-v1/AODSIM'.format(m, t)
+                config_list[-1].Data.inputDataset = dataset_name
+            elif era=="2023BPix":
+                dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixDRPremix-130X_mcRun3_2023_realistic_postBPix_v2-v1/AODSIM'.format(m, t)
                 config_list[-1].Data.inputDataset = dataset_name
             config_list[-1].General.requestName = 'centralSkim__{}_{}_m-{}_ctau-{}mm_{}'.format(signal, era, m, t, ntuple_version)
             print(config)

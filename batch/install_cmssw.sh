@@ -12,6 +12,10 @@ then
     then
 	release=CMSSW_13_0_10
     fi
+    if [ ${1} == "2023central" ]
+    then
+	release=CMSSW_13_0_14
+    fi
 fi
 
 exists=1

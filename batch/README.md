@@ -50,6 +50,21 @@ python3 crabcfg_run3.py 2023C PFMonitor
 python3 crabcfg_run3.py 2023D PFMonitor
 ```
 
+Run on central signal MC:
+
+Should setup the corresponding CMSSW version for each campaign e.g.
+```bash
+. install_cmssw.sh 2022central
+. install_cmssw.sh 2023central
+```
+
+and then run:
+```bash
+python3 crabcfg_run3_centralmc.py
+```
+
+**Note: Right now only setup for central HAHM samples (will need to adapt once others are produced)**
+
 
 ## Run2 Info
 
