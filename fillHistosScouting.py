@@ -7,6 +7,7 @@ from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
 import histDefinition
 import math
+import csv
 
 ROOT.EnableImplicitMT(2)
 
@@ -22,7 +23,7 @@ parser.add_argument("--outSuffix", default="", help="Choose output directory. De
 parser.add_argument("--condor", default=False, action="store_true", help="Run on condor")
 parser.add_argument("--data", default=False, action="store_true", help="Process data")
 parser.add_argument("--signal", default=False, action="store_true", help="Process signal")
-parser.add_argument("--year", default="2022", help="Year to be processes. Default: 2022")
+parser.add_argument("--year", default="2022", help="Year to be processed. Default: 2022")
 parser.add_argument("--partialUnblinding", default=False, action="store_true", help="Process x% (default: x=50) of available data")
 parser.add_argument("--partialUnblindingFraction", default="0.5", help="Fraction of available data to be processed")
 parser.add_argument("--removeDuplicates", default=False, action="store_true", help="Check for and remove duplicates")
@@ -183,6 +184,18 @@ def getIPSign(mphi, dmphi):
     else:
         return -1.0
 
+# Get Signal normalization weight
+def getweight(era, ngen, frac=1.0, xsec=1000):
+    if era=="2022":
+        return frac*8.077046947*xsec/ngen
+    if era=="2022postEE":
+        return frac*26.982330931*xsec/ngen
+    if era=="2023":
+        return frac*17.060484313*xsec/ngen
+    if era=="2023BPix":
+        return frac*9.525199061*xsec/ngen
+
+
 indir  = args.inDir.replace("/ceph/cms","")
 outdir = args.outDir
 if args.outSuffix!="":
@@ -227,7 +240,7 @@ if not args.condor:
             files.append("%s%s/%s"%(prependtodir,indir,thisfile))
     elif args.inSample!="*":
         for f in os.listdir("/ceph/cms%s"%indir):
-            if (args.inSample in f) and (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
+            if ("output_%s_%s_"%(args.inSample,args.year) in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
                 files.append("%s%s/%s"%(prependtodir,indir,f))
     else:
         for f in os.listdir("/ceph/cms%s"%indir):
@@ -243,20 +256,57 @@ else:
             if thisfile in f:
                 files.append("%s/%s"%(prependtodir,thisfile))
         elif args.inSample!="*":
-            if (args.inSample in f) and (args.year in f) and (".root" in f):
+            if "output_%s_%s_"%(args.inSample,args.year) in f:
                 files.append("%s/%s"%(prependtodir,f))
         else:
             if (args.year in f) and (".root" in f):
                 files.append("%s/%s"%(prependtodir,f))
     fin.close()
     os.system('rm -f filein.txt')
+print("Found {} files matching criteria".format(len(files)))
+print(files)
 
 index = int(args.splitIndex)
 pace  = int(args.splitPace)
 
+# Inputs:
 t = ROOT.TChain("tout")
 for f in files:
     t.Add(f)
+
+# MC normalization
+ncounts = 1
+efilter = 1.0
+lumiweight = 1.0
+sampleTag = args.inSample.replace('Signal_', '').split('_202')[0]
+if not isData:
+    counts = ROOT.TH1F("totals", "", 1, 0, 1)
+    counts.Fill(0.5)
+    print("Simulations: Getting counts")
+    for _,f in enumerate(files):
+        f_ = ROOT.TFile(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+        h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+        counts.Add(h_)
+        f_.Close()
+    ncounts = counts.GetBinContent(1) 
+    if "HTo2ZdTo2mu2x" in sampleTag:
+        with open('data/hahm-request.csv') as mcinfo:
+            reader = csv.reader(mcinfo, delimiter=',')
+            for row in reader:
+                if sampleTag in row[0]:
+                    efilter = float(row[-1])
+                    break
+    if "2022postEE" in f:
+        lumiweight = getweight("2022postEE", ncounts/efilter, 0.1)
+    elif "2022" in f:
+        lumiweight = getweight("2022", ncounts/efilter, 0.1)
+    elif "2023" in f:
+        lumiweight = getweight("2023", ncounts/efilter, 0.1)
+    elif "2023BPix" in f:
+        lumiweight = getweight("2023BPix", ncounts/efilter, 0.1)
+    print("Total number of counts: {}".format(counts.GetBinContent(1)))
+    print("Filter efficiency (generation): {}".format(efilter))
+    print("Lumiweight: {}".format(lumiweight))
 
 # Histograms:
 h1d = dict()
@@ -312,10 +362,12 @@ if firste >= t.GetEntries():
 lxybins = [0.0, 0.5, 2.7, 6.5, 11.0, 16.0, 70.0]
 lxystrs = [str(l).replace('.', 'p') for l in lxybins]
 lxybinlabel = ["lxy{}to{}".format(lxystrs[l], lxystrs[l+1]) for l in range(0, len(lxystrs)-1)]
-ptcut = 50. # Tried 25, 50 and 100
+ptcut = 25. # Tried 25, 50 and 100
 # Variables
 mfit = ROOT.RooRealVar("mfit", "mfit", 0.4, 140.0)
+m4fit = ROOT.RooRealVar("m4fit", "m4fit", 0.4, 140.0)
 roow = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
+roow4 = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
 roods = {}
 catmass = {}
 dbins = []
@@ -330,11 +382,12 @@ for label in lxybinlabel:
 #
 for dbin in dbins:
     dname = "d_" + dbin
-    roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
     if 'Dimuon' in dname:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{#mu#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
+        roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
     else:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{4#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
+        roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(m4fit,roow4),"roow")
 
 
 print("From event %d to event %d"%(firste,laste))
@@ -898,9 +951,9 @@ for e in range(firste,laste):
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
         # Scan:
         if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
-            mfit.setVal(mass)
-            roow.setVal(1.0);
-            roods["FourMu_sep"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            m4fit.setVal(mass)
+            roow4.setVal(lumiweight);
+            roods["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
             catmass["FourMu_sep"].Fill(mass);
             filledcat4musep = True
         else:
@@ -1070,9 +1123,9 @@ for e in range(firste,laste):
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
         # Scan:
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
-            mfit.setVal(mass)
-            roow.setVal(1.0);
-            roods["FourMu_osv"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            m4fit.setVal(mass)
+            roow4.setVal(lumiweight);
+            roods["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
             catmass["FourMu_osv"].Fill(mass);
             filledcat4muosv = True
         else:
@@ -1267,7 +1320,7 @@ for e in range(firste,laste):
                 else:
                     slice = "Dimuon_"+label+"_iso0_pthigh"
             mfit.setVal(mass)
-            roow.setVal(1.0);
+            roow.setVal(lumiweight);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
             catmass[slice].Fill(mass);
             filledcat2mu = True
@@ -1438,7 +1491,7 @@ for e in range(firste,laste):
                 else:
                     slice = "Dimuon_"+label+"_iso0_pthigh"
             mfit.setVal(mass)
-            roow.setVal(1.0);
+            roow.setVal(lumiweight);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
             catmass[slice].Fill(mass);
             filledcat2mu = True
