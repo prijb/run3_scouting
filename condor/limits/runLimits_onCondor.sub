@@ -1,0 +1,21 @@
+
+executable      = $ENV(HOMEDIR)/condor/limits/condor_executable.sh
+output          = $ENV(HOMEDIR)/condor/limits/plotting_logs/job.$(ClusterId).$(ProcId).out
+error           = $ENV(HOMEDIR)/condor/limits/plotting_logs/job.$(ClusterId).$(ProcId).err
+log             = $ENV(HOMEDIR)/condor/limits/plotting_logs/job.$(ClusterId).$(ProcId).log
+
+getenv = True
++JobFlavour = "workday"
++DESIRED_Sites = "T2_US_UCSD"
+transfer_input_files = $ENV(HOMEDIR)/package.tar.gz
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+x509userproxy=$ENV(X509_USER_PROXY)
+use_x509userproxy = True
+
+# Comment out any of the following configurations
+queue arguments from (
+##
+$ENV(SCOUTINGSNTINPUTDIRLIM) $ENV(SCOUTINGSNTOUTPUTDIRLIM) HTo2ZdTo2mu2x asymptotic 8.0 1
+##
+)
