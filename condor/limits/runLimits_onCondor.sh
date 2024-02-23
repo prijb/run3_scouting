@@ -16,13 +16,13 @@ usage()
 
 if [ -z $1 ]; then usage; fi
 
-export SCOUTINGSNTPINUTDIRLIM=$1
+export SCOUTINGSNTINPUTDIRLIM=$1
 export SCOUTINGSNTOUTPUTDIRLIM=$2
 export HOMEDIR=$PWD
 
 mkdir -p condor/limits/plotting_logs
 mkdir -p /ceph/cms/store/user/$USER/Run3ScoutingOutput/$SCOUTINGSNTOUTPUTDIRLIM
 
-sh condor/limits/create_package.sh
+sh condor/limits/create_package.sh $SCOUTINGSNTINPUTDIRLIM
 
 condor_submit condor/limits/runLimits_onCondor.sub

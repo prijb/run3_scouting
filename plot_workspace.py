@@ -15,13 +15,13 @@ doPull = True
 useData = True
 useSignalMC = True
 doPartialUnblinding = True
-normalizeSignal = True # Only if background is > 0
+normalizeSignal = False # Only if background is > 0
 
 wsname = "wfit"
 thisDir = os.environ.get("PWD")
-inDir  = "%s/fitResults/"%thisDir
+inDir  = "%s/fitResults_allEras/"%thisDir
 
-useCategorizedSignal = False
+useCategorizedSignal = True
 useCategorizedBackground = True
 
 outDir = ("%s/fitPlots_"%(thisDir))+today
@@ -58,12 +58,12 @@ dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh");
 #dNames.append("")
 
 years = []
-years.append("2022")
+#years.append("2022")
 #years.append("2017")
 #years.append("2016APV")
 #years.append("2016nonAPV")
 ###
-#years.append("allyears")
+years.append("allEras")
 
 # Signals
 sigModels = []
@@ -74,7 +74,6 @@ sigModels.append("Y3")
 
 sigMasses = []
 if useSignalMC:
-    sigMasses.append("2.0")
     sigMasses.append("7.0")
 else:
     mF = 350.0
@@ -249,7 +248,10 @@ for y in years:
                 # Retrieve workspace from file
                 w = f.Get(wsname)
                 # Retrive x, min and max
-                x = w.var("mfit")
+                if "Dimuon" in d:
+                    x = w.var("mfit")
+                else:
+                    x = w.var("m4fit")
                 minx = x.getMin()
                 maxx = x.getMax()
                 #nBins = int((maxx-minx)/(0.01*float(m)))
@@ -378,6 +380,7 @@ for y in years:
                         maxR=+2.0
                         ty = numpy.array([])
                         tmax=maxR
+                        tmin=minR
                         for pp in range(nPDF):
                             ty = g_ratio[pp].GetY()
                             if len(ty)>0:

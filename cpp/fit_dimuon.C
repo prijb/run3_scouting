@@ -68,7 +68,7 @@ bool useOnlyPowerLaw = false;
 bool useOnlyBernstein = false;
 bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernstein ) ? true : false;
 
-void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, TString sigshape="dcbfastg", const char* outDir = "fitResults")
+void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, bool fourmu, TString sigshape="dcbfastg", const char* outDir = "fitResults")
 {
 
   //if (mmumuAll.numEntries() < 1)
@@ -227,21 +227,25 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 
     double gamma = 0.001*mass;
 
-    TString fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    TString fitRange;
+    TString varname;
+    if (fourmu) {
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      varname = "m4fit";
+    } else { 
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      varname = "mfit";
+    }
 
     //////Get RooRealVar from RooDataSet
-    std::cout << minMforFit << " " << mass+10.0*stddev << std::endl;
-    RooRealVar mfit("mfit", "mfit", std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     (*mmumu).Print();
-    /*
-    if ((*mmumu).numEntries() < 1) {
-      refitSignal = false;
-      saveFitResult = false;
-      //return;
-    }
-    */
-    RooRealVar x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
+    RooRealVar x;
+    if (fourmu)
+      x = *((RooRealVar*) (*mmumu).get()->find("m4fit"));
+    else 
+      x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
     x.Print();
     x.setRange("fitRange",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
     int nBins = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/binsize;
@@ -529,10 +533,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       cout << "p-value (chiSquare, NDOF) = " << ROOT::Math::chisquared_cdf_c(chi2, (double)(std::max(nFitParams,nPoints-nEmptyBins-nFitParams))) << endl;
     }
 
-    std::cout << "Preparing to draw" << std::endl;
     if ( drawFits ) {
       //////Draw fit
-      std::cout << "Inside drawing" << std::endl;
       TCanvas *can = new TCanvas("can","",600,600);
       can->cd();
       frame->SetMinimum(0.0);
@@ -584,13 +586,25 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   else {
 
     //////Get RooRealVar from RooDataSet
-    TString fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    TString fitRange;
+    TString varname;
+    if (fourmu) {
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      varname = "m4fit";
+    } else { 
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      varname = "mfit";
+    }
     //////Get RooRealVar from RooDataSet
-    RooRealVar mfit("mfit", "mfit", std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     //if ((*mmumu).numEntries() < 1)
     //  return;
-    RooRealVar x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
+    RooRealVar x;
+    if (fourmu)
+      x = *((RooRealVar*) (*mmumu).get()->find("m4fit"));
+    else 
+      x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
     x.setRange("fitRange",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
     int nBins = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/binsize;
     int nBinsPlot = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/binsizePlot;
@@ -654,9 +668,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     int binidx=-1;
     TString datasetname((*mmumuFit).GetName());
     std::cout << datasetname << datasetname.Contains("d_FourMu_sep") << std::endl;
-    // if ( datasetname.Contains("nBTag1p") ) binidx=0;
-    // else if ( datasetname.Contains("nBTag1") ) binidx=1;
-    // else if ( datasetname.Contains("nBTag2p") ) binidx=2;
     if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso0_ptlow") ) binidx=0;
     else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso0_pthigh") ) binidx=1;
     else if ( datasetname.Contains("d_Dimuon_lxy0p0to0p5_iso1_ptlow") ) binidx=2;
@@ -843,7 +854,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       if ( r->status()==0 )
 	break;
     }
-    std::cout << "Fitting the power" << std::endl;
     chi2 = 0.0;
     nEmptyBins = 0;
     if ((*mmumuFit).numEntries() > 0) {
@@ -871,7 +881,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
         }
       }
     }
-    std::cout << "Finish plotting" << std::endl;
     //////Access fit result information
     //r->Print();
     //////Access basic information
@@ -886,7 +895,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     cout << "chiSquare (from residual histogram) / NDOF = " << chi2 << " / " << std::max(nFitParams,nPoints-nEmptyBins-nFitParams) << endl;
     cout << "p-value (chiSquare, NDOF) = " << ROOT::Math::chisquared_cdf_c(chi2, (double)(std::max(nFitParams,nPoints-nEmptyBins-nFitParams))) << endl;
 
-    std::cout << "Please arrive here?" << std::endl;
     if ( saveFitResult ) {
       //////Save RooFitResult into a ROOT file
       TFile ffitresult(Form("%s/%s_fitResult_powerlaw_mass%.0f.root",outDir,(*mmumuFit).GetName(),mass),"RECREATE");
@@ -900,7 +908,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     double chi2PowerlawPvalue = ROOT::Math::chisquared_cdf_c(chi2, (double)(std::max(nFitParams,nPoints-nEmptyBins-nFitParams)));
 
     frame->remove("background_powerlaw");
-    std::cout << fitStatusPowerlaw << "\t" << nBG.getVal() << std::endl;
 
     // If p-value is zero, fit does not converge, zero events, or less than 1 events and less than 0.1 events/GeV, do not include
     if ( chi2PowerlawPvalue > 0.01 &&
@@ -909,7 +916,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       bgPDFs.add(powerlaw);
       if ( useOnlyPowerLaw )
 	wfit.import(powerlaw);
-      std::cout << "Something here" << std::endl;
 
       powerlaw.plotOn(frame,Name("background_powerlaw"),Range("fitRange"),RooFit::NormRange("fitRange"),LineColor(kRed));
       if ( drawFits ) {
@@ -957,7 +963,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 
     //////Bernstein polynomials
     std::cout << "Bernstein fit................." << std::endl;
-    int maxpolyorder = 3; // up to 5
+    int maxpolyorder = 5; // up to 5
     //if (nBG.getVal() < 1)
     //    maxpolyorder = 0;
     int bestBernsteinOrder = -1;
@@ -968,7 +974,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     vector<RooFitResult> fitResultBernstein;
     vector<int> fitStatusBernstein;
     for (int to=0; to<maxpolyorder+1; to++) { 
-      std::cout << "Bernstein order: " << to << std::endl;
       RooArgList parList(Form("bernstein_order%d%s",to+1,catExt.Data()));
       RooRealVar par0(Form("pbern0_order%d%s",to+1,catExt.Data()),Form("pbern0_order%d%s",to+1,catExt.Data()),0.0,10.0);
       RooRealVar par1(Form("pbern1_order%d%s",to+1,catExt.Data()),Form("pbern1_order%d%s",to+1,catExt.Data()),0.0,10.0);
@@ -1101,16 +1106,13 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       }
 
       //frame->remove(Form("background_bernstein_order%d",to+1));
-      std::cout <<  "to: "<< to << std::endl;
       if ( (bestBernsteinOrder >= 0 && to > bestBernsteinOrder) || to > maxpolyorder ) {
-        std::cout << "Im here: " << nBG.getVal() <<  std::endl;
 	RooAbsPdf *bernstein;
 	vector<int> bernsteinPDFOrders;
 	int minBernsteinOrder = (addBernsteinOrders) ? bestBernsteinOrder-1 : bestBernsteinOrder;
 	int maxBernsteinOrder = (addBernsteinOrders) ? bestBernsteinOrder+1 : bestBernsteinOrder;
 	for ( int tto = minBernsteinOrder; tto <= maxBernsteinOrder; tto++) {
           if (nBG.getVal() < 1 && tto==minBernsteinOrder) {
-            std::cout << "Im here 2: " << nBG.getVal() <<  std::endl;
             bernstein = new RooUniform(Form("background_uniform%s",catExt.Data()),Form("background_uniform%s",catExt.Data()),x);
           } else {
             if (nBG.getVal() < 1)
@@ -1119,15 +1121,13 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	  // If zero events, or less than 10 events and less than 0.1 events/GeV, only use lowest order
 	  if ( (nBG.getVal() < 1 || ( nBG.getVal()/(mass+10.0*stddev-std::max(minMforFit,mass-10.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) && tto > 0 ) continue;
 	  // If p-value is zero, fit does not converge, zero events, or less than 10 events and less than 0.1 events/GeV, do not include
-	  std::cout << chi2BernsteinPvalue[tto] << " " << fitStatusBernstein[tto] << std::endl;
 	  if ( ( chi2BernsteinPvalue[tto] > 0.01 &&
 		 fitStatusBernstein[tto]==0 )
 	       || ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+10.0*stddev-std::max(minMforFit,mass-10.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
-            std::cout << "Why tto =1?" << std::endl;
 	    bernsteinPDFOrders.push_back(tto);
 	    //RooAbsPdf *bernstein;
 	    if (tto == 0) {
-	      if ( (*mmumuFit).sumEntries(Form("mfit>=%.3f",mass+3.0*stddev)) < (*mmumuFit).sumEntries(Form("mfit<%.3f",mass-3.0*stddev)) )
+	      if ( (*mmumuFit).sumEntries(Form("%s>=%.3f",varname.Data(),mass+3.0*stddev)) < (*mmumuFit).sumEntries(Form("%s<%.3f",varname.Data(),mass-3.0*stddev)) )
 		bernstein = new RooBernsteinFast<1>(Form("background_bernstein%s",catExt.Data()),Form("background_bernstein%s",catExt.Data()),x,parListBernstein[tto]);
 	      else
 		bernstein = new RooUniform(Form("background_uniform%s",catExt.Data()),Form("background_uniform%s",catExt.Data()),x);

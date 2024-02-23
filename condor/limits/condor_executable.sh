@@ -62,9 +62,18 @@ cd HiggsAnalysis/CombinedLimit
 . env_standalone.sh
 cd ../../
 
+#cd CMSSW_12_6_0/src
+#scram b -j 8
+#cmsenv
+#cd HiggsAnalysis/CombinedLimit
+#. env_standalone.sh
+#cd ../../../../
+
+ls -la
+
 rm -rf ${OUT}
 mkdir -p ${OUT}
-bash combineScripts/submitLimits.sh $DIR ${OUT} $SIG $LIM $MASS $CTAU
+bash combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${MASS} ${CTAU}
 
 for FILE in $(ls ${OUT})
 do

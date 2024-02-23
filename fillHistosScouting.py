@@ -363,6 +363,7 @@ lxybins = [0.0, 0.5, 2.7, 6.5, 11.0, 16.0, 70.0]
 lxystrs = [str(l).replace('.', 'p') for l in lxybins]
 lxybinlabel = ["lxy{}to{}".format(lxystrs[l], lxystrs[l+1]) for l in range(0, len(lxystrs)-1)]
 ptcut = 25. # Tried 25, 50 and 100
+dphisvcut = 0.02 # Last Run 2 value
 # Variables
 mfit = ROOT.RooRealVar("mfit", "mfit", 0.4, 140.0)
 m4fit = ROOT.RooRealVar("m4fit", "m4fit", 0.4, 140.0)
@@ -372,13 +373,15 @@ roods = {}
 catmass = {}
 dbins = []
 # Categories
-dbins.append("FourMu_sep")
-dbins.append("FourMu_osv")
+dbins.append("FourMu_sep") # 4mu, multivertex
+dbins.append("FourMu_osv") # 4mu, 4mu-vertex
 for label in lxybinlabel:
     dbins.append("Dimuon_"+label+"_iso0_ptlow")
     dbins.append("Dimuon_"+label+"_iso0_pthigh")
     dbins.append("Dimuon_"+label+"_iso1_ptlow")
     dbins.append("Dimuon_"+label+"_iso1_pthigh")
+    dbins.append("Dimuon_"+label+"_non-pointing") # non-pointing
+dbins.append("Dimuon_excluded") # Dimuons excluded from categorization
 #
 for dbin in dbins:
     dname = "d_" + dbin
@@ -1276,8 +1279,8 @@ for e in range(firste,laste):
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
             #if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2(): # uncomment if we want to apply this cut per muon
-            #if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
-            if dphisvu>0.02 or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            #if dphisvu>0.02 or a3dsvu>ROOT.TMath.PiOver2():
                 continue
         #
         #  Apply categorization and selection on muon isolation
@@ -1305,25 +1308,34 @@ for e in range(firste,laste):
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
         # Scan:
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
-            for l in range(len(lxybins)-1):
-                label = lxybinlabel[l]  
-                if lxy > lxybins[l] and lxy < lxybins[l+1]:
-                    break
-            if isocat==2:
-                if pt < ptcut:
-                    slice = "Dimuon_"+label+"_iso1_ptlow"
+            slice = ""
+            if dphisvu < dphisvcut:
+                for l in range(len(lxybins)-1):
+                    label = lxybinlabel[l]  
+                    if lxy > lxybins[l] and lxy < lxybins[l+1]:
+                        break
+                if isocat==2:
+                    if pt < ptcut:
+                        slice = "Dimuon_"+label+"_iso1_ptlow"
+                    else:
+                        slice = "Dimuon_"+label+"_iso1_pthigh"
                 else:
-                    slice = "Dimuon_"+label+"_iso1_pthigh"
-            else:
-                if pt < ptcut:
-                    slice = "Dimuon_"+label+"_iso0_ptlow"
-                else:
-                    slice = "Dimuon_"+label+"_iso0_pthigh"
-            mfit.setVal(mass)
-            roow.setVal(lumiweight);
-            roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-            catmass[slice].Fill(mass);
-            filledcat2mu = True
+                    if pt < ptcut:
+                        slice = "Dimuon_"+label+"_iso0_ptlow"
+                    else:
+                        slice = "Dimuon_"+label+"_iso0_pthigh"
+            else: 
+                for l in range(len(lxybins)-1):
+                    label = lxybinlabel[l]  
+                    if lxy > lxybins[l] and lxy < lxybins[l+1]:
+                        slice = "Dimuon_"+label+"_non-pointing"
+                        break
+            if slice!="":
+                mfit.setVal(mass)
+                roow.setVal(lumiweight);
+                roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+                catmass[slice].Fill(mass);
+                filledcat2mu = True
 
     # Apply selections and fill histograms for muon pairs from overlapping SVs
     seldmuidxs_osv = []
@@ -1433,8 +1445,8 @@ for e in range(firste,laste):
             if dpmmu>0.9*(ROOT.TMath.Pi()) or a3dmmu>0.9*(ROOT.TMath.Pi()):
                 continue
             #if dphisv1u>ROOT.TMath.PiOver2() or dphisv2u>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
-            #if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
-            if dphisvu>0.02 or a3dsvu>ROOT.TMath.PiOver2():
+            if dphisvu>ROOT.TMath.PiOver2() or a3dsvu>ROOT.TMath.PiOver2():
+            #if dphisvu>0.02 or a3dsvu>ROOT.TMath.PiOver2():
                 continue
          #
         #  Apply categorization and selection on muon isolation
@@ -1476,20 +1488,28 @@ for e in range(firste,laste):
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
         # Scan:
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
-            for l in range(len(lxybins)-1):
-                label = lxybinlabel[l]  
-                if lxy > lxybins[l] and lxy < lxybins[l+1]:
-                    break
-            if isocat==2:
-                if pt < ptcut:
-                    slice = "Dimuon_"+label+"_iso1_ptlow"
+            slice = "Dimuon_excluded"
+            if dphisvu < dphisvcut:
+                for l in range(len(lxybins)-1):
+                    label = lxybinlabel[l]  
+                    if lxy > lxybins[l] and lxy < lxybins[l+1]:
+                        break
+                if isocat==2:
+                    if pt < ptcut:
+                        slice = "Dimuon_"+label+"_iso1_ptlow"
+                    else:
+                        slice = "Dimuon_"+label+"_iso1_pthigh"
                 else:
-                    slice = "Dimuon_"+label+"_iso1_pthigh"
-            else:
-                if pt < ptcut:
-                    slice = "Dimuon_"+label+"_iso0_ptlow"
-                else:
-                    slice = "Dimuon_"+label+"_iso0_pthigh"
+                    if pt < ptcut:
+                        slice = "Dimuon_"+label+"_iso0_ptlow"
+                    else:
+                        slice = "Dimuon_"+label+"_iso0_pthigh"
+            else: 
+                for l in range(len(lxybins)-1):
+                    label = lxybinlabel[l]  
+                    if lxy > lxybins[l] and lxy < lxybins[l+1]:
+                        slice = "Dimuon_"+label+"_non-pointing"
+                        break
             mfit.setVal(mass)
             roow.setVal(lumiweight);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());

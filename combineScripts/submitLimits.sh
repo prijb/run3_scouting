@@ -56,7 +56,7 @@ do
             name="-n _${which}_${model}_M${m}"
             if [ ${which} == "asymptotic" ]
             then
-                eval "combine -M AsymptoticLimits ${indir}/card_combined_${model}_M${m}_ctau${t}_allEras.txt ${options} ${name} -m ${m} >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}.txt"
+                eval "combine -M AsymptoticLimits ${indir}/card_combined_${model}_M${m}_ctau${t}_allEras.root ${options} ${name} -m ${m} >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}.txt"
             elif [ ${which} == "toysObs" ]
             then
                 eval "combine ${indir}/card_combined_${model}_M${m}_allyears.root -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m ${m} >& ${outdir}/lim_${which}_${model}_m${m}.txt"
@@ -82,7 +82,7 @@ do
             then
                 eval "combine ${indir}/card_combined_${model}_M${m}_allyears.root -M Significance ${options} ${name} -m ${m} --uncapped=1 --rMin=-5 --rMax=5 >& ${outdir}/lim_${which}_${model}_m${m}.txt"
             fi
-            #rm higgsCombine*_${which}_${model}_M${m}*.root
+            rm higgsCombine*_${which}_${model}_M${m}*.root
         fi
     done
 done
