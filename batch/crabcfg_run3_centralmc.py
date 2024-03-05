@@ -21,7 +21,7 @@ else:
 data=False
 
 # ntuple version defined now
-ntuple_version = "5c"
+ntuple_version = "5central"
 
 # Setup working environment
 import os
