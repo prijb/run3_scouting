@@ -51,11 +51,19 @@ if opts.data:
 else:
     if '2022' in opts.era:
         if not 'postEE' in opts.era:
-            gtag="124X_mcRun3_2022_realistic_v12" # latest MC GT
+            #gtag="124X_mcRun3_2022_realistic_v12" # latest MC GT
+            gtag="130X_mcRun3_2022_realistic_v5" # Found for central production
         else:
-            gtag="124X_mcRun3_2022_realistic_postEE_v1"
+            #gtag="124X_mcRun3_2022_realistic_postEE_v1"
+            gtag="130X_mcRun3_2022_realistic_postEE_v6" # Found for central production
     else:
-        gtag="130X_mcRun3_2023_realistic_v9" # latest MC GT (=phase1_2023_realistic, in CMSSW_13_1_0)
+        #gtag="130X_mcRun3_2023_realistic_v9" # latest MC GT (=phase1_2023_realistic, in CMSSW_13_1_0)
+        if not 'BPix' in opts.era:
+            #gtag="124X_mcRun3_2022_realistic_v12" # latest MC GT
+            gtag="130X_mcRun3_2023_realistic_v14" # Found for central production
+        else:
+            #gtag="124X_mcRun3_2022_realistic_postEE_v1"
+            gtag="130X_mcRun3_2023_realistic_postBPix_v2" # Found for central production
 process.GlobalTag.globaltag = gtag
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(opts.nevents))
