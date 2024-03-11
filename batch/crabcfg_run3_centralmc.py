@@ -21,7 +21,7 @@ else:
 data=False
 
 # ntuple version defined now
-ntuple_version = "5central"
+ntuple_version = "5p0"
 
 # Setup working environment
 import os
@@ -42,10 +42,10 @@ if (len(sys.argv)>2):
     config.JobType.psetName = 'Scouting/NtupleMaker/test/producer_Run3.py'
     config.Data.splitting = 'EventAwareLumiBased'
     config.Data.unitsPerJob = int(10e4)
-    config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_version # DB no
     config.Data.publication = False # By defailt but set to true below
     config.Site.storageSite = "T2_US_UCSD"
     if "HTo2ZdTo2mu2x" in sys.argv[2]:
+        config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_HTo2ZdTo2mu2x_v'++ntuple_version # DB no
         config.Data.inputDBS = 'global'
         # Set the points to produce
         mass_points.append(['0p5', '1'])
@@ -141,11 +141,12 @@ if (len(sys.argv)>2):
     elif "BToPhi" in sys.argv[2]:
         # This setup is provisional as it is tested with private signal crab produced samples
         #   -> Will be replaced by central datasets when done
+        config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_privBToPhi_v'+ntuple_version # DB no
         config.Data.inputDBS = 'phys03'
         config.Data.splitting = 'FileBased'
         config.Data.publication = True
-        config.Data.unitsPerJob = int(1000) # Increased to match one job per file
-        config.Data.outputDatasetTag = 'private-Skim-v1'
+        config.Data.unitsPerJob = int(100) # Increased to match 10 jobs per file aprox
+        config.Data.outputDatasetTag = "private-Skim_{era}-v1".format(era=era)
         if era=="2022":
             mass_points.append(['BToPhi_MPhi-2p0_ctau-1mm', '/BToPhi_MPhi-2p0_ctau-1mm-pythia8/Run3Scouting-private-Run3Summer22-AODSIM-b87ef10f6cfee71a9c25d28c950fbc4d/USER'])
             mass_points.append(['BToPhi_MPhi-2p0_ctau-10mm', '/BToPhi_MPhi-2p0_ctau-10mm-pythia8/Run3Scouting-private-Run3Summer22-AODSIM-b87ef10f6cfee71a9c25d28c950fbc4d/USER'])
