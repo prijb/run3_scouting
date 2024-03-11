@@ -1,3 +1,7 @@
+####################################
+####################################
+#### HTo2ZdTo2mu2x central datasets
+####################################
 Signal_HTo2ZdTo2mu2x_MZd-44p0_ctau-10mm_2022,/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/CentralSignal/Signal_HTo2ZdTo2mu2x_MZd-44p0_ctau-10mm_2022/
 Signal_HTo2ZdTo2mu2x_MZd-44p0_ctau-10mm_2022postEE,/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/CentralSignal/Signal_HTo2ZdTo2mu2x_MZd-44p0_ctau-10mm_2022postEE/
 Signal_HTo2ZdTo2mu2x_MZd-34p0_ctau-1mm_2022postEE,/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/CentralSignal/Signal_HTo2ZdTo2mu2x_MZd-34p0_ctau-1mm_2022postEE/
@@ -142,3 +146,13 @@ Signal_HTo2ZdTo2mu2x_MZd-24p0_ctau-1mm_2022,/ceph/cms/store/group/Run3Scouting/R
 Signal_HTo2ZdTo2mu2x_MZd-24p0_ctau-1mm_2022postEE,/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/CentralSignal/Signal_HTo2ZdTo2mu2x_MZd-24p0_ctau-1mm_2022postEE/
 Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-100mm_2022,/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/CentralSignal/Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-100mm_2022/
 Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-100mm_2022postEE,/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/CentralSignal/Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-100mm_2022postEE/
+####################################
+####################################
+#### BToPhi private datasets
+####################################
+Signal_BToPhi_MPhi-2p0_ctau-1mm_2022,/BToPhi_MPhi-2p0_ctau-1mm-pythia8/Run3Scouting-private-Skim_2022-v1-c90c1d4759d316765c85d416fdcd844e/USER
+Signal_BToPhi_MPhi-2p0_ctau-1mm_2022postEE,/BToPhi_MPhi-2p0_ctau-1mm-pythia8/Run3Scouting-private-Skim_2022postEE-v1-1b32a25b09c50ceaafd1ea7c5555c401/USER
+Signal_BToPhi_MPhi-2p0_ctau-10mm_2022,/BToPhi_MPhi-2p0_ctau-10mm-pythia8/Run3Scouting-private-Skim_2022-v1-c90c1d4759d316765c85d416fdcd844e/USER
+Signal_BToPhi_MPhi-2p0_ctau-10mm_2022postEE,/BToPhi_MPhi-2p0_ctau-10mm-pythia8/Run3Scouting-private-Skim_2022postEE-v1-1b32a25b09c50ceaafd1ea7c5555c401/USER
+Signal_BToPhi_MPhi-2p0_ctau-100mm_2022,/BToPhi_MPhi-2p0_ctau-100mm-pythia8/Run3Scouting-private-Skim_2022-v1-c90c1d4759d316765c85d416fdcd844e/USER
+Signal_BToPhi_MPhi-2p0_ctau-100mm_2022postEE,/BToPhi_MPhi-2p0_ctau-100mm-pythia8/Run3Scouting-private-Skim_2022postEE-v1-1b32a25b09c50ceaafd1ea7c5555c401/USER
