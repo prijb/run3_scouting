@@ -10,6 +10,13 @@ STARTFILE=$4
 NFILES=$5
 ISCONDOR=1
 
+if [ $# -gt 5 ]
+then
+    FROMCRAB=$6
+else
+    FROMCRAB=0
+fi
+
 function stageout {
     COPY_SRC=$1
     COPY_DEST=$2
