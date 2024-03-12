@@ -54,7 +54,7 @@ python3 crabcfg_run3.py 2023C PFMonitor
 python3 crabcfg_run3.py 2023D PFMonitor
 ```
 
-Run on central signal MC:
+### Run on central signal MC:
 
 Should setup the corresponding CMSSW version for each campaign e.g.
 ```bash
@@ -64,11 +64,14 @@ Should setup the corresponding CMSSW version for each campaign e.g.
 
 and then run:
 ```bash
-python3 crabcfg_run3_centralmc.py
+python3 crabcfg_run3_centralmc.py [era] [signal]
 ```
 
-**Note: Right now only setup for central HAHM samples (will need to adapt once others are produced)**
+**Note 1: Right now only setup for central HAHM and private BtoPhi samples will need to adapt once others are produced**
 
+**Note 2: Since BtoPhi samples, output could be published in DAS so it can be accessed out UAF through xrd**
+
+**Note 3: If running out of UAF and/or out of SnT Scouting group, crab details should be modify to re-direct the output to a site with writting permission**
 
 ## Run2 Info
 

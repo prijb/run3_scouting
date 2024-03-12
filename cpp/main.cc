@@ -18,11 +18,33 @@ int char2int(const char *c) {
 }
 
 
-std::vector<TString> getFiles(const std::string inputDir, const int startFile, const int nFiles, const bool isCondor) {
+std::vector<TString> getFiles(const std::string inputDir, const int startFile, const int nFiles, const bool isCondor, const bool fromCrab) {
   std::vector<TString> files;
   std::string fullInputDir;
   unsigned int iFile=0;
-  if (!isCondor) {
+  if (fromCrab) {
+    std::string command;
+    command = "/cvmfs/cms.cern.ch/common/dasgoclient --query=\"file dataset=";
+    command += inputDir; 
+    command += " instance=prod/phys03\" -format string > infiles.txt";
+    std::system(command.c_str());
+    std::ifstream infiles("infiles.txt");
+    std::string line;
+    while(getline(infiles, line)) {
+      if (iFile<startFile) {
+	iFile++;
+	continue;
+      }
+      if (!TString(line.c_str()).Contains(".root"))
+	continue;
+      else {
+	files.push_back(TString("root://cmsxrootd.fnal.gov//"+line));
+      }
+      iFile++;
+      if (iFile == startFile+nFiles)
+	break;
+    }
+  } else if (!isCondor) {
     if (inputDir.rfind("/ceph/cms", 0) == 0)
       fullInputDir = inputDir;
     else
@@ -83,53 +105,54 @@ int main(int argc, char **argv) {
   int startFile           = ( argc > 4  ? char2int(argv[4])  : 0 );
   int nFiles              = ( argc > 5  ? char2int(argv[5])  : 1000000 ); // Large number as default to run over all files
   bool isCondor           = ( argc > 6  ? char2int(argv[6])  : 0 );
+  bool fromCrab           = ( argc > 7  ? char2int(argv[7])  : 0 );
   std::vector<TString> files;
   TString process;
   // Sample list: Data
   if ( sampleArg=="DataB" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022B/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022B/", startFile, nFiles, isCondor, fromCrab);
     process = "DataB";
   }
   if ( sampleArg=="DataC" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022C/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022C/", startFile, nFiles, isCondor, fromCrab);
     process = "DataC";
   }
   if ( sampleArg=="DataD" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022D/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022D/", startFile, nFiles, isCondor, fromCrab);
     process = "DataD";
   }
   if ( sampleArg=="DataE" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022E/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022E/", startFile, nFiles, isCondor, fromCrab);
     process = "DataE";
   }
   if ( sampleArg=="DataF" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022F/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022F/", startFile, nFiles, isCondor, fromCrab);
     process = "DataF";
   }
   if ( sampleArg=="DataG" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022G/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2022G/", startFile, nFiles, isCondor, fromCrab);
     process = "DataG";
   }
   if ( sampleArg=="DataB" && year=="2023") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023B/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023B/", startFile, nFiles, isCondor, fromCrab);
     process = "DataB";
   }
   if ( sampleArg=="DataC-triggerV10" && year=="2023") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023C-triggerV10/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023C-triggerV10/", startFile, nFiles, isCondor, fromCrab);
     process = "DataC-triggerV10";
   }
   if ( sampleArg=="DataC" && year=="2023") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023C/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023C/", startFile, nFiles, isCondor, fromCrab);
     process = "DataC";
   }
   if ( sampleArg=="DataD" && year=="2023") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023D/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Data/2023D/", startFile, nFiles, isCondor, fromCrab);
     process = "DataD";
   }
   //
   // Sample list: Monte Carlo
   if ( sampleArg=="DileptonMinBias" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/MC/DileptonMinBias/", startFile, nFiles, isCondor);
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/MC/DileptonMinBias/", startFile, nFiles, isCondor, fromCrab);
     process = "DileptonMinBias";
   }
   //
@@ -146,7 +169,7 @@ int main(int argc, char **argv) {
       s.erase(0, s.find(delimiter) + delimiter.length());
       samplePath = s;
       if (sampleName==sampleArg) {
-        files = getFiles(samplePath, startFile, nFiles, isCondor);
+        files = getFiles(samplePath, startFile, nFiles, isCondor, fromCrab);
         process = sampleArg;
         break;
       }
@@ -156,69 +179,69 @@ int main(int argc, char **argv) {
   //
   // Sample list: Signal
   if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-1mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-2p0_ctau-1mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-2p0_ctau-1mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-1mm";
   }
   if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm";
   }
   if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-100mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-2p0_ctau-100mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-2p0_ctau-100mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-100mm";
   }
   if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm";
   }
   if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-10mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-7p0_ctau-10mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-7p0_ctau-10mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-10mm";
   }
   if ( sampleArg=="Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-100mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-7p0_ctau-100mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/HTo2ZdTo2mu2x_MZd-7p0_ctau-100mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-100mm";
   }
   if ( sampleArg=="Signal_ScenB1_30_9p9_4p8_ctau_1mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/ScenB1_30_9p9_4p8_ctau_1mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/ScenB1_30_9p9_4p8_ctau_1mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_ScenB1_30_9p9_4p8_ctau_1mm";
   }
   if ( sampleArg=="Signal_ScenB1_30_9p9_4p8_ctau_10mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/ScenB1_30_9p9_4p8_ctau_10mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/ScenB1_30_9p9_4p8_ctau_10mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_ScenB1_30_9p9_4p8_ctau_10mm";
   }
   if ( sampleArg=="Signal_ScenB1_30_9p9_4p8_ctau_100mm" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/ScenB1_30_9p9_4p8_ctau_100mm_2022/", startFile, nFiles, isCondor); 
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/Signal/ScenB1_30_9p9_4p8_ctau_100mm_2022/", startFile, nFiles, isCondor, fromCrab); 
     process = "Signal_ScenB1_30_9p9_4p8_ctau_100mm";
   }
   //
   // Sample list: PF Monitor 2022
   if ( sampleArg=="MonDataTest" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022Test/", startFile, nFiles, isCondor);  // 1 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022Test/", startFile, nFiles, isCondor, fromCrab);  // 1 files
     process = "MonDataTest";
   }
   if ( sampleArg=="MonDataB" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022B/", startFile, nFiles, isCondor);  // 5 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022B/", startFile, nFiles, isCondor, fromCrab);  // 5 files
     process = "MonDataB";
   }
   if ( sampleArg=="MonDataC" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022C/", startFile, nFiles, isCondor);  // 24 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022C/", startFile, nFiles, isCondor, fromCrab);  // 24 files
     process = "MonDataC";
   }
   if ( sampleArg=="MonDataD" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022D/", startFile, nFiles, isCondor);  // 5 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022D/", startFile, nFiles, isCondor, fromCrab);  // 5 files
     process = "MonDataD";
   }
   if ( sampleArg=="MonDataE" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022E/", startFile, nFiles, isCondor);  // 6 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022E/", startFile, nFiles, isCondor, fromCrab);  // 6 files
     process = "MonDataE";
   }
   if ( sampleArg=="MonDataF" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022F/", startFile, nFiles, isCondor);  // 13 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022F/", startFile, nFiles, isCondor, fromCrab);  // 13 files
     process = "MonDataF";
   }
   if ( sampleArg=="MonDataG" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022G/", startFile, nFiles, isCondor);  // 5 files
+    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Jan-9-2024/Data/Mon2022G/", startFile, nFiles, isCondor, fromCrab);  // 5 files
     process = "MonDataG";
   }
   std::cout << "################################## \n";
