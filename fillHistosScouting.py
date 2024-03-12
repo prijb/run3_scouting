@@ -24,6 +24,7 @@ parser.add_argument("--condor", default=False, action="store_true", help="Run on
 parser.add_argument("--data", default=False, action="store_true", help="Process data")
 parser.add_argument("--signal", default=False, action="store_true", help="Process signal")
 parser.add_argument("--year", default="2022", help="Year to be processed. Default: 2022")
+parser.add_argument("--weightMC", default=True, help="Indicate if MC is weighted")
 parser.add_argument("--partialUnblinding", default=False, action="store_true", help="Process x% (default: x=50) of available data")
 parser.add_argument("--partialUnblindingFraction", default="0.5", help="Fraction of available data to be processed")
 parser.add_argument("--removeDuplicates", default=False, action="store_true", help="Check for and remove duplicates")
@@ -274,28 +275,35 @@ t = ROOT.TChain("tout")
 for f in files:
     t.Add(f)
 
-# MC normalization
+# MC normalization (Need to integrate everything for all signals that we may produce)
 ncounts = 1
 efilter = 1.0
 lumiweight = 1.0
 sampleTag = args.inSample.replace('Signal_', '').split('_202')[0]
-if not isData:
+if not isData and args.weightMC:
     counts = ROOT.TH1F("totals", "", 1, 0, 1)
-    counts.Fill(0.5)
     print("Simulations: Getting counts")
-    for _,f in enumerate(files):
-        f_ = ROOT.TFile(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
-        h_ = f_.Get("counts").Clone("Clone_{}".format(_))
-        counts.Add(h_)
-        f_.Close()
-    ncounts = counts.GetBinContent(1) 
     if "HTo2ZdTo2mu2x" in sampleTag:
+        for _,f in enumerate(files):
+            f_ = ROOT.TFile(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+            counts.Add(h_)
+            f_.Close()
+        ncounts = counts.GetBinContent(1) 
         with open('data/hahm-request.csv') as mcinfo:
             reader = csv.reader(mcinfo, delimiter=',')
             for row in reader:
                 if sampleTag in row[0]:
                     efilter = float(row[-1])
                     break
+    if "ScenB2" in sampleTag:
+        for _,f in enumerate(files):
+            f_ = ROOT.TFile(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+            counts.Add(h_)
+            f_.Close()
+        ncounts = counts.GetBinContent(1)
+        efilter = 1.0
     if "2022postEE" in f:
         lumiweight = getweight("2022postEE", ncounts/efilter, 0.1)
     elif "2022" in f:
@@ -304,7 +312,11 @@ if not isData:
         lumiweight = getweight("2023", ncounts/efilter, 0.1)
     elif "2023BPix" in f:
         lumiweight = getweight("2023BPix", ncounts/efilter, 0.1)
-    print("Total number of counts: {}".format(counts.GetBinContent(1)))
+    if "ScenB1" in sampleTag:
+        ncounts = 300000.0
+        efilter = 1.0
+        lumiweight = 0.1*(8.077046947 + 26.982330931)*1000.0/(ncounts/efilter)
+    print("Total number of counts: {}".format(ncounts))
     print("Filter efficiency (generation): {}".format(efilter))
     print("Lumiweight: {}".format(lumiweight))
 
@@ -388,6 +400,9 @@ for dbin in dbins:
     if 'Dimuon' in dname:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{#mu#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
+    elif 'FourMu_sep' in dname:
+        catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; <m_{#mu#mu}> [GeV]; Events / 0.01 GeV",15000, 0., 150.)
+        roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
     else:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{4#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(m4fit,roow4),"roow")
@@ -423,7 +438,7 @@ for e in range(firste,laste):
     # Event info
     for h in h1d["event"]:
         tn = h.GetName()
-        h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]), lumiweight)
 
     # Gen info
     dmugen = []
@@ -451,17 +466,17 @@ for e in range(firste,laste):
             if isResonance:
                 for h in h1d["genmu"]:
                     tn = h.GetName()
-                    h.Fill(eval(variable1d[h.GetName()]))
+                    h.Fill(eval(variable1d[h.GetName()]), lumiweight)
 
         for g,gp in enumerate(dmumot):
             lxygen = t.GenPart_lxy[dmugen[2*g]] 
             if t.GenPart_motherPdgId[dmugen[2*g]]==443:
                 for h in h1d["jpsi"]:
                     tn = h.GetName()
-                    h.Fill(eval(variable1d[h.GetName()]))
+                    h.Fill(eval(variable1d[h.GetName()]), lumiweight)
             for h in h1d["llp"]:
                 tn = h.GetName()
-                h.Fill(eval(variable1d[h.GetName()]))
+                h.Fill(eval(variable1d[h.GetName()]), lumiweight)
 
     # Loop over SVs
     nSV = len(t.SV_index)
@@ -479,16 +494,16 @@ for e in range(firste,laste):
         lxy = t.SV_lxy[v]
         for h in h1d["svsel"]:
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["svsel"]:
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
     nSVs = nSVsel
     for h in h1d["nsvsel"]:
         if args.noPreSel:
             break
         tn = h.GetName()
-        h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]), lumiweight)
 
     # Loop over muons
     nMu = len(t.Muon_selected)
@@ -514,17 +529,17 @@ for e in range(firste,laste):
             if args.noPreSel:
                 break
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["muon"]:
             if args.noPreSel:
                 break
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
     for h in h1d["nmuon"]:
         if args.noPreSel:
             break
         tn = h.GetName()
-        h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]), lumiweight)
     # Select events witb at least two muons associated to a SV
     if nMuAss<2:
         continue
@@ -948,16 +963,20 @@ for e in range(firste,laste):
         #
         for h in h1d["fourmuon"]:
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["fourmuon"]:
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
         if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
-            m4fit.setVal(mass)
-            roow4.setVal(lumiweight);
-            roods["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
-            catmass["FourMu_sep"].Fill(mass);
+            #m4fit.setVal(mass)
+            #roow4.setVal(lumiweight);
+            #roods["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
+            #catmass["FourMu_sep"].Fill(mass, lumiweight);
+            mfit.setVal(avgmass)
+            roow.setVal(lumiweight);
+            roods["FourMu_sep"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            catmass["FourMu_sep"].Fill(avgmass, lumiweight);
             filledcat4musep = True
         else:
             filledcat4musep = False
@@ -969,16 +988,16 @@ for e in range(firste,laste):
         lxy = t.SV_lxy[v]
         for h in h1d["svselass_fourmu"]:
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["svselass_fourmu"]:
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
     nSVs = nSVselass_qmu
     for h in h1d["nsvselass_fourmu"]:
         if args.noFourMuon:
             break
         tn = h.GetName()
-        h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]), lumiweight)
 
     # Apply selections and fill histograms for four-muon systems from overlapping SVs
     selqmusvidxs_osv = []
@@ -1120,16 +1139,16 @@ for e in range(firste,laste):
         #
         for h in h1d["fourmuon_osv"]:
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["fourmuon_osv"]:
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             m4fit.setVal(mass)
             roow4.setVal(lumiweight);
             roods["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
-            catmass["FourMu_osv"].Fill(mass);
+            catmass["FourMu_osv"].Fill(mass, lumiweight);
             filledcat4muosv = True
         else:
             filledcat4muosv = False
@@ -1141,16 +1160,16 @@ for e in range(firste,laste):
         lxy = t.SV_lxy[v]
         for h in h1d["svselass_fourmu_osv"]:
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["svselass_fourmu_osv"]:
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
     nSVs = nSVselass_qmu_osv
     for h in h1d["nsvselass_fourmu_osv"]:
         if args.noFourMuonOSV:
             break
         tn = h.GetName()
-        h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]), lumiweight)
 
     # Apply selections and fill histograms for muon pairs from non-overlapping SVs
     seldmuidxs = []
@@ -1298,14 +1317,14 @@ for e in range(firste,laste):
                 continue
             if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
                 continue
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["dimuon"]:
             tn = h.GetName()
             if "dimuon_gen_" in tn and not isgen:
                 continue
             if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
                 continue
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             slice = ""
@@ -1324,7 +1343,7 @@ for e in range(firste,laste):
                         slice = "Dimuon_"+label+"_iso0_ptlow"
                     else:
                         slice = "Dimuon_"+label+"_iso0_pthigh"
-            else: 
+            else:
                 for l in range(len(lxybins)-1):
                     label = lxybinlabel[l]  
                     if lxy > lxybins[l] and lxy < lxybins[l+1]:
@@ -1334,7 +1353,7 @@ for e in range(firste,laste):
                 mfit.setVal(mass)
                 roow.setVal(lumiweight);
                 roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-                catmass[slice].Fill(mass);
+                catmass[slice].Fill(mass, lumiweight);
                 filledcat2mu = True
 
     # Apply selections and fill histograms for muon pairs from overlapping SVs
@@ -1478,14 +1497,14 @@ for e in range(firste,laste):
                 continue
             if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
                 continue
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["dimuon"] + h2d["dimuon_osv"]:
             tn = h.GetName()
             if "dimuon_gen_" in tn and not isgen:
                 continue
             if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
                 continue
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             slice = "Dimuon_excluded"
@@ -1504,7 +1523,7 @@ for e in range(firste,laste):
                         slice = "Dimuon_"+label+"_iso0_ptlow"
                     else:
                         slice = "Dimuon_"+label+"_iso0_pthigh"
-            else: 
+            else:
                 for l in range(len(lxybins)-1):
                     label = lxybinlabel[l]  
                     if lxy > lxybins[l] and lxy < lxybins[l+1]:
@@ -1513,7 +1532,7 @@ for e in range(firste,laste):
             mfit.setVal(mass)
             roow.setVal(lumiweight);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-            catmass[slice].Fill(mass);
+            catmass[slice].Fill(mass, lumiweight);
             filledcat2mu = True
 
     # Fill histograms for selected SVs (with a selected muon pair)
@@ -1525,30 +1544,30 @@ for e in range(firste,laste):
         lxy = t.SV_lxy[v]
         for h in h1d["svselass"]:
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["svselass"]:
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         if v in seldmusvidxs_osv:
             nSVselass_osv = nSVselass_osv+1
             for h in h1d["svselass_osv"]:
                 tn = h.GetName()
-                h.Fill(eval(variable1d[h.GetName()]))
+                h.Fill(eval(variable1d[h.GetName()]), lumiweight)
             for h in h2d["svselass_osv"]:
                 tn = h.GetName()
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
     nSVs = nSVselass
     for h in h1d["nsvselass"]:
         if args.noDiMuon:
             break
         tn = h.GetName()
-        h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]), lumiweight)
     nSVs = nSVselass_osv
     for h in h1d["nsvselass_osv"]:
         if args.noDiMuon:
             break
         tn = h.GetName()
-        h.Fill(eval(variable1d[h.GetName()]))
+        h.Fill(eval(variable1d[h.GetName()]), lumiweight)
 
     # Fill histograms for muons from selected dimuon and four-muon systems
     selmuidxs_dmu = seldmuidxs+seldmuidxs_osv
@@ -1588,17 +1607,17 @@ for e in range(firste,laste):
         dxysign = getIPSign(t.Muon_phiCorr[m], phi)
         for h in h1d["selmuon"]:
             tn = h.GetName()
-            h.Fill(eval(variable1d[h.GetName()]))
+            h.Fill(eval(variable1d[h.GetName()]), lumiweight)
         for h in h2d["selmuon"]:
             tn = h.GetName()
-            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+            h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         if m in seldmuidxs_osv:
             for h in h1d["selmuon_osv"]:
                 tn = h.GetName()
-                h.Fill(eval(variable1d[h.GetName()]))
+                h.Fill(eval(variable1d[h.GetName()]), lumiweight)
             for h in h2d["selmuon_osv"]:
                 tn = h.GetName()
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
 
     if len(qmuidxs_sel)>3:
         for m_,m in enumerate(qmuidxs_sel):
@@ -1613,10 +1632,10 @@ for e in range(firste,laste):
                 mass = (qmu_dmuvecmaxlxy[vn]).M()
             for h in h1d["selmuon_fourmu"]:
                 tn = h.GetName()
-                h.Fill(eval(variable1d[h.GetName()]))
+                h.Fill(eval(variable1d[h.GetName()]), lumiweight)
             for h in h2d["selmuon_fourmu"]:
                 tn = h.GetName()
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
 
     if len(qmuidxs_osv_sel)>3:
         for m_,m in enumerate(qmuidxs_osv_sel):
@@ -1626,10 +1645,10 @@ for e in range(firste,laste):
             pt = (qmuvec_osv[vn]).Pt()
             for h in h1d["selmuon_fourmu_osv"]:
                 tn = h.GetName()
-                h.Fill(eval(variable1d[h.GetName()]))
+                h.Fill(eval(variable1d[h.GetName()]), lumiweight)
             for h in h2d["selmuon_fourmu_osv"]:
                 tn = h.GetName()
-                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]))
+                h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
 
 
 ### Write histograms
