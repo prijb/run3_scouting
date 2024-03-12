@@ -39,13 +39,39 @@ python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower
 python3 crabcfg_run3_mc.py /ceph/cms/store/user/jthakral/ProjectMetis/DarkShower_ScenarioC_default_Run3Summer22GS_v0p34_AODSIM_v0p34
 python3 crabcfg_run3_mc.py ///path to mc signal sample, but must be on T2 ucsd for this cfg to work///
 
-#2023 data - must launch from separate env under cms 13_1_X
+# For grid of central MC (will automatically access the published datasets for central signals, to be updated as signals are produced)
+. install_cmssw.sh [2022central or 2023central]
+python3 crabcfg_run3_centralmc.py [era = 2022, 2022postEE, 2023, 2023BPix] [model = HTo2ZdTo2mu2x]
+
+#2023 data/PFMonitor - must launch from separate env under cms 13_1_X
 python3 crabcfg_run3.py 2023B
 python3 crabcfg_run3.py 2023C  triggerV10
 python3 crabcfg_run3.py 2023C
 python3 crabcfg_run3.py 2023D
+python3 crabcfg_run3.py 2023B PFMonitor
+python3 crabcfg_run3.py 2023C PFMonitor triggerV10
+python3 crabcfg_run3.py 2023C PFMonitor
+python3 crabcfg_run3.py 2023D PFMonitor
 ```
 
+### Run on central signal MC:
+
+Should setup the corresponding CMSSW version for each campaign e.g.
+```bash
+. install_cmssw.sh 2022central
+. install_cmssw.sh 2023central
+```
+
+and then run:
+```bash
+python3 crabcfg_run3_centralmc.py [era] [signal]
+```
+
+**Note 1: Right now only setup for central HAHM and private BtoPhi samples will need to adapt once others are produced**
+
+**Note 2: Since BtoPhi samples, output could be published in DAS so it can be accessed out UAF through xrd**
+
+**Note 3: If running out of UAF and/or out of SnT Scouting group, crab details should be modify to re-direct the output to a site with writting permission**
 
 ## Run2 Info
 

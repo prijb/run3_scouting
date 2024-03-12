@@ -23,14 +23,18 @@ if era in ["2022B", "2022C", "2022D", "2022E", "2022F", "2022G", "2023B", "2023C
 
 extra=""
 if (len(sys.argv)>2):
-    if (data and "PFMonitor" not in sys.argv[2]): #triggerV10
+    if (data and "PFMonitor" in sys.argv[2] and len(sys.argv)>3 and "triggerV10" in sys.argv[3]): #triggerV10
+        extra=sys.argv[2]+"_"+sys.argv[3]
+        config.Data.inputDataset = '/ScoutingPFMonitor/Run{}-v1/RAW'.format(era)
+        config.JobType.pyCfgParams=["era={}".format(era+"-triggerV10"),"data=True","monitor=True"]  
+    elif (data and "PFMonitor" not in sys.argv[2]): #triggerV10
         extra=sys.argv[2]
         config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
         config.JobType.pyCfgParams=["era={}".format(era+"-"+extra),"data=True",]
     elif(data): #PFMonitor
         extra=sys.argv[2]
         config.Data.inputDataset = '/ScoutingPFMonitor/Run{}-v1/RAW'.format(era)
-        config.JobType.pyCfgParams=["era={}".format(era),"data=True",]
+        config.JobType.pyCfgParams=["era={}".format(era),"data=True","monitor=True"]
     else: #MC
         config.Data.inputDataset = sys.argv[2]
         extra = sys.argv[2].split("/")[1]
@@ -40,9 +44,9 @@ elif(data): #other data
 else:
     quit()
 
-ntuple_version = "4"
+ntuple_version = "5"
 
-config.General.requestName = 'skim__{}_{}_{}'.format(
+config.General.requestName = 'skim4__{}_{}_{}'.format(
         era,
         extra,
         ntuple_version,
@@ -60,7 +64,7 @@ config.JobType.psetName = 'Scouting/NtupleMaker/test/producer_Run3.py'
 config.Data.splitting = 'EventAwareLumiBased'
 
 if (data):
-    config.Data.unitsPerJob = int(10e6/2)
+    config.Data.unitsPerJob = int(10e6/3)
 else:
     config.Data.unitsPerJob = int(10e4)
 
@@ -73,7 +77,7 @@ else:
 
 if (data and year==2023):
     config.Data.lumiMask = "data/Cert_Collisions2023_366442_370790_Golden.json"
-    if(era=="2023C" and extra=="triggerV10"):
+    if(era=="2023C" and "triggerV10" in extra):
         config.Data.lumiMask = "data/Cert_Collisions2023_eraC_367095_368823_Golden_1.json"
     elif(era=="2023C"):
         config.Data.lumiMask = "data/Cert_Collisions2023_eraC_367095_368823_Golden_2.json"

@@ -21,6 +21,7 @@ using namespace fwlite;
 #include "TRandom3.h"
 #include "TString.h"
 #include "TTree.h"
+#include "TH1F.h"
 
 #include "tools/dorky.h"
 #include "tools/goodrun.h"
@@ -422,6 +423,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   fs::permissions(outdir,fs::perms::owner_all | fs::perms::group_read | fs::perms::group_exec | fs::perms::others_read | fs::perms::others_exec);
   TFile* fout = new TFile(TString(outdir)+"/output_"+process+"_"+year+label+".root", "RECREATE");
   TTree* tout = new TTree("tout","Run3ScoutingTree");
+  TH1F* counts = new TH1F("counts", "", 1, 0, 1);
+  TH1F* sum2Weights = new TH1F("sum2Weights", "", 1, 0, 1);
 
   // Branch variables
   unsigned int run, lumi, evtn;
@@ -438,15 +441,32 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   auto l1Names = getObject<std::vector<std::string>>(ev0, "triggerMaker", "l1name");
   bool l1fired[l1Names.size()] = {false};
 
+  auto hltNames = getObject<std::vector<std::string>>(ev0, "triggerMaker", "hltname");
+  bool hltfired[hltNames.size()] = {false};
+
+
   // Branch definition
   tout->Branch("run", &run);
   tout->Branch("lumi", &lumi);
   tout->Branch("evtn", &evtn);
 
   tout->Branch("passL1", &passL1);
+
+  std::cout << "Found the following L1 seeds:" << std::endl;
+  std::cout << " - Total number of seeds " << l1Names.size() << std::endl;
   for (unsigned int iL1=0; iL1<l1Names.size(); ++iL1) {
     tout->Branch(TString(l1Names[iL1]), &l1fired[iL1]);
+    std::cout << TString(l1Names[iL1]) << std::endl;
   }
+
+  std::cout << "Found the following HLT paths:" << std::endl;
+  std::cout << " - Total number of paths " << hltNames.size() << std::endl;
+  for (unsigned int iHLT=0; iHLT<hltNames.size(); ++iHLT) {
+    tout->Branch(TString(hltNames[iHLT]), &hltfired[iHLT]);
+    std::cout << TString(hltNames[iHLT]) << std::endl;
+  }
+
+
   tout->Branch("passHLT", &passHLT);
 
   tout->Branch("nPV", &nPV);
@@ -606,6 +626,14 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       run  = eID.run();
       lumi = eID.luminosityBlock();
       evtn = eID.event();
+
+      //
+      if (isMC){
+        //genWeight = (float) genEvtInfo->weight(); // EventInfo not available
+        //sum2Weights->Fill(0.5, genWeight*genWeight);
+        sum2Weights->Fill(0.5);
+      }
+        counts->Fill(0.5);
 
       // JSON and duplicate removal
       if ( !isMC ) {
