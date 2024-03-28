@@ -105,7 +105,9 @@ root -b -q -l -n cpp/doAll_fitDimuonMass.C
 ```
 
 
-## Limits on condor
+## Limit extraction
+
+### Combine in condor
 
 If running limits for the first time:
 
@@ -123,6 +125,19 @@ Then launch with condor with:
 ```
 sh condor/limits/runLimits_onCondor.sh <datacard directory> <limit output directory>
 ``
+model and other parameters are specified in the corresponding .sub file.
+
+To wrap the limits results:
+```
+python3 combineScripts/readAsymptoticLimits.py <model> <limit output directory>
+```
+which will create a txt file with the relevant upper limits in the previous limit output directory.
+
+To plot them:
+```
+python3 combineScripts/plot1DLimits.py <model> <limit output directory> <ctau>
+```
+which will create the png limit plot.
 
 ## Draft analysis code with uproot and coffea
 

@@ -10,12 +10,15 @@ ROOT.gROOT.SetBatch(1)
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
 
-doRatio = True
-doPull = True
-useData = True
+doRatio = False
+doPull = False
 useSignalMC = True
 doPartialUnblinding = True
 normalizeSignal = False # Only if background is > 0
+plotBackground = False
+plotSignal = True
+plotOnlySignal = True
+useData = not plotOnlySignal
 
 wsname = "wfit"
 thisDir = os.environ.get("PWD")
@@ -31,30 +34,46 @@ if not os.path.exists(outDir):
 dNames = []
 dNames.append("d_FourMu_sep")
 dNames.append("d_FourMu_osv")
-dNames.append("d_Dimuon_lxy0p0to0p5_iso0_ptlow");
-dNames.append("d_Dimuon_lxy0p0to0p5_iso0_pthigh");
-dNames.append("d_Dimuon_lxy0p0to0p5_iso1_ptlow");
-dNames.append("d_Dimuon_lxy0p0to0p5_iso1_pthigh");
-dNames.append("d_Dimuon_lxy0p5to2p7_iso0_ptlow");
-dNames.append("d_Dimuon_lxy0p5to2p7_iso0_pthigh");
-dNames.append("d_Dimuon_lxy0p5to2p7_iso1_ptlow");
-dNames.append("d_Dimuon_lxy0p5to2p7_iso1_pthigh");
-dNames.append("d_Dimuon_lxy2p7to6p5_iso0_ptlow");
-dNames.append("d_Dimuon_lxy2p7to6p5_iso0_pthigh");
-dNames.append("d_Dimuon_lxy2p7to6p5_iso1_ptlow");
-dNames.append("d_Dimuon_lxy2p7to6p5_iso1_pthigh");
-dNames.append("d_Dimuon_lxy6p5to11p0_iso0_ptlow");
-dNames.append("d_Dimuon_lxy6p5to11p0_iso0_pthigh");
-dNames.append("d_Dimuon_lxy6p5to11p0_iso1_ptlow");
-dNames.append("d_Dimuon_lxy6p5to11p0_iso1_pthigh");
-dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow");
-dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh");
-dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow");
-dNames.append("d_Dimuon_lxy11p0to16p0_iso1_pthigh");
-dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow");
-dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh");
-dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow");
-dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh");
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy0p0to0p2_non-pointing")
+dNames.append("d_Dimuon_lxy0p2to1p0_non-pointing")
+dNames.append("d_Dimuon_lxy1p0to2p4_non-pointing")
+dNames.append("d_Dimuon_lxy2p4to3p1_non-pointing")
+dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
+dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
+dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
+dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
 #dNames.append("")
 
 years = []
@@ -74,7 +93,7 @@ sigModels.append("Y3")
 
 sigMasses = []
 if useSignalMC:
-    sigMasses.append("7.0")
+    sigMasses.append("5.0")
 else:
     mF = 350.0
     mL = 2000.0
@@ -99,7 +118,7 @@ def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
 
     latexCMS = ROOT.TLatex()
     latexCMS.SetTextFont(61)
-    latexCMS.SetTextSize(0.04)
+    latexCMS.SetTextSize(0.055)
     latexCMS.SetNDC(True)
 
     latexCMSExtra = ROOT.TLatex()
@@ -109,9 +128,9 @@ def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
 
     legoffset = 0.0
     latexSel = ROOT. TLatex()
-    latexSel.SetTextAlign(11)
+    latexSel.SetTextAlign(31)
     latexSel.SetTextFont(42)
-    latexSel.SetTextSize(0.02-0.1*legoffset)
+    latexSel.SetTextSize(0.04)
     latexSel.SetNDC(True)
 
     yearenergy=""
@@ -134,45 +153,36 @@ def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
         latexCMS.DrawLatex(0.15,0.93+expoffset,"CMS");
         latexCMSExtra.DrawLatex(0.24,0.93+expoffset, cmsExtra);
     else:
-        latex.DrawLatex(0.90, 0.91+expoffset, yearenergy);
-        latexCMS.DrawLatex(0.15,0.91+expoffset,"CMS");
-        latexCMSExtra.DrawLatex(0.25,0.91+expoffset, cmsExtra);
+        latex.DrawLatex(0.95, 0.93+expoffset, yearenergy);
+        latexCMS.DrawLatex(0.11,0.93+expoffset,"CMS");
+        latexCMSExtra.DrawLatex(0.21,0.93+expoffset, cmsExtra);
 
 
-def getLegend(ch,gd,p,hp,hs,smodel,smass,sigsf=-1.0,plotSignal=True,plotData=True):
-    legend = ROOT.TLegend(0.3,0.6,0.91,0.91)
+def getLegend(ch,gd,p,hp,hs,smodel,smass,sigsf=-1.0,plotSignal=True,plotData=True,plotOnlySignal=False,hmc=None,hgauss=None,hdcb=None):
+    legend = ROOT.TLegend(0.5,0.65,0.91,0.91)
     legend.SetLineColor(0)
+    legend.SetTextSize(0.04)
     legend.SetLineWidth(0)
     legend.SetFillColor(0)
     legend.SetFillStyle(0)
-    if plotData:
-        legend.AddEntry(gd,"Data","EP")
+    if plotOnlySignal:
+        legend.SetHeader(smodel)
+        legend.AddEntry(hmc,"Signal Monte Carlo","EP")
+        legend.AddEntry(hs,"Total signal fit", "L")
+        legend.AddEntry(hgauss,"Gaussian", "L")
+        legend.AddEntry(hdcb,"Double Crystal Ball", "L")
     else:
-        legend.AddEntry(gd,"Data (toy)","EP")
-    for pn,pp in enumerate(p):
-        legend.AddEntry(hp[pn],pp,"L")
-    if plotSignal:
-        if smodel=="Y3":
-            smodel="Y_{3}"
-        elif smodel=="DY3":
-            smodel="DY_{3}"
-        elif smodel=="DYp3":
-            smodel="DY'_{3}"
-        elif smodel=="B3mL2":
-            smodel="B_{3}-L_{2}"
-        if sigsf>0:
-            #legend.AddEntry(hs,"%s, M=%.0f GeV (x%d)"%(smodel,smass,sigsf), "L")
-            legend.AddEntry(hs,"%s, (x%.4f)"%(smodel,sigsf), "L")
+        if plotData:
+            legend.AddEntry(gd,"Data","EP")
         else:
-            legend.AddEntry(hs,"%s"%(smodel), "L")
-            
-    if ch==0:
-        legend.SetHeader("N_{b}#geq1")
-    elif ch==1:
-        legend.SetHeader("N_{b}=1")
-    elif ch==2:
-        legend.SetHeader("N_{b}#geq2")
-
+            legend.AddEntry(gd,"Data (toy)","EP")
+        for pn,pp in enumerate(p):
+            legend.AddEntry(hp[pn],pp,"L")
+        if plotSignal:
+            if sigsf>0:
+                legend.AddEntry(hs,"%s, (x%.4f)"%(smodel,sigsf), "L")
+            else:
+                legend.AddEntry(hs,"%s"%(smodel), "L")
     return legend
 
 mean = 0.0
@@ -180,69 +190,59 @@ sigma = 0.0
 for y in years:
     for t in sigCtau:
         for m in sigMasses:
-            for d in dNames:
+            for d_,d in enumerate(dNames):
                 sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm"%(m.replace(".", "p"),t)
                 finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
                 print(finame)
-                binidx=-1
-                if d=="d_Dimuon_lxy0p0to0p5_iso0_ptlow":
-                    binidx=0
-                elif d=="d_Dimuon_lxy0p0to0p5_iso0_pthigh":
-                    binidx=1
-                elif d=="d_Dimuon_lxy0p0to0p5_iso1_ptlow":
-                    binidx=2
-                elif d=="d_Dimuon_lxy0p0to0p5_iso1_pthigh":
-                    binidx=3
-                elif d=="d_Dimuon_lxy0p5to2p7_iso0_ptlow":
-                    binidx=4
-                elif d=="d_Dimuon_lxy0p5to2p7_iso0_pthigh":
-                    binidx=5
-                elif d=="d_Dimuon_lxy0p5to2p7_iso1_ptlow":
-                    binidx=6
-                elif d=="d_Dimuon_lxy0p5to2p7_iso1_pthigh":
-                    binidx=7
-                elif d=="d_Dimuon_lxy2p7to6p5_iso0_ptlow":
-                    binidx=8
-                elif d=="d_Dimuon_lxy2p7to6p5_iso0_pthigh":
-                    binidx=9
-                elif d=="d_Dimuon_lxy2p7to6p5_iso1_ptlow":
-                    binidx=10
-                elif d=="d_Dimuon_lxy2p7to6p5_iso1_pthigh":
-                    binidx=11
-                elif d=="d_Dimuon_lxy6p5to11p0_iso0_ptlow":
-                    binidx=12
-                elif d=="d_Dimuon_lxy6p5to11p0_iso0_pthigh":
-                    binidx=13
-                elif d=="d_Dimuon_lxy6p5to11p0_iso1_ptlow":
-                    binidx=14
-                elif d=="d_Dimuon_lxy6p5to11p0_iso1_pthigh":
-                    binidx=15
-                elif d=="d_Dimuon_lxy11p0to16p0_iso0_ptlow":
-                    binidx=16
-                elif d=="d_Dimuon_lxy11p0to16p0_iso0_pthigh":
-                    binidx=17
-                elif d=="d_Dimuon_lxy11p0to16p0_iso1_ptlow":
-                    binidx=18
-                elif d=="d_Dimuon_lxy11p0to16p0_iso1_pthigh":
-                    binidx=19
-                elif d=="d_Dimuon_lxy16p0to70p0_iso0_ptlow":
-                    binidx=20
-                elif d=="d_Dimuon_lxy16p0to70p0_iso0_pthigh":
-                    binidx=21
-                elif d=="d_Dimuon_lxy16p0to70p0_iso1_ptlow":
-                    binidx=22
-                elif d=="d_Dimuon_lxy16p0to70p0_iso1_pthigh":
-                    binidx=23
-                elif d=="d_FourMu_sep":
-                    binidx=24
-                elif d=="d_FourMu_osv":
-                    binidx=25
+                if (d == "d_FourMu_sep" ): binidx=1
+                elif (d == "d_FourMu_osv" ): binidx=2
+                elif (d == "d_Dimuon_lxy0p0to0p2_iso0_ptlow" ): binidx=3
+                elif (d == "d_Dimuon_lxy0p0to0p2_iso0_pthigh" ): binidx=4
+                elif (d == "d_Dimuon_lxy0p0to0p2_iso1_ptlow" ): binidx=5
+                elif (d == "d_Dimuon_lxy0p0to0p2_iso1_pthigh" ): binidx=6
+                elif (d == "d_Dimuon_lxy0p2to1p0_iso0_ptlow" ): binidx=7
+                elif (d == "d_Dimuon_lxy0p2to1p0_iso0_pthigh" ): binidx=8
+                elif (d == "d_Dimuon_lxy0p2to1p0_iso1_ptlow" ): binidx=9
+                elif (d == "d_Dimuon_lxy0p2to1p0_iso1_pthigh" ): binidx=10
+                elif (d == "d_Dimuon_lxy1p0to2p4_iso0_ptlow" ): binidx=11
+                elif (d == "d_Dimuon_lxy1p0to2p4_iso0_pthigh" ): binidx=12
+                elif (d == "d_Dimuon_lxy1p0to2p4_iso1_ptlow" ): binidx=13
+                elif (d == "d_Dimuon_lxy1p0to2p4_iso1_pthigh" ): binidx=14
+                elif (d == "d_Dimuon_lxy2p4to3p1_iso0_ptlow" ): binidx=15
+                elif (d == "d_Dimuon_lxy2p4to3p1_iso0_pthigh" ): binidx=16
+                elif (d == "d_Dimuon_lxy2p4to3p1_iso1_ptlow" ): binidx=17
+                elif (d == "d_Dimuon_lxy2p4to3p1_iso1_pthigh" ): binidx=18
+                elif (d == "d_Dimuon_lxy3p1to7p0_iso0_ptlow" ): binidx=19
+                elif (d == "d_Dimuon_lxy3p1to7p0_iso0_pthigh" ): binidx=20
+                elif (d == "d_Dimuon_lxy3p1to7p0_iso1_ptlow" ): binidx=21
+                elif (d == "d_Dimuon_lxy3p1to7p0_iso1_pthigh" ): binidx=22
+                elif (d == "d_Dimuon_lxy7p0to11p0_iso0_ptlow" ): binidx=23
+                elif (d == "d_Dimuon_lxy7p0to11p0_iso0_pthigh" ): binidx=24
+                elif (d == "d_Dimuon_lxy7p0to11p0_iso1_ptlow" ): binidx=25
+                elif (d == "d_Dimuon_lxy7p0to11p0_iso1_pthigh" ): binidx=26
+                elif (d == "d_Dimuon_lxy11p0to16p0_iso0_ptlow" ): binidx=27
+                elif (d == "d_Dimuon_lxy11p0to16p0_iso0_pthigh" ): binidx=28
+                elif (d == "d_Dimuon_lxy11p0to16p0_iso1_ptlow" ): binidx=29
+                elif (d == "d_Dimuon_lxy11p0to16p0_iso1_pthigh" ): binidx=30
+                elif (d == "d_Dimuon_lxy16p0to70p0_iso0_ptlow" ): binidx=31
+                elif (d == "d_Dimuon_lxy16p0to70p0_iso0_pthigh" ): binidx=32
+                elif (d == "d_Dimuon_lxy16p0to70p0_iso1_ptlow" ): binidx=33
+                elif (d == "d_Dimuon_lxy16p0to70p0_iso1_pthigh" ): binidx=34
+                elif (d == "d_Dimuon_lxy0p0to0p2_non-pointing" ): binidx=35
+                elif (d == "d_Dimuon_lxy0p2to1p0_non-pointing" ): binidx=36
+                elif (d == "d_Dimuon_lxy1p0to2p4_non-pointing" ): binidx=37
+                elif (d == "d_Dimuon_lxy2p4to3p1_non-pointing" ): binidx=38
+                elif (d == "d_Dimuon_lxy3p1to7p0_non-pointing" ): binidx=39
+                elif (d == "d_Dimuon_lxy7p0to11p0_non-pointing" ): binidx=40
+                elif (d == "d_Dimuon_lxy11p0to16p0_non-pointing" ): binidx=41
+                elif (d == "d_Dimuon_lxy16p0to70p0_non-pointing" ): binidx=42
                 catExtS = ""
                 catExtB = ""
                 if useCategorizedSignal:
                     catExtS = "_ch%d"%binidx
                 if useCategorizedBackground:
                     catExtB = "_ch%d"%binidx
+                print(catExtS, catExtB)
                 # Open input file with workspace
                 f = ROOT.TFile(finame)
                 # Retrieve workspace from file
@@ -261,36 +261,31 @@ for y in years:
                 if doPartialUnblinding:
                     lumi = 0.1*lumi
                 nSig = w.var("signalNorm%s"%catExtS).getValV()
-                nSig = nSig*lumi
-                print(m, binidx, nSig)
+
                 # Retrieve signal mean and std. deviation
                 if binidx==0 or useCategorizedSignal:
                     mean = w.var("mean%s"%catExtS).getValV()
                     sigma = w.var("sigma%s"%catExtS).getValV()
 
-                #try
-                print(d)
-                """
-                try:
-                    # Retrive BG normalization:
-                    nBG = w.data("data_obs").sumEntries()
-                    d = w.data("data_obs")
-                    hd = x.createHistogram("hd",ROOT.RooFit.Binning(nBins,minx,maxx))                
-                    d.fillHistogram(hd,ROOT.RooArgList(x))
-
-                    bpdf = w.pdf("roomultipdf")
-                    nPDF = w.cat("pdf_index").numTypes()
-                except TypeError:
-                    nBG = 0
-                    hd = x.createHistogram("hd",ROOT.RooFit.Binning(nBins,minx,maxx))
-                    nPDF = 0
-                """
                 # Retrive BG normalization:
                 nBG = w.data("data_obs%s"%catExtB).sumEntries()
-                d = w.data("data_obs%s"%catExtB)
-                hd = x.createHistogram("hd",ROOT.RooFit.Binning(nBins,minx,maxx))                
-                d.fillHistogram(hd,ROOT.RooArgList(x))
 
+                # Get data
+                data = w.data("data_obs%s"%catExtB)
+                hd = x.createHistogram("hd",ROOT.RooFit.Binning(nBins,minx,maxx))                
+                data.fillHistogram(hd,ROOT.RooArgList(x))
+                 
+                # Get mc
+                if plotOnlySignal:
+                    mc = w.data("signalRooDataSet%s"%catExtS)
+                    frame = x.frame(minx,maxx);
+                    mc.plotOn(frame, ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2), ROOT.RooFit.Binning(nBins,minx,maxx))
+                    hmc = frame.getHist()
+                    #hmc = x.createHistogram("hmc",ROOT.RooFit.Binning(nBins,minx,maxx))                
+                    #hmc.Sumw2()
+                    #mc.fillHistogram(hmc,ROOT.RooArgList(x))
+                 
+                # Get background pdfs
                 bpdf = w.pdf("roomultipdf%s"%catExtB)
                 nPDF = w.cat("pdf_index%s"%catExtB).numTypes()
                 p  = []
@@ -303,13 +298,16 @@ for y in years:
                     numpars.append(w.pdf(bpdf.getPdf(pp).GetName()).getVariables().getSize()-1)
                     if "exponential" in p[pp].GetName():
                         pn.append("Exponential")
-                        color=2
+                        color=ROOT.kOrange-7
                     elif "powerlaw" in p[pp].GetName():
                        pn.append("Power-law")
-                       color=3
-                    else:
+                       color=ROOT.kOrange-2
+                    elif "bernstein" in p[pp].GetName():
                        pn.append("Bernstein<%d>"%(numpars[pp]))
-                       color=4
+                       color=ROOT.kRed+1
+                    else:
+                       pn.append("Uniform")
+                       color=ROOT.kGray+2
                     hp.append(p[pp].createHistogram("hp%d"%pp,x,ROOT.RooFit.Binning(100*nBins,minx,maxx)))
                     hp[pp].SetLineColor(color)
                     hp[pp].SetLineWidth(2)
@@ -317,26 +315,53 @@ for y in years:
                     hpr.append(hp[pp].Clone("hpr%d"%pp))
                     hpr[pp].Rebin(100)
                     hp[pp].Scale(100.0)
-                #except TypeError:
 
+                # Get signal pdfs 
                 sp = w.pdf("signal%s"%catExtS)
                 hs = sp.createHistogram("hs",x,ROOT.RooFit.Binning(100*nBins,minx,maxx))
-                hs.SetLineColor(6)
+                hs.SetLineColor(ROOT.kMagenta)
                 hs.SetLineWidth(2)
-                hs.Scale(nSig*100.0)
-                #hs.Scale(lumi*1000./200000.)
+                hs.Scale(nSig*100)
+
+                sp_gauss = w.pdf("gauss%s"%catExtS)
+                sp_sigma = w.var("sigma%s"%catExtS).getValV()
+                sp_mean = w.var("mean%s"%catExtS).getValV()
+                mcfrac = w.var("mcfrac%s"%catExtS).getValV()
+                hs_gauss = sp_gauss.createHistogram("hs_gauss",x,ROOT.RooFit.Binning(100*nBins,minx,maxx))
+                hs_gauss.Scale(nSig*mcfrac*100)
+                g_gauss = ROOT.TGraph(hs_gauss)
+                g_gauss.SetLineColor(ROOT.kCyan)
+                g_gauss.SetLineWidth(2)
+                g_gauss.SetLineStyle(1)
+
+                #sp_dcb = ROOT.RooDoubleCBFast("dcb", "dcb", x, w.var("mean%s"%catExtS), w.var("sigma%s"%catExtS), w.var("alphaL%s"%catExtS), w.var("nL%s"%catExtS), w.var("nR%s"%catExtS), w.var("alphaR%s"%catExtS))
+                sp_dcb = w.pdf("dcb%s"%catExtS)
+                sp_alphaL = w.var("alphaL%s"%catExtS).getValV()
+                sp_alphaR = w.var("alphaR%s"%catExtS).getValV()
+                sp_nL = w.var("nL%s"%catExtS).getValV()
+                sp_nR = w.var("nR%s"%catExtS).getValV()
+                #recfrac = w.function("signal%s_recursive_fraction_dcb%s"%(catExtS,catExtS))
+                recfrac = 1.0 - mcfrac
+                hs_dcb = sp_dcb.createHistogram("hs_dcb",x,ROOT.RooFit.Binning(100*nBins,minx,maxx))
+                hs_dcb.Scale(nSig*recfrac*100)
+                g_dcb = ROOT.TGraph(hs_dcb)
+                g_dcb.SetLineColor(ROOT.kBlue)
+                g_dcb.SetLineWidth(2)
+                g_dcb.SetLineStyle(1)
+
                 scale = -1.0
-                if normalizeSignal and nBG > 1e-6:
+                if plotBackground and plotSignal and not plotOnlySignal and normalizeSignal and nBG > 1e-6:
                     scale = float(nBG)/float(nSig)
                     hs.Scale(scale)
 
                 ROOT.gStyle.SetOptStat(0)
-                can = ROOT.TCanvas("can","",600,600)
+                if doRatio:
+                    can = ROOT.TCanvas("can","",600, 600)
+                else:
+                    can = ROOT.TCanvas("can","",700, 600)
                 can.cd()
 
-                h_axis = ROOT.TH1D("h_axis","", hd.GetNbinsX(), hd.GetXaxis().GetBinLowEdge(1), hd.GetXaxis().GetBinUpEdge(hd.GetNbinsX()))
-                h_axis.GetXaxis().SetTitle("m_{#mu#mu} [GeV]")
-                h_axis.GetYaxis().SetTitle("Events")
+                ## Make graphs out of RooData
                 g_data = ROOT.TGraphAsymmErrors()
                 plotUtils.ConvertToPoissonGraph(hd, g_data, drawZeros=True, drawXerr=False)
                 g_data.SetMarkerStyle(20)
@@ -345,6 +370,11 @@ for y in years:
                 # draw with zero marker size so error bars drawn all the way to x axis in the case of 0 content
                 g_data_clone = g_data.Clone()
                 g_data_clone.SetMarkerSize(0.0)
+
+                ## Create axis plot
+                h_axis = ROOT.TH1D("h_axis","", hd.GetNbinsX(), hd.GetXaxis().GetBinLowEdge(1), hd.GetXaxis().GetBinUpEdge(hd.GetNbinsX()))
+                h_axis.GetXaxis().SetTitle("m_{#mu#mu} [GeV]")
+                h_axis.GetYaxis().SetTitle("Events")
 
                 h_axis_ratio = ROOT.TH2D("h_axis_ratio","", hd.GetNbinsX(), hd.GetXaxis().GetBinLowEdge(1), hd.GetXaxis().GetBinUpEdge(hd.GetNbinsX()), 2000, -100.0, 100.0)
                 g_ratio = [] 
@@ -469,6 +499,9 @@ for y in years:
                     pads[1].Update();
                 else:
                     pads.append(ROOT.TPad("1","1",0,0,1,1))
+                    pads[0].SetTopMargin(0.08)
+                    pads[0].SetLeftMargin(0.10)
+                    pads[0].SetRightMargin(0.05)
                     pads[0].Draw()
 
                 pads[0].cd()
@@ -477,20 +510,28 @@ for y in years:
                 maxR=0.0
                 ty = numpy.array([])
                 tmax=maxR
-                ty = g_data.GetY() 
+                if plotOnlySignal:
+                    ty = [hmc.GetMaximum()]
+                else:
+                    ty = g_data.GetY() 
                 if len(ty)>0:
                     tmax = numpy.amax(ty)
                     if tmax>maxR:
                         maxR=tmax
-                if hs.GetMaximum() > maxR:
-                    maxR = hs.GetMaximum()
-                if maxR>2.0:
-                    maxR = maxR*1.5
+                if plotSignal:
+                    if hs.GetMaximum() > maxR:
+                        maxR = hs.GetMaximum()
+                if plotOnlySignal:
+                    maxR = maxR*2.0
                 else:
-                    #maxR = maxR*2.0
-                    maxR = maxR*10.0
-                    scale = scale*10.0
-                    hs.Scale(10.0)
+                    if maxR>50.0:
+                        maxR = maxR*1.5
+                    elif maxR<50.0 and maxR>2.0:
+                        maxR = maxR*3.0
+                    elif maxR<=2.0 and maxR > 0.01:
+                        maxR = maxR*5.0
+                    else:
+                        maxR = maxR*10.0
                 
                 if nSig < 1e-5:
                     scale = -1
@@ -499,28 +540,81 @@ for y in years:
                 h_axis.SetMinimum(minR)
                 h_axis.SetMaximum(maxR)
                 h_axis.GetYaxis().SetRangeUser(minR,maxR)
-                h_axis.GetYaxis().SetTitleSize(0.04)
-                h_axis.GetXaxis().SetTitleSize(0.04)
-                h_axis.GetXaxis().SetTitleOffset(1.25)
-                h_axis.GetYaxis().SetLabelSize(0.03)
+                if doRatio==True:
+                    h_axis.GetYaxis().SetTitleSize(0.04)
+                    h_axis.GetXaxis().SetTitleSize(0.04)
+                    h_axis.GetXaxis().SetTitleOffset(1.25)
+                    h_axis.GetYaxis().SetLabelSize(0.03)
+                else:
+                    h_axis.GetXaxis().SetTitleSize(0.045)
+                    h_axis.GetXaxis().SetLabelSize(0.04)
+                    h_axis.GetYaxis().SetTitleSize(0.045)
+                    h_axis.GetYaxis().SetLabelSize(0.04)
+                    h_axis.GetXaxis().SetTitleOffset(1.1)
 
                 h_axis.Draw("")
-                g_data.Draw("P,same")
-                g_data_clone.Draw("P,same")
-                for pp in range(nPDF):
-                    hp[pp].Draw("hist,same")
-                hs.Draw("hist,same")
+                if plotOnlySignal:
+                    hmc.Draw("P,same")
+                else:
+                    g_data.Draw("P,same")
+                    g_data_clone.Draw("P,same")
+                    for pp in range(nPDF):
+                        hp[pp].Draw("hist,same")
+                if plotSignal:
+                    hs.Draw("hist,same")
+                if plotOnlySignal:
+                    g_gauss.Draw("l,same")
+                    g_dcb.Draw("l,same")
 
                 llabel = "M_{Z_{D}} = %s, c#tau = %s mm"%(m, t)
-                legend = getLegend(binidx,g_data,pn,hp,hs,llabel,float(m))
+                if plotOnlySignal:
+                    legend = getLegend(binidx,g_data,pn,hp,hs,llabel,float(m), -1, True, False, True, hmc, g_gauss, g_dcb)
+                else:
+                    legend = getLegend(binidx,g_data,pn,hp,hs,llabel,float(m), -1, plotSignal)
                 year="all"
                 drawLabels(year,lumi,useData)
                 legend.Draw("same")
                 pads[0].Update()
                 pads[0].RedrawAxis()
                 
-                can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.png"%(outDir,m,t,d))
-                can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.pdf"%(outDir,m,t,d))
+                ## Search region labels
+                #
+                latexExtra = ROOT.TLatex()
+                latexExtra.SetTextFont(42)
+                latexExtra.SetTextSize(0.04)
+                latexExtra.SetNDC(True)
+                #
+                latexExtraBold = ROOT.TLatex()
+                latexExtraBold.SetTextFont(62)
+                latexExtraBold.SetTextSize(0.04)
+                latexExtraBold.SetNDC(True)
+                #
+                catnames = d.split("_")
+                lxybin = catnames[2]
+                lxybin = (lxybin[3:]).split("to")
+                if "d_Dimuon" in d:
+                    latexExtraBold.DrawLatex(0.14,0.86,"Dimuon")
+                    if "non-pointing" not in d:
+                        latexExtra.DrawLatex(0.14,0.81,"l_{{xy}} #in [{},{}]".format(lxybin[0].replace("p", "."), lxybin[1].replace("p", ".")))
+                        isobin = "Isolated" if catnames[3]=="iso1" else "Non isolated"
+                        latexExtra.DrawLatex(0.14,0.76,isobin)
+                        ptbin = "High p_{T}^{#mu#mu}" if catnames[4]=="pthigh" else "Low p_{T}^{#mu#mu}"
+                        latexExtra.DrawLatex(0.14,0.71,ptbin)
+                    else:
+                        latexExtra.DrawLatex(0.14,0.81,"l_{{xy}} #in [{},{}]".format(lxybin[0].replace("p", "."), lxybin[1].replace("p", ".")))
+                        latexExtra.DrawLatex(0.14,0.76,"Non-pointing")
+                elif "d_FourMu" in d:
+                    latexExtraBold.DrawLatex(0.14,0.86,"Four muon")
+                    fourmucat = "Resolved" if "sep" in d else "Overlapping"
+                    latexExtra.DrawLatex(0.14,0.81,fourmucat)
+
+                ## Save canvas
+                if plotOnlySignal:
+                    can.SaveAs("%s/fitSIG_M%s_CT_%smm_%s.png"%(outDir,m,t,d))
+                    can.SaveAs("%s/fitSIG_M%s_CT_%smm_%s.pdf"%(outDir,m,t,d))
+                else:
+                    can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.png"%(outDir,m,t,d))
+                    can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.pdf"%(outDir,m,t,d))
 
                 # Close input file with workspace                
                 f.Close()

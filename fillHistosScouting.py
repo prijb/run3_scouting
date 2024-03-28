@@ -1,7 +1,7 @@
-import ROOT
 import os,sys,json
 import argparse
 from datetime import date    
+import ROOT
 import numpy as np
 from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
@@ -285,7 +285,10 @@ if not isData and args.weightMC:
     print("Simulations: Getting counts")
     if "HTo2ZdTo2mu2x" in sampleTag:
         for _,f in enumerate(files):
-            f_ = ROOT.TFile(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            if not args.condor:
+                f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            else:
+                f_ = ROOT.TFile.Open(f)
             h_ = f_.Get("counts").Clone("Clone_{}".format(_))
             counts.Add(h_)
             f_.Close()
@@ -298,7 +301,10 @@ if not isData and args.weightMC:
                     break
     if "ScenB2" in sampleTag:
         for _,f in enumerate(files):
-            f_ = ROOT.TFile(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            if not args.condor:
+                f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            else:
+                f_ = ROOT.TFile.Open(f)
             h_ = f_.Get("counts").Clone("Clone_{}".format(_))
             counts.Add(h_)
             f_.Close()
@@ -371,7 +377,7 @@ if firste >= t.GetEntries():
 
 ## Init RooDataSets
 # Dimuon binning
-lxybins = [0.0, 0.5, 2.7, 6.5, 11.0, 16.0, 70.0]
+lxybins = [0.0, 0.2, 1.0, 2.4, 3.1, 7.0, 11.0, 16.0, 70.0]
 lxystrs = [str(l).replace('.', 'p') for l in lxybins]
 lxybinlabel = ["lxy{}to{}".format(lxystrs[l], lxystrs[l+1]) for l in range(0, len(lxystrs)-1)]
 ptcut = 25. # Tried 25, 50 and 100
@@ -400,9 +406,9 @@ for dbin in dbins:
     if 'Dimuon' in dname:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{#mu#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
-    elif 'FourMu_sep' in dname:
-        catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; <m_{#mu#mu}> [GeV]; Events / 0.01 GeV",15000, 0., 150.)
-        roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
+#    elif 'FourMu_sep' in dname:
+#        catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; <m_{#mu#mu}> [GeV]; Events / 0.01 GeV",15000, 0., 150.)
+#        roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
     else:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{4#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(m4fit,roow4),"roow")
@@ -969,14 +975,14 @@ for e in range(firste,laste):
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
         if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
-            #m4fit.setVal(mass)
-            #roow4.setVal(lumiweight);
-            #roods["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
-            #catmass["FourMu_sep"].Fill(mass, lumiweight);
-            mfit.setVal(avgmass)
-            roow.setVal(lumiweight);
-            roods["FourMu_sep"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-            catmass["FourMu_sep"].Fill(avgmass, lumiweight);
+            m4fit.setVal(mass)
+            roow4.setVal(lumiweight);
+            roods["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
+            catmass["FourMu_sep"].Fill(mass, lumiweight);
+            #mfit.setVal(avgmass)
+            #roow.setVal(lumiweight);
+            #roods["FourMu_sep"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            #catmass["FourMu_sep"].Fill(avgmass, lumiweight);
             filledcat4musep = True
         else:
             filledcat4musep = False
@@ -1216,10 +1222,10 @@ for e in range(firste,laste):
             if ( abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)]]/t.Muon_dxye[dmuidxs[int(vn*2)]])<2.0 or abs(t.Muon_dxyCorr[dmuidxs[int(vn*2)+1]]/t.Muon_dxye[dmuidxs[int(vn*2)+1]])<2.0 ):
                 continue
         if applyMuonHitSel:
-            if lxy > 2.7 and lxy < 11.0:
+            if lxy < 11.0:
                 if ( nhitsbeforesvtotal > 0):
                     continue
-            elif lxy > 11.0:
+            elif lxy > 11.0 and lxy < 16.0:
                 if ( nhitsbeforesvtotal > 1):
                     continue
             elif lxy > 16.0:
@@ -1382,10 +1388,10 @@ for e in range(firste,laste):
             if ( abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)]]/t.Muon_dxye[dmuidxs_osv[int(vn*2)]])<2.0 or abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)+1]]/t.Muon_dxye[dmuidxs_osv[int(vn*2)+1]])<2.0 ):
                 continue
         if applyMuonHitSel:
-            if lxy > 2.7 and lxy < 11.0:
+            if lxy < 11.0:
                 if ( nhitsbeforesvtotal > 0):
                     continue
-            elif lxy > 11.0:
+            elif lxy > 11.0 and lxy < 16.0:
                 if ( nhitsbeforesvtotal > 1):
                     continue
             elif lxy > 16.0:

@@ -6,11 +6,13 @@ ROOT.gROOT.SetBatch(1)
 drawObserved = True
 drawPoints = True
 maskSMResonances = True
-typeOfLimit = "BRH" # "r", "xsec", "xsecBR" "BRH" 
+typeOfLimit = "xsecBR" # "r", "xsec", "xsecBR" "BRH" 
 xsec = 1.0 # in pb, used to normalize the MC
 xsec_h = 59.8 # higgs cross section in pb at 13.6 GeV, used to normalize the MC
-scaleToFullLumi = True
-compare = True
+scaleToFullLumi = False
+compare = False
+luminosity = 3.5
+year = 2022
 
 model = sys.argv[1]
 limdir = sys.argv[2]
@@ -72,6 +74,8 @@ for l in fin.readlines():
         print(float(ls[1]), float(ls[4]), BR)
     if scaleToFullLumi:
         scale = scale / math.sqrt(10.0)
+    if model=="HTo2ZdTo2mu2x" and float(ctau) > 10 and float(ls[1]) < 1.5:
+        continue
     massl.append(float(ls[1]))
     obsl .append(scale*float(ls[3]))
     expl .append(scale*float(ls[4]))
@@ -86,6 +90,8 @@ obsv  = np.array(obsl ,"d")
 expv  = np.array(expl ,"d")
 m1sv  = np.array(m1sl ,"d")
 p1sv  = np.array(p1sl ,"d")
+m2sv  = np.array(m2sl ,"d")
+p2sv  = np.array(p2sl ,"d")
 
 cfile = None
 if compare:
@@ -118,7 +124,7 @@ if min(obsl)<miny:
     miny=min(obsl)*0.1
 if min(m1sl)<miny:
     miny=min(m1sl)*0.1
-miny=5e-6
+miny=5e-5
 maxy=1e-1
 
 if max(obsl)>maxy:
@@ -157,11 +163,25 @@ gp1s.SetMarkerStyle(20)
 gp1s.SetLineStyle(2)
 gp1s.SetLineWidth(2)
 
+dummy = np.full(len(massv), 0.0)
+g1s = ROOT.TGraphAsymmErrors(len(massv),massv,expv, dummy, dummy, expv-m1sv, p1sv-expv)
+g1s.SetLineColor(ROOT.kGreen+2)
+g1s.SetFillColor(ROOT.kGreen+2)
+g1s.SetMarkerColor(ROOT.kGreen+2)
+g1s.SetMarkerStyle(1)
+
+g2s = ROOT.TGraphAsymmErrors(len(massv),massv,expv, dummy, dummy, expv-m2sv, p2sv-expv)
+g2s.SetLineColor(ROOT.kOrange)
+g2s.SetFillColor(ROOT.kOrange)
+g2s.SetMarkerColor(ROOT.kOrange)
+g2s.SetMarkerStyle(1)
+
 if not compare:
-    leg = ROOT.TLegend(0.6,0.65,0.89,0.85)
+    leg = ROOT.TLegend(0.6,0.68,0.89,0.89)
 else:
-    leg = ROOT.TLegend(0.3,0.65,0.89,0.85)
-leg.SetFillColor(0)
+    leg = ROOT.TLegend(0.35,0.67,0.89,0.89)
+leg.SetMargin(0.15)
+leg.SetFillColor(ROOT.kWhite)
 leg.SetTextSize(0.03)
 modelLeg = model
 if model=="HTo2ZdTo2mu2x":
@@ -176,7 +196,8 @@ leg.SetHeader("%s (c#tau = %s mm)"%(modelLeg,ctau))
 if drawObserved:
     leg.AddEntry(gobs,"Observed","L")
 leg.AddEntry(gexp,"Expected","L")
-leg.AddEntry(gm1s,"#pm1#sigma expected","L")
+leg.AddEntry(g1s,"#pm1#sigma expected","F")
+leg.AddEntry(g2s,"#pm2#sigma expected","F")
 if compare and cfile is not None:
     leg.AddEntry(cgexp,"Run 2 dimuon scouting 101 fb^{-1} (expected)","L")
 
@@ -205,15 +226,15 @@ ROOT.gPad.SetLogx()
 haxis.Draw()
 
 if not drawPoints:
-    gm1s.Draw("L")
+    g2s.Draw("3")
+    g1s.Draw("3")
     gexp.Draw("L")
-    gp1s.Draw("L")
     if drawObserved:
         gobs.Draw("L")
 else:
+    g2s.Draw("3")
+    g1s.Draw("3")
     gexp.Draw("PL")
-    gm1s.Draw("L")
-    gp1s.Draw("L")
     if drawObserved:
         gobs.Draw("PL")
 
@@ -223,11 +244,27 @@ if cfile is not None:
 
 if maskSMResonances:
 
+    bks = ROOT.TGraph(4)
+    bks.SetPoint(0, 0.43, miny+0.02*miny)
+    bks.SetPoint(1, 0.49, miny+0.02*miny)
+    bks.SetPoint(2, 0.49, maxy-0.02*maxy)
+    bks.SetPoint(3, 0.43, maxy-0.02*maxy)
+    bks.SetFillColorAlpha(ROOT.kGray, 1.0)
+    bks.Draw("f")
+
+    beta = ROOT.TGraph(4)
+    beta.SetPoint(0, 0.52, miny+0.02*miny)
+    beta.SetPoint(1, 0.58, miny+0.02*miny)
+    beta.SetPoint(2, 0.58, maxy-0.02*maxy)
+    beta.SetPoint(3, 0.52, maxy-0.02*maxy)
+    beta.SetFillColorAlpha(ROOT.kGray, 1.0)
+    beta.Draw("f")
+
     brho = ROOT.TGraph(4)
-    brho.SetPoint(0, 0.7, miny+0.02*miny)
-    brho.SetPoint(1, 0.89, miny+0.02*miny)
-    brho.SetPoint(2, 0.89, maxy-0.02*maxy)
-    brho.SetPoint(3, 0.7, maxy-0.02*maxy)
+    brho.SetPoint(0, 0.73, miny+0.02*miny)
+    brho.SetPoint(1, 0.84, miny+0.02*miny)
+    brho.SetPoint(2, 0.84, maxy-0.02*maxy)
+    brho.SetPoint(3, 0.73, maxy-0.02*maxy)
     brho.SetFillColorAlpha(ROOT.kGray, 1.0)
     brho.Draw("f")
 
@@ -258,14 +295,34 @@ if maskSMResonances:
 
 #line.Draw("same")
 
-leg.Draw("same")
-
-            
-
-
 ROOT.gPad.RedrawAxis()
+leg.Draw("same")
 can.Update()
+
+## Draw CMS banners and lumi
+#
+latexCMS = ROOT.TLatex()
+latexCMS.SetTextFont(61)
+latexCMS.SetTextSize(0.055)
+latexCMS.SetNDC(True)
+latexCMS.DrawLatex(0.11,0.91,"CMS");
+#
+latexCMSExtra = ROOT.TLatex()
+latexCMSExtra.SetTextFont(52)
+latexCMSExtra.SetTextSize(0.04)
+latexCMSExtra.SetNDC(True)
+latexCMSExtra.DrawLatex(0.21,0.91, "Work in progress");
+# 
+latex = ROOT.TLatex()
+latex.SetTextFont(42)
+latex.SetTextAlign(31)
+latex.SetTextSize(0.04)
+latex.SetNDC(True)
+latex.DrawLatex(0.9,0.91, "%.2f fb^{-1} (%s, 13.6 TeV)"%(luminosity,year));
+
 if scaleToFullLumi:
     can.SaveAs("%s/limits_%s_ctau%s_%s_scaled.png"%(limdir,model,ctau,typeOfLimit))
+    can.SaveAs("%s/limits_%s_ctau%s_%s_scaled.pdf"%(limdir,model,ctau,typeOfLimit))
 else:
     can.SaveAs("%s/limits_%s_ctau%s_%s.png"%(limdir,model,ctau,typeOfLimit))
+    can.SaveAs("%s/limits_%s_ctau%s_%s.pdf"%(limdir,model,ctau,typeOfLimit))

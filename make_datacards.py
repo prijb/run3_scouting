@@ -8,7 +8,7 @@ today= date.today().strftime("%b-%d-%Y")
 wsname = "wfit"
 thisDir = os.environ.get("PWD")
 #inDir  = "%s/cpp/fitResults_fullRange_forCards/"%thisDir
-inDir  = "%s/fitResults/"%thisDir
+inDir  = "%s/fitResults_allEras/"%thisDir
 
 #fnfitParamsForShapeUnc = "%s/utils/signalFitParameters_muonResolutionUnc.root"%thisDir
 #ffitParamsForShapeUnc = ROOT.TFile.Open(fnfitParamsForShapeUnc,"READ")
@@ -74,22 +74,33 @@ if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
 dNames = []
 
 #d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
-dNames.append("d_Dimuon_lxy0p0to0p5_iso0_ptlow")
-dNames.append("d_Dimuon_lxy0p0to0p5_iso0_pthigh")
-dNames.append("d_Dimuon_lxy0p0to0p5_iso1_ptlow")
-dNames.append("d_Dimuon_lxy0p0to0p5_iso1_pthigh")
-dNames.append("d_Dimuon_lxy0p5to2p7_iso0_ptlow")
-dNames.append("d_Dimuon_lxy0p5to2p7_iso0_pthigh")
-dNames.append("d_Dimuon_lxy0p5to2p7_iso1_ptlow")
-dNames.append("d_Dimuon_lxy0p5to2p7_iso1_pthigh")
-dNames.append("d_Dimuon_lxy2p7to6p5_iso0_ptlow")
-dNames.append("d_Dimuon_lxy2p7to6p5_iso0_pthigh")
-dNames.append("d_Dimuon_lxy2p7to6p5_iso1_ptlow")
-dNames.append("d_Dimuon_lxy2p7to6p5_iso1_pthigh")
-dNames.append("d_Dimuon_lxy6p5to11p0_iso0_ptlow")
-dNames.append("d_Dimuon_lxy6p5to11p0_iso0_pthigh")
-dNames.append("d_Dimuon_lxy6p5to11p0_iso1_ptlow")
-dNames.append("d_Dimuon_lxy6p5to11p0_iso1_pthigh")
+#### Caution, here the names AND order should be consistent to the ones set in cpp/doAll_fitDimuonMass.C 
+dNames.append("d_FourMu_sep")
+dNames.append("d_FourMu_osv")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_pthigh")
 dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow")
 dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
 dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
@@ -98,8 +109,14 @@ dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh")
-dNames.append("d_FourMu_sep")
-#dNames.append("d_FourMu_osv") # Exclude for now, getting so many problems
+dNames.append("d_Dimuon_lxy0p0to0p2_non-pointing")
+dNames.append("d_Dimuon_lxy0p2to1p0_non-pointing")
+dNames.append("d_Dimuon_lxy1p0to2p4_non-pointing")
+dNames.append("d_Dimuon_lxy2p4to3p1_non-pointing")
+dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
+dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
+dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
+dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
 
 years = []
 #years.append("2022")
@@ -115,7 +132,7 @@ sigModel = "HTo2ZdTo2mu2x"
 sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
-        sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+        sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
         for  m in sigMasses:
             sigCTaus = [1, 10, 100, 100]
             for t in sigCTaus:
@@ -135,63 +152,95 @@ for y in years:
        M = float(m.split('-')[1].split('_')[0].replace('p','.'))
        T = int(m.split('-')[2].split('mm')[0])
        listOfBins = []
-       for d in dNames:
+       for d_,d in enumerate(dNames):
            print("Analyzing %s, in region %s"%(m, d))
            print("%s/%s_%s_%s_workspace.root"%(inDir,d,m,y))
            finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
            binidx=-1
-           if d=="d_Dimuon_lxy0p0to0p5_iso0_ptlow":
-               binidx=0
-           elif d=="d_Dimuon_lxy0p0to0p5_iso0_pthigh":
+           if d=="d_FourMu_sep":
                binidx=1
-           elif d=="d_Dimuon_lxy0p0to0p5_iso1_ptlow":
-               binidx=2
-           elif d=="d_Dimuon_lxy0p0to0p5_iso1_pthigh":
-               binidx=3
-           elif d=="d_Dimuon_lxy0p5to2p7_iso0_ptlow":
-               binidx=4
-           elif d=="d_Dimuon_lxy0p5to2p7_iso0_pthigh":
-               binidx=5
-           elif d=="d_Dimuon_lxy0p5to2p7_iso1_ptlow":
-               binidx=6
-           elif d=="d_Dimuon_lxy0p5to2p7_iso1_pthigh":
-               binidx=7
-           elif d=="d_Dimuon_lxy2p7to6p5_iso0_ptlow":
-               binidx=8
-           elif d=="d_Dimuon_lxy2p7to6p5_iso0_pthigh":
-               binidx=9
-           elif d=="d_Dimuon_lxy2p7to6p5_iso1_ptlow":
-               binidx=10
-           elif d=="d_Dimuon_lxy2p7to6p5_iso1_pthigh":
-               binidx=11
-           elif d=="d_Dimuon_lxy6p5to11p0_iso0_ptlow":
-               binidx=12
-           elif d=="d_Dimuon_lxy6p5to11p0_iso0_pthigh":
-               binidx=13
-           elif d=="d_Dimuon_lxy6p5to11p0_iso1_ptlow":
-               binidx=14
-           elif d=="d_Dimuon_lxy6p5to11p0_iso1_pthigh":
-               binidx=15
-           elif d=="d_Dimuon_lxy11p0to16p0_iso0_ptlow":
-               binidx=16
-           elif d=="d_Dimuon_lxy11p0to16p0_iso0_pthigh":
-               binidx=17
-           elif d=="d_Dimuon_lxy11p0to16p0_iso1_ptlow":
-               binidx=18
-           elif d=="d_Dimuon_lxy11p0to16p0_iso1_pthigh":
-               binidx=19
-           elif d=="d_Dimuon_lxy16p0to70p0_iso0_ptlow":
-               binidx=20
-           elif d=="d_Dimuon_lxy16p0to70p0_iso0_pthigh":
-               binidx=21
-           elif d=="d_Dimuon_lxy16p0to70p0_iso1_ptlow":
-               binidx=22
-           elif d=="d_Dimuon_lxy16p0to70p0_iso1_pthigh":
-               binidx=23                
-           elif d=="d_FourMu_sep":
-               binidx=24
            elif d=="d_FourMu_osv":
-               binidx=25                
+               binidx=2                
+           elif d=="d_Dimuon_lxy0p0to0p2_iso0_ptlow":
+               binidx=3
+           elif d=="d_Dimuon_lxy0p0to0p2_iso0_pthigh":
+               binidx=4
+           elif d=="d_Dimuon_lxy0p0to0p2_iso1_ptlow":
+               binidx=5
+           elif d=="d_Dimuon_lxy0p0to0p2_iso1_pthigh":
+               binidx=6
+           elif d=="d_Dimuon_lxy0p2to1p0_iso0_ptlow":
+               binidx=7
+           elif d=="d_Dimuon_lxy0p2to1p0_iso0_pthigh":
+               binidx=8
+           elif d=="d_Dimuon_lxy0p2to1p0_iso1_ptlow":
+               binidx=9
+           elif d=="d_Dimuon_lxy0p2to1p0_iso1_pthigh":
+               binidx=10
+           elif d=="d_Dimuon_lxy1p0to2p4_iso0_ptlow":
+               binidx=11
+           elif d=="d_Dimuon_lxy1p0to2p4_iso0_pthigh":
+               binidx=12
+           elif d=="d_Dimuon_lxy1p0to2p4_iso1_ptlow":
+               binidx=13
+           elif d=="d_Dimuon_lxy1p0to2p4_iso1_pthigh":
+               binidx=14
+           elif d=="d_Dimuon_lxy2p4to3p1_iso0_ptlow":
+               binidx=15
+           elif d=="d_Dimuon_lxy2p4to3p1_iso0_pthigh":
+               binidx=16
+           elif d=="d_Dimuon_lxy2p4to3p1_iso1_ptlow":
+               binidx=17
+           elif d=="d_Dimuon_lxy2p4to3p1_iso1_pthigh":
+               binidx=18
+           elif d=="d_Dimuon_lxy3p1to7p0_iso0_ptlow":
+               binidx=19
+           elif d=="d_Dimuon_lxy3p1to7p0_iso0_pthigh":
+               binidx=20
+           elif d=="d_Dimuon_lxy3p1to7p0_iso1_ptlow":
+               binidx=21
+           elif d=="d_Dimuon_lxy3p1to7p0_iso1_pthigh":
+               binidx=22
+           elif d=="d_Dimuon_lxy7p0to11p0_iso0_ptlow":
+               binidx=23
+           elif d=="d_Dimuon_lxy7p0to11p0_iso0_pthigh":
+               binidx=24
+           elif d=="d_Dimuon_lxy7p0to11p0_iso1_ptlow":
+               binidx=25
+           elif d=="d_Dimuon_lxy7p0to11p0_iso1_pthigh":
+               binidx=26
+           elif d=="d_Dimuon_lxy11p0to16p0_iso0_ptlow":
+               binidx=27
+           elif d=="d_Dimuon_lxy11p0to16p0_iso0_pthigh":
+               binidx=28
+           elif d=="d_Dimuon_lxy11p0to16p0_iso1_ptlow":
+               binidx=29
+           elif d=="d_Dimuon_lxy11p0to16p0_iso1_pthigh":
+               binidx=30
+           elif d=="d_Dimuon_lxy16p0to70p0_iso0_ptlow":
+               binidx=31
+           elif d=="d_Dimuon_lxy16p0to70p0_iso0_pthigh":
+               binidx=32
+           elif d=="d_Dimuon_lxy16p0to70p0_iso1_ptlow":
+               binidx=33
+           elif d=="d_Dimuon_lxy16p0to70p0_iso1_pthigh":
+               binidx=34                
+           elif d=="d_Dimuon_lxy0p0to0p2_non-pointing":
+               binidx=35
+           elif d=="d_Dimuon_lxy0p2to1p0_non-pointing":
+               binidx=36
+           elif d=="d_Dimuon_lxy1p0to2p4_non-pointing":
+               binidx=37
+           elif d=="d_Dimuon_lxy2p4to3p1_non-pointing":
+               binidx=38
+           elif d=="d_Dimuon_lxy3p1to7p0_non-pointing":
+               binidx=39
+           elif d=="d_Dimuon_lxy7p0to11p0_non-pointing":
+               binidx=40
+           elif d=="d_Dimuon_lxy11p0to16p0_non-pointing":
+               binidx=41
+           elif d=="d_Dimuon_lxy16p0to70p0_non-pointing":
+               binidx=42
            catExtS = ""
            catExtB = ""
            if useCategorizedSignal:

@@ -42,7 +42,7 @@ parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: f
 parser.add_argument("--relaxedSVSel", default=False, action="store_true", help="Extend range for 1D histograms of SV selection variables")
 parser.add_argument("--doRatio", default=False, action="store_true", help="Plot ratios for 1D histograms")
 parser.add_argument("--shape", default=False, action="store_true", help="Shape normalization")
-parser.add_argument("--weightSignal", default=False, action="store_true", help="Signal normalization")
+parser.add_argument("--scaleSignal", default=1.0, help="Signal normalization")
 parser.add_argument("--rebinWindow", default=0, help="Rebin mass window, set to 1 for automattic rebinning")
 parser.add_argument("--logY", default=False, action="store_true", help="Log-scale for Y axis")
 parser.add_argument("--logX", default=False, action="store_true", help="Log-scale for X axis")
@@ -159,15 +159,15 @@ legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-06"] = "HAHM: 10, #epsilon = 1x10
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon5e-07"] = "HAHM: 10, #epsilon = 5x10^{-7}"
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-07"] = "HAHM: 10, #epsilon = 1x10^{-7}"
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon3e-08"] = "HAHM: 10, #epsilon = 3x10^{-8}"
-legnames["Signal_ScenB1_30_9p9_4p8_ctau_1mm"] = "#pi_{3}#rightarrowA'A': m = 9.9 GeV, c#tau = 1 mm"
-legnames["Signal_ScenB1_30_9p9_4p8_ctau_10mm"] = "#pi_{3}#rightarrowA'A': m = 9.9 GeV, c#tau = 10 mm"
-legnames["Signal_ScenB1_30_9p9_4p8_ctau_100mm"] = "#pi_{3}#rightarrowA'A': m = 9.9 GeV, c#tau = 100 mm"
+legnames["Signal_ScenB1_30_9p9_4p8_ctau_1mm"] = "#pi_{3}#rightarrowA'A': (m_{#pi_{3}},m_{A'}) = (9.9, 4.8) GeV, c#tau_{#pi_{3}} = 1 mm"
+legnames["Signal_ScenB1_30_9p9_4p8_ctau_10mm"] = "#pi_{3}#rightarrowA'A': (m_{#pi_{3}},m_{A'}) = (9.9, 4.8) GeV, c#tau_{#pi_{3}} = 10 mm"
+legnames["Signal_ScenB1_30_9p9_4p8_ctau_100mm"] = "#pi_{3}#rightarrowA'A': (m_{#pi_{3}},m_{A'}) = (9.9, 4.8) GeV, c#tau_{#pi_{3}} = 100 mm"
 
 for s in samples:
     if "Signal" in s and s not in legnames.keys():
         legnames[s] = s.replace("_"," ")
     if 'Signal_HTo2ZdTo2mu2x_MZd' in s and 'ctau' in s:
-        legtxt = "h#rightarrowZ_{{D}}Z_{{D}}: m = {} GeV, c#tau = {}".format(s.split('MZd-')[1].split('_')[0].replace('p', '.'), s.split( 'ctau-')[1].split('mm')[0])
+        legtxt = "h#rightarrowZ_{{D}}Z_{{D}}: m = {} GeV, c#tau_{{Z_{{D}}}} = {}".format(s.split('MZd-')[1].split('_')[0].replace('p', '.'), s.split( 'ctau-')[1].split('mm')[0])
         if "integrated" not in s:
             legtxt = legtxt + " mm"
         legnames[s] = legtxt
@@ -317,7 +317,7 @@ inf = []
 
 # Legend
 ncl = 1
-xol = 0.25
+xol = 0.30
 if len(samples)>5:
     ncl=2
     xol=0.5
@@ -338,7 +338,8 @@ leg.SetNColumns(ncl)
 leg.SetFillColor(0)
 leg.SetFillStyle(0)
 leg.SetLineWidth(0)
-leg.SetTextSize(0.036)
+leg.SetTextSize(0.033)
+leg.SetMargin(0.1)
 
 nDataSamples = 0
 nSigSamples = 0
@@ -439,7 +440,7 @@ for fn,f in enumerate(infiles):
 
 # Draw histograms
 unityArea = args.shape
-weightSignal = not args.shape and args.weightSignal 
+scaleSignal = not args.shape and args.scaleSignal 
 doLogy = args.logY
 doLogx = args.logX
 rebinWindow = int(args.rebinWindow)
@@ -466,7 +467,12 @@ rebinWindow = int(args.rebinWindow)
 #            weights.append(1000.0*luminosity2023/nevents[s])
 #    else:
 #        weights.append(1.0) # Default for data (MC not considered)
-weights = [1.0 for s in samples] # Dummy scaling for now, probably going to set this to an scale instead of a weight!
+weights = []
+for s_,s in enumerate(samples):
+    if "Signal" in s:
+        weights.append(float(args.scaleSignal))
+    else:
+        weights.append(1.0)
 
 # Labels
 yearenergy = "%.2f fb^{-1} (%s, 13.6 TeV)"%(luminosity,args.year)
@@ -495,12 +501,12 @@ latexCMSExtra.SetNDC(True)
 #
 latexExtra = ROOT.TLatex()
 latexExtra.SetTextFont(42)
-latexExtra.SetTextSize(0.04)
+latexExtra.SetTextSize(0.034)
 latexExtra.SetNDC(True)
 #
 latexExtraBold = ROOT.TLatex()
 latexExtraBold.SetTextFont(62)
-latexExtraBold.SetTextSize(0.04)
+latexExtraBold.SetTextSize(0.034)
 latexExtraBold.SetNDC(True)
 
 h1dr     = []
@@ -625,7 +631,7 @@ for hn,hnn in enumerate(h1dn):
             if "reld" in hnn:
                 h1d[fn][hn].Rebin(5)
 
-        if weightSignal:
+        if scaleSignal:
             h1d[fn][hn].Scale(weights[fn])
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
         tbm = 1
@@ -704,7 +710,7 @@ for hn,hnn in enumerate(h1dn):
         else:
             tminY = 0.0
             if doLogy:
-                tmaxY = max(tmaxY, 100*h1d[fn][hn].GetMaximum())
+                tmaxY = max(tmaxY, 1000*h1d[fn][hn].GetMaximum())
                 tminY = 0.01
             else:
                 tmaxY = max(tmaxY, 1.4*h1d[fn][hn].GetMaximum())
@@ -838,8 +844,8 @@ for hn,hnn in enumerate(h1dn):
         pads[0].Draw()
 
     pads[0].cd()
-    pads[0].SetTickx()
-    pads[0].SetTicky()
+    #pads[0].SetTickx()
+    #pads[0].SetTicky()
     if doLogy:
         pads[0].SetLogy()
     if doLogx:
