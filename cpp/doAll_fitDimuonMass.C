@@ -82,7 +82,7 @@
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
   vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-  //vector<float> sigMass = {5.0};
+  //vector<float> sigMass = {6.0};
   vector<float> sigCtau = {1, 10, 100, 1000};
   for ( unsigned int m=0; m<sigMass.size(); m++ ) {
     TString massString = Form("%.1f",sigMass[m]); 
@@ -117,7 +117,6 @@
  // Loop over datasets
  TSystemDirectory dir(inDir, inDir);
  TList* files = dir.GetListOfFiles(); 
- vector<TString> dataEras = {};
  vector<RooDataSet> mmumu_bkgs = {};
  vector<vector<RooDataSet>> mmumu_sigs {{}}; 
  cout << "Preparing to read datasets..." << endl;
@@ -125,6 +124,7 @@
    // Loop over datasets
    for ( unsigned int iera=0; iera<eras.size(); iera++ ) {
      std::cout << "Loading dataset: " << dNames[d] << std::endl;
+     vector<TString> dataEras = {};
      TString era = eras[iera];
      TString year = "2022";
      if (era.Contains("2022"))
@@ -158,9 +158,11 @@
        if (idata == 0) {
          RooDataSet *tds = (RooDataSet*) fin.Get(dNames[d])->Clone();
          mmumu_bkgs.push_back( *tds );
+         std::cout << "Appended: " << filename.Data() << std::endl;
        } else {
          RooDataSet *tds_other = (RooDataSet*) fin.Get(dNames[d])->Clone();
          mmumu_bkgs[iera].append( *tds_other );
+         std::cout << "Appended: " << filename.Data() << std::endl;
        }
        fin.Close();
        idata++;

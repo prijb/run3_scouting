@@ -322,10 +322,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     if ( isSignalMC ) {
       sigNormalization = (*mmumu).sumEntries(fitRange.Data());
       sigRawEntries = (*mmumu).numEntries();
-      if (sigNormalization < 1e-6)
+      if (sigNormalization < 1e-6) {
         sigNormalization = 1e-6;
-      if (sigRawEntries < 1e-6)
+        refitSignal = false;
+      }
+      if (sigRawEntries < 1e-6) {
         sigRawEntries = 1e-6;
+        refitSignal = false;
+      }
     }
     else {
       TFile *fxsec = TFile::Open("../data/xsec_interpolation_ZPrimeToMuMuSB_bestfit_13TeV_Allanach.root");
