@@ -393,7 +393,9 @@ dbins = []
 # Categories
 dbins.append("FourMu_sep") # 4mu, multivertex
 dbins.append("FourMu_osv") # 4mu, 4mu-vertex
+dbins.append("Dimuon_full_inclusive") # Dimuons excluded from categorization
 for label in lxybinlabel:
+    dbins.append("Dimuon_"+label+"_inclusive")
     dbins.append("Dimuon_"+label+"_iso0_ptlow")
     dbins.append("Dimuon_"+label+"_iso0_pthigh")
     dbins.append("Dimuon_"+label+"_iso1_ptlow")
@@ -1360,6 +1362,8 @@ for e in range(firste,laste):
                 roow.setVal(lumiweight);
                 roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
                 catmass[slice].Fill(mass, lumiweight);
+                roods["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+                roods["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
                 filledcat2mu = True
 
     # Apply selections and fill histograms for muon pairs from overlapping SVs
@@ -1539,6 +1543,8 @@ for e in range(firste,laste):
             roow.setVal(lumiweight);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
             catmass[slice].Fill(mass, lumiweight);
+            roods["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            roods["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
             filledcat2mu = True
 
     # Fill histograms for selected SVs (with a selected muon pair)
