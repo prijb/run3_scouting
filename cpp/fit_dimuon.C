@@ -324,11 +324,9 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       sigRawEntries = (*mmumu).numEntries();
       if (sigNormalization < 1e-6) {
         sigNormalization = 1e-6;
-        refitSignal = false;
       }
       if (sigRawEntries < 1e-6) {
         sigRawEntries = 1e-6;
-        refitSignal = false;
       }
     }
     else {
