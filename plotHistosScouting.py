@@ -894,6 +894,9 @@ for hn,hnn in enumerate(h1dn):
         if "excluded" in outname:
             latexExtra.DrawLatex(0.14,0.86,"Dimuon") 
             latexExtra.DrawLatex(0.14,0.76,"Excluded")
+        elif 'inclusive' in outname:
+            latexExtra.DrawLatex(0.14,0.86,"Dimuon") 
+            latexExtra.DrawLatex(0.14,0.76,"Inclusive")
         elif "non-pointing" not in outname:
             latexExtra.DrawLatex(0.14,0.86,"Dimuon") 
             catnames = outname.split("_")
