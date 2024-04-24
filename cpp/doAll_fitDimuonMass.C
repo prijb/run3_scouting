@@ -13,7 +13,8 @@
   
 
   // Dir with the RooDataSets
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Mar-26-2024_allCuts";
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Mar-26-2024_allCuts";
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Apr-19-2024_allCut_v2/";
 
   // Names of the search regions
   vector<TString> dNames = { };
@@ -63,10 +64,10 @@
 
   // Eras (to be uncommented when adding 2023 and splitting in eras)
   vector<TString> eras;
-  eras.push_back("2022");
-  eras.push_back("2022postEE");
-  //years.push_back("2023"); // Currently not available
-  //years.push_back("2023BPix"); // Currently not available
+  //eras.push_back("2022");
+  //eras.push_back("2022postEE");
+  eras.push_back("2023"); // Currently not available
+  eras.push_back("2023BPix"); // Currently not available
 
   vector<TString> samples = { };
   vector<TString> sigmodels = { };
@@ -81,7 +82,8 @@
   // Signals (To be modified: Needs to be more general but this is provisional)
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
-  vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
+  //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
+  vector<float> sigMass = {0.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   //vector<float> sigMass = {6.0};
   vector<float> sigCtau = {1, 10, 100, 1000};
   for ( unsigned int m=0; m<sigMass.size(); m++ ) {
@@ -135,8 +137,12 @@
      if (era=="2022") {
        dataEras.push_back("DataC"); dataEras.push_back("DataD"); dataEras.push_back("DataE");
      //} else if (year=="2022postEE") {
-     } else {
+     } else if (era=="2022postEE") {
        dataEras.push_back("DataF"); dataEras.push_back("DataG");
+     } else if (era=="2023") {
+       dataEras.push_back("DataC");
+     } else if (era=="2023BPix") {
+       dataEras.push_back("DataD");
      }
      // Loop over data files
      int idata = 0;
@@ -155,6 +161,7 @@
          continue;
        TString inFile = Form("%s/%s",inDir.Data(),filename.Data());
        TFile fin(inFile, "READ");
+       std::cout << inFile << std::endl;
        if (idata == 0) {
          RooDataSet *tds = (RooDataSet*) fin.Get(dNames[d])->Clone();
          mmumu_bkgs.push_back( *tds );
