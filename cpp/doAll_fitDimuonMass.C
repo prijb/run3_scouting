@@ -7,6 +7,7 @@
   //bool useSignalMC = true;
   bool mergeEras = true;
   bool writeWS = true;
+  TString period = "2023"; // Either 2022 or 2023
   TString model = "HTo2ZdTo2mu2x";
   float mF = 350.0;
   float mL = 2000.0;
@@ -64,10 +65,18 @@
 
   // Eras (to be uncommented when adding 2023 and splitting in eras)
   vector<TString> eras;
-  //eras.push_back("2022");
-  //eras.push_back("2022postEE");
-  eras.push_back("2023"); // Currently not available
-  eras.push_back("2023BPix"); // Currently not available
+  if (period=="2022") {
+    eras.push_back("2022");
+    eras.push_back("2022postEE");
+  } else if (period=="2023") {
+    eras.push_back("2023");
+    eras.push_back("2023BPix");
+  } else if (period=="allEras") {
+    eras.push_back("2022");
+    eras.push_back("2022postEE");
+    eras.push_back("2023");
+    eras.push_back("2023BPix");
+  }
 
   vector<TString> samples = { };
   vector<TString> sigmodels = { };
@@ -83,7 +92,7 @@
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-  vector<float> sigMass = {0.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
+  vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   //vector<float> sigMass = {6.0};
   vector<float> sigCtau = {1, 10, 100, 1000};
   for ( unsigned int m=0; m<sigMass.size(); m++ ) {
@@ -204,7 +213,7 @@
    }
    
    if (mergeEras) {
-     TString outDir = "fitResults_allEras";
+     TString outDir = "fitResults_"+period;
      RooDataSet mmumu_bkg_merged;
      for ( int iera=0; iera<eras.size(); iera++ ) {
        if (iera==0) 
@@ -212,7 +221,7 @@
        else 
          mmumu_bkg_merged.append(mmumu_bkgs[iera]);
      }
-     mmumu_bkg_merged.SetName(dNames[d]+"_Data_allEras");
+     mmumu_bkg_merged.SetName(dNames[d]+"_Data_"+period);
      cout << "Merged dataset for background has entries: " << mmumu_bkg_merged.sumEntries() << endl;
      vector<RooDataSet> mmumu_sig_merged = {};
      for (unsigned int isample=0; isample<sigsamples.size(); isample++ ) {
@@ -225,17 +234,17 @@
          else
            mmumu_sig_merged[isample].append(mmumu_sigs[isample][iera]);
        }  
-       mmumu_sig_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_allEras");
+       mmumu_sig_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period);
        cout << "Merged dataset for signal " << sigsamples[isample] << " with entries " << mmumu_sig_merged[isample].sumEntries() << endl;
        // Fit invariant mass
        std::cout << "Prepare to fit..." << std::endl;
        //if (dNames[d].BeginsWith("d_FourMu_osv")) {
        if (dNames[d].BeginsWith("d_FourMu_")) {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, true, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_4mu[isample], wfit, true, "", outDir); 
+         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "dcbfastg", outDir);
+         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "", outDir); 
        } else {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, false, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], wfit, false, "", outDir); 
+         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "dcbfastg", outDir);
+         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "", outDir); 
        }
     
        // Print workspace contents

@@ -68,12 +68,11 @@ bool useOnlyPowerLaw = false;
 bool useOnlyBernstein = false;
 bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernstein ) ? true : false;
 
-void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, bool fourmu, TString sigshape="dcbfastg", const char* outDir = "fitResults")
+void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
 {
 
-  //if (mmumuAll.numEntries() < 1)
-  //    return;
-
+  //TString outDir = outDirPrefix+"_"+year;
+  //TString outDir = Form("%s_%s",outDirPrefix.Data(), year.Data());
   int mdir = mkdir(outDir,0755);
 
   double minmass = 0.4;
@@ -315,7 +314,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_non-pointing") ) binidx=42;
     TString catExt = "";
     if ( categorizeSignal ) 
-      catExt = Form("_ch%d",binidx);
+      catExt = Form("_ch%d_%s",binidx, period.Data());
     mmumu->SetName(Form("signalRooDataSet%s",catExt.Data()));    
     double sigNormalization =-1.0;
     int sigRawEntries = -1;
@@ -723,7 +722,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     else if ( datasetname.Contains("d_Dimuon_lxy16p0to70p0_non-pointing") ) binidx=42;
     TString catExt = "";
     if ( categorizeBackground ) 
-      catExt = Form("_ch%d",binidx);
+      catExt = Form("_ch%d_%s",binidx, period.Data());
 
     //////Define fit-related variables
     int nMaxFitAttempts = 5;

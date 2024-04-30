@@ -7,8 +7,6 @@ today= date.today().strftime("%b-%d-%Y")
 
 wsname = "wfit"
 thisDir = os.environ.get("PWD")
-#inDir  = "%s/cpp/fitResults_fullRange_forCards/"%thisDir
-inDir  = "%s/fitResults_allEras/"%thisDir
 
 #fnfitParamsForShapeUnc = "%s/utils/signalFitParameters_muonResolutionUnc.root"%thisDir
 #ffitParamsForShapeUnc = ROOT.TFile.Open(fnfitParamsForShapeUnc,"READ")
@@ -21,7 +19,7 @@ useCategorizedSignal = True
 useCategorizedBackground = True
 
 useData = True
-intLumi = 3.51
+intLumi = 3.51 # Not used!!!! Signals weighted at filler level
 useSignalMC = True
 doPartiaUnblinding = False
 ext = "data"
@@ -37,6 +35,7 @@ meanFloat = False
 doMuonResolution = True
 noModel = False
 dirExt = ""
+""" # Privisionally removed but maybe used in future?
 if len(sys.argv)>1:
     if sys.argv[1]=="expo":
         useOnlyExponential = True
@@ -62,10 +61,14 @@ if len(sys.argv)>1:
     if len(sys.argv)>2 and sys.argv[2]=="nomodel":
         noModel=True
         dirExt = dirExt+"_nomodel"
+"""
+if len(sys.argv)>1:
+    year = sys.argv[1]
 
-outDir = ("%s/datacards_all%s_"%(thisDir,dirExt))+today
+outDir = ("%s/datacards_all%s_"%(thisDir,dirExt))+today+"_"+year
 if not os.path.exists(outDir):
     os.makedirs(outDir)
+inDir  = "%s/fitResults_%s/"%(thisDir, year)
 
 useSinglePDF = False
 if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
@@ -119,9 +122,11 @@ dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
 dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
 
 years = []
-#years.append("2022")
+years.append(year)
 ###
-years.append("allEras")
+#years.append("allEras")
+
+#years.append("2023")
 
 # Signals
 sigModels = []
@@ -132,7 +137,7 @@ sigModel = "HTo2ZdTo2mu2x"
 sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
-        sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+        sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
         for  m in sigMasses:
             sigCTaus = [1, 10, 100, 100]
             for t in sigCTaus:
@@ -244,9 +249,9 @@ for y in years:
            catExtS = ""
            catExtB = ""
            if useCategorizedSignal:
-               catExtS = "_ch%d"%binidx
+               catExtS = "_ch%d_%s"%(binidx, year)
            if useCategorizedBackground:
-               catExtB = "_ch%d"%binidx
+               catExtB = "_ch%d_%s"%(binidx, year)
            listOfBins.append(binidx)
            # Open input file with workspace
            f = ROOT.TFile(finame)

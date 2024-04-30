@@ -7,20 +7,21 @@ indir=$1
 outdir=$2
 model=$3
 which=$4
+period=$5
 
 mass=2.0
 ctau=1
-if [ $# -lt 5 ]
+if [ $# -lt 6 ]
 then
     mass=2.0
     ctau=1
-elif [ $# -lt 6 ]
+elif [ $# -lt 7 ]
 then
-    mass=$5
+    mass=$6
     ctau=0
 else
-    mass=$5
-    ctau=$6
+    mass=$6
+    ctau=$7
 fi
 
 
@@ -29,7 +30,7 @@ if [ ${useSignalMC} == 1 ]
 then
     if [ ${model} == "HTo2ZdTo2mu2x" ]
     then
-        if [ $# -gt 5 ]
+        if [ $# -gt 6 ]
         then
             allmasses=(${allmasses} ${mass})
             allCTaus=(${allCTaus} ${ctau})
@@ -56,7 +57,7 @@ do
             name="-n _${which}_${model}_M${m}"
             if [ ${which} == "asymptotic" ]
             then
-                eval "combine -M AsymptoticLimits ${indir}/card_combined_${model}_M${m}_ctau${t}_allEras.root ${options} ${name} -m ${m} >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}.txt"
+                eval "combine -M AsymptoticLimits ${indir}/card_combined_${model}_M${m}_ctau${t}_${period}.root ${options} ${name} -m ${m} >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysObs" ]
             then
                 eval "combine ${indir}/card_combined_${model}_M${m}_allyears.root -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m ${m} >& ${outdir}/lim_${which}_${model}_m${m}.txt"

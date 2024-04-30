@@ -12,11 +12,18 @@ xsec_h = 59.8 # higgs cross section in pb at 13.6 GeV, used to normalize the MC
 scaleToFullLumi = False
 compare = False
 luminosity = 3.5
-year = 2022
 
 model = sys.argv[1]
 limdir = sys.argv[2]
 ctau = sys.argv[3]
+year = sys.argv[4]
+
+if year=='2022':
+    luminosity = 3.5
+elif year=='2023':
+    luminosity = 2.7
+else:
+    luminosity = 2.7 + 3.5
 
 massl = []
 obsl  = []
@@ -43,7 +50,7 @@ elif typeOfLimit=="xsecBR":
     if model=="HTo2ZdTo2mu2x":
         ylabel = "95% CL upper limit on #sigma(h#rightarrowZ_{D}Z_{D})xB(Z_{D}#rightarrow#mu#mu) [pb]"
 
-fin = open("%s/limits_%s.txt"%(limdir,model),"r")
+fin = open("%s/limits_%s_%s.txt"%(limdir,model,year),"r")
 for l in fin.readlines():
     if l.startswith("#"):
         continue

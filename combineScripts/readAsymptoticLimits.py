@@ -8,16 +8,18 @@ if len(sys.argv)<3:
 
 model = sys.argv[1]
 limdir = sys.argv[2]
-if len(sys.argv)>3:
-    outdir = sys.argv[3]
+year = sys.argv[3]
+if len(sys.argv)>4:
+    outdir = sys.argv[4]
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 else:
     outdir = limdir
 
-fout = open("%s/limits_%s.txt"%(outdir,model),"w")
+fout = open("%s/limits_%s_%s.txt"%(outdir,model,year),"w")
 
-masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+#masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
 ctaus = [1, 10, 100]
 
 f2bs = [0.0]
@@ -37,7 +39,8 @@ for m in masses:
             p1s = -1.0
             p2s = -1.0
             if model != "nomodel":
-                fname = "%s/lim_asymptotic_%s_m%.1f_ctau%i.txt"%(limdir,model,m,t)
+                fname = "%s/lim_asymptotic_%s_m%.1f_ctau%i_%s.txt"%(limdir,model,m,t,year)
+                print(fname)
             else:
                 fname = "%s/lim_asymptotic_f2b%.0f_m%.0f.txt"%(limdir,100.0*f,m)
             if not os.path.exists(fname):

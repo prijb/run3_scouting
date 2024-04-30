@@ -98,12 +98,12 @@ source scripts/submitLocalAddHistosScouting.sh
 ## Fitting
 
 To run a set of fits just run:
-
 ```
 sh cpp/setFittingEnv.sh
 root -b -q -l -n cpp/doAll_fitDimuonMass.C
 ```
 
+**Remember to properly set the period and input paths inside before running**
 
 ## Limit extraction
 
@@ -121,21 +121,20 @@ make
 ```
 
 Then launch with condor with:
-
 ```
-sh condor/limits/runLimits_onCondor.sh <datacard directory> <limit output directory>
-``
+sh condor/limits/runLimits_onCondor.sh <datacard directory> <limit output directory> <year>
+```
 model and other parameters are specified in the corresponding .sub file.
 
 To wrap the limits results:
 ```
-python3 combineScripts/readAsymptoticLimits.py <model> <limit output directory>
+python3 combineScripts/readAsymptoticLimits.py <model> <limit output directory> <year>
 ```
 which will create a txt file with the relevant upper limits in the previous limit output directory.
 
 To plot them:
 ```
-python3 combineScripts/plot1DLimits.py <model> <limit output directory> <ctau>
+python3 combineScripts/plot1DLimits.py <model> <limit output directory> <ctau> <year>
 ```
 which will create the png limit plot.
 
