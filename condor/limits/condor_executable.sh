@@ -6,21 +6,22 @@ DIR=$1
 OUT=$2
 SIG=$3 # HTo2ZdTo2mu2x
 LIM=$4 # asymptotic, toysObs, toysExp, toysEm2, toysEm1, toysEp1, toysEp2, sigExp, sigObs
+PERIOD=$5 # Year
 
 MASS=2.0
 CTAU=1
 
-if [ $# -lt 5 ]
+if [ $# -lt 6 ]
 then
     MASS=2.0
     CTAU=1
-elif [ $# -lt 6 ]
+elif [ $# -lt 7 ]
 then
-    MASS=$5
+    MASS=$6
     CTAU=1
 else
-    MASS=$5
-    CTAU=$6
+    MASS=$6
+    CTAU=$7
 fi
 
 function stageout {
@@ -73,7 +74,7 @@ ls -la
 
 rm -rf ${OUT}
 mkdir -p ${OUT}
-bash combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${MASS} ${CTAU}
+bash combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}
 
 for FILE in $(ls ${OUT})
 do

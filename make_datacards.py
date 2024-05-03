@@ -430,7 +430,7 @@ for y in years:
                    card.write("bg_norm_ch%d gmN %d - 1.0\n"%(binidx,int(nBG)))
                else:
                    if not useSinglePDF:
-                       card.write("pdf_index_ch%d discrete\n"%(binidx)) # For discrete profiling
+                       card.write("pdf_index_ch%d_%s discrete\n"%(binidx, year)) # For discrete profiling
                        #card.write("pdf_index discrete\n") # For discrete profiling
                card.close()
            
