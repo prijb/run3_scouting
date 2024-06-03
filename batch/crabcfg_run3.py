@@ -17,7 +17,7 @@ else:
     quit()
 
 data=False
-config.JobType.pyCfgParams=["era={}".format(era),"data=False",]
+config.JobType.pyCfgParams=["era={}".format(era),"data=False"]
 if era in ["2022B", "2022C", "2022D", "2022E", "2022F", "2022G", "2023B", "2023C", "2023D"]:
     data=True
 
@@ -27,6 +27,9 @@ if (len(sys.argv)>2):
         extra=sys.argv[2]+"_"+sys.argv[3]
         config.Data.inputDataset = '/ScoutingPFMonitor/Run{}-v1/RAW'.format(era)
         config.JobType.pyCfgParams=["era={}".format(era+"-triggerV10"),"data=True","monitor=True"]  
+    elif(data and "systematic" in sys.argv[2]): #Systematics
+        config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
+        config.JobType.pyCfgParams=["era={}".format(era),"data=True","sys=True"]
     elif (data and "PFMonitor" not in sys.argv[2]): #triggerV10
         extra=sys.argv[2]
         config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
@@ -44,7 +47,7 @@ elif(data): #other data
 else:
     quit()
 
-ntuple_version = "5"
+ntuple_version = "5_trig_test"
 
 config.General.requestName = 'skim4__{}_{}_{}'.format(
         era,
@@ -61,12 +64,20 @@ config.General.transferLogs = True
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'Scouting/NtupleMaker/test/producer_Run3.py'
 
-config.Data.splitting = 'EventAwareLumiBased'
+#config.Data.splitting = 'EventAwareLumiBased'
+config.Data.splitting = 'FileBased'
 
 if (data):
-    config.Data.unitsPerJob = int(10e6/3)
+    #config.Data.unitsPerJob = int(10e6/3)
+    #config.Data.unitsPerJob = int(10e3/3)
+    config.Data.unitsPerJob = int(1)
 else:
-    config.Data.unitsPerJob = int(10e4)
+    #config.Data.unitsPerJob = int(10e4)
+    config.Data.unitsPerJob = int(1)
+
+#Testing for n files    
+NJOBS = 100
+config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 
 #something like this can be useful for limited disk availability
 #config.Data.inputBlocks = [
@@ -86,9 +97,10 @@ if (data and year==2022):
    config.Data.lumiMask = "data/Cert_Collisions2022_355100_362760_Golden.json"
 
 #edit the area and user name
-config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_version # DB no
-config.Data.publication = False
-config.Site.storageSite = "T2_US_UCSD"
+#config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_version # DB no
+config.Data.outLFNDirBase = '/store/user/ppradeep/Run3Scouting/RAWScouting_'+ntuple_version # DB no
+config.Data.publication = True
+config.Site.storageSite = "T2_UK_London_IC"
 
 print(config)
 crabCommand('submit', config = config, dryrun = False) ## dryrun = True for local test

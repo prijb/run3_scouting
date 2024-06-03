@@ -12,6 +12,7 @@ opts.register('output',  "output.root", mytype = vpstring)
 opts.register('inputs',  "",            mytype = vpstring) # comma separated list of input files
 opts.register('nevents', -1,            mytype = vpint)
 opts.register('testL1',    False,       mytype = vpbool)
+opts.register('sys',      False,        mytype = vpbool)   # Used for trigger SF 
 opts.parseArguments()
 
 def convert_fname(fname):
@@ -170,6 +171,10 @@ if '2022' in opts.era or (opts.data and '2023B' in opts.era) or '2023C-triggerV1
             "L1_SingleEG34er2p5", "L1_SingleEG36er2p5", "L1_SingleEG38er2p5", "L1_SingleEG40er2p5", "L1_SingleJet160er2p5", "L1_SingleJet180", "L1_SingleJet200", "L1_SingleTau120er2p1", "L1_SingleTau130er2p1", "L1_SingleEG42er2p5", "L1_SingleEG45er2p5", "L1_SingleEG60"
         ]
         L1Info = list(set(L1Info))
+    # For systematics
+    if opts.sys:
+        L1Info = L1Info + ["L1_DoubleEG_LooseIso16_LooseIso12_er1p5", "L1_DoubleEG_LooseIso18_LooseIso12_er1p5", "L1_DoubleEG_LooseIso20_LooseIso12_er1p5", "L1_DoubleEG_LooseIso22_LooseIso12_er1p5", "L1_SingleLooseIsoEG28er2p1", "L1_SingleLooseIsoEG28er1p5", "L1_SingleLooseIsoEG30er1p5", "L1_SingleIsoEG28er2p1", "L1_SingleIsoEG30er2p1", "L1_SingleIsoEG32er2p1"]
+        L1Info = L1Info + ["L1_HTT200er", "L1_HTT255er", "L1_HTT280er", "L1_HTT320er", "L1_HTT360er", "L1_HTT400er", "L1_HTT450er", "L1_ETT2000", "L1_SingleJet180", "L1_SingleJet200", "L1_DoubleJet30er2p5_Mass_Min300_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min330_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min360_dEta_Max1p5"]
 else:
     # for run >=367621 (during era Run2023C)
     L1Info = ["L1_DoubleMu_12_5","L1_DoubleMu_15_7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18","L1_DoubleMu4_SQ_OS_dR_Max1p2","L1_DoubleMu4p5_SQ_OS_dR_Max1p2","L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4","L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4","L1_DoubleMu8_SQ"]
