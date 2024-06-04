@@ -79,6 +79,28 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double maxmass = 140.;
   double minMforFit = minmass;
 
+  // Veto of SM resonances: Compare minMforFit with upper edge of vetoed mass band
+  // This is provisionally commented because it's giving problems with m = 0.5 GeV
+  //if ( ( (mass - 0.49) < (mass - minMforFit) ) && (mass > 0.49) ) // Ks
+  //  minMforFit = 0.49;
+  if ( ( (mass - 0.58) < (mass - minMforFit) ) && (mass > 0.58) ) // eta
+    minMforFit = 0.58;
+  if ( ( (mass - 0.84) < (mass - minMforFit) ) && (mass > 0.84) ) // rho / w
+    minMforFit = 0.84;
+  if ( ( (mass - 1.08) < (mass - minMforFit) ) && (mass > 1.08) ) // phi 1020
+    minMforFit = 1.08;
+  if ( ( (mass - 3.27) < (mass - minMforFit) ) && (mass > 3.27) ) // Jpsi
+    minMforFit = 3.27;
+  if ( ( (mass - 3.89) < (mass - minMforFit) ) && (mass > 3.89) ) // Psi 2S
+    minMforFit = 3.89;
+  if ( ( (mass - 9.87) < (mass - minMforFit) ) && (mass > 9.87) ) // Upsilon 1S
+    minMforFit = 9.87;
+  if ( ( (mass - 10.39) < (mass - minMforFit) ) && (mass > 10.39) ) // Upsilon 2S
+    minMforFit = 10.39;
+  if ( ( (mass - 10.77) < (mass - minMforFit) ) && (mass > 10.77) ) // Upsilon 3S
+    minMforFit = 10.77;
+
+
   bool useSpline = false;
   double minMforSpline =  200.0;
   double maxMforSpline = 2000.0;
@@ -87,7 +109,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   TFile *ffitParams = TFile::Open("utils/signalFitParameters_default.root", "READ");
   
   //////Set starting standard deviation (sigma)
-  double stddev = 0.01*mass;
+  double stddev = 0.012*mass; // Updated, before 2%
   double minstddev = 0.01*mass;
   double maxstddev = 0.25*mass;
   //
@@ -229,15 +251,15 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     TString fitRange;
     TString varname;
     if (fourmu) {
-      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
       varname = "m4fit";
     } else { 
-      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
       varname = "mfit";
     }
 
     //////Get RooRealVar from RooDataSet
-    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     (*mmumu).Print();
     RooRealVar x;
@@ -246,14 +268,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     else 
       x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
     x.Print();
-    x.setRange("fitRange",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
-    int nBins = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/binsize;
-    int nBinsPlot = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/(0.5*binsizePlot);
+    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    int nBins = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/binsize;
+    int nBinsPlot = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/(0.5*binsizePlot);
     if ( doBinnedFit )
       x.setBins(nBins);
-    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
 
-    RooPlot *frame = x.frame(std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
     frame->SetTitle("");//Signal dimuon mass fit");
     frame->SetMinimum(0.0);
     //////Plot RooDataSet onto frame
@@ -603,14 +625,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     TString fitRange;
     TString varname;
     if (fourmu) {
-      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
       varname = "m4fit";
     } else { 
-      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
       varname = "mfit";
     }
     //////Get RooRealVar from RooDataSet
-    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     //if ((*mmumu).numEntries() < 1)
     //  return;
@@ -619,12 +641,12 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       x = *((RooRealVar*) (*mmumu).get()->find("m4fit"));
     else 
       x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
-    x.setRange("fitRange",std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
-    int nBins = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/binsize;
-    int nBinsPlot = (mass+10.0*stddev - std::max(minMforFit,mass-10.0*stddev))/binsizePlot;
+    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    int nBins = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/binsize;
+    int nBinsPlot = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/binsizePlot;
     if ( doBinnedFit )
       x.setBins(nBins);
-    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
 
     RooDataSet *mmumuFit;
     double bgNormalizationForToy = (*mmumu).sumEntries(fitRange.Data());
@@ -640,7 +662,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       
       mmumuFit = (RooDataSet*) mmumuTOY.Clone((*mmumu).GetName());
 
-      RooPlot *frame = x.frame(std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+      RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
       frame->SetTitle("");//BG dimuon mass fit");
       frame->SetMinimum(0.0);
       
@@ -668,7 +690,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       mmumuFit = (RooDataSet*) (*mmumu).Clone((*mmumu).GetName());
     }
 
-    RooPlot *frame = x.frame(std::max(minMforFit,mass-10.0*stddev),mass+10.0*stddev);
+    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
     frame->SetTitle("");//BG dimuon mass fit");
     frame->SetMinimum(0.0);
 
@@ -747,7 +769,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     RooRealVar nBG(Form("roomultipdf%s_norm",catExt.Data()),Form("roomultipdf%s_norm",catExt.Data()),bgNormalization,minNormalization,maxNormalization);
 
     //////Exponential PDF
-    RooRealVar expo_slope(Form("expo_slope%s",catExt.Data()),Form("expo_slope%s",catExt.Data()),-0.02,-0.1,-0.0001);
+    //RooRealVar expo_slope(Form("expo_slope%s",catExt.Data()),Form("expo_slope%s",catExt.Data()),-0.02,-0.1,-0.0001); // decreasing slope
+    RooRealVar expo_slope(Form("expo_slope%s",catExt.Data()),Form("expo_slope%s",catExt.Data()),-0.02,-5.0,5.0);
     RooExponential exponential(Form("background_exponential%s",catExt.Data()),Form("background_exponential%s",catExt.Data()),x,expo_slope);
     //////Fit
     std::cout << "Exponential fit................." << std::endl;
@@ -818,7 +841,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     // If p-value is zero, fit does not converge, zero events, or less than 10 events and less than 0.1 events/GeV, do not include
     if ( chi2ExponentialPvalue > 0.01 &&
 	 fitStatusExponential==0 &&
-	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+10.0*stddev-std::max(minMforFit,mass-10.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
+	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
       bgPDFs.add(exponential);
       if ( useOnlyExponential ) 
 	wfit.import(exponential);
@@ -869,7 +892,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 
     //////Power-law PDF
     std::cout << "Power-law fit................." << std::endl;
-    RooRealVar plaw_power(Form("plaw_power%s",catExt.Data()),Form("plaw_power%s",catExt.Data()),-3.0,-6.0,-0.0001);
+    //RooRealVar plaw_power(Form("plaw_power%s",catExt.Data()),Form("plaw_power%s",catExt.Data()),-3.0,-6.0,-0.0001); // Decreasing slope
+    RooRealVar plaw_power(Form("plaw_power%s",catExt.Data()),Form("plaw_power%s",catExt.Data()),-3.0,-12.0,12.0);
     RooGenericPdf powerlaw(Form("background_powerlaw%s",catExt.Data()),"TMath::Power(@0,@1)",RooArgList(x,plaw_power));
     //////Fit
     nFitParams = 1;
@@ -938,7 +962,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     // If p-value is zero, fit does not converge, zero events, or less than 1 events and less than 0.1 events/GeV, do not include
     if ( chi2PowerlawPvalue > 0.01 &&
 	 fitStatusPowerlaw==0 && 
-	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+10.0*stddev-std::max(minMforFit,mass-10.0*stddev)) < 1e-1 && nBG.getVal() < 10 ) ) ) {
+	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 10 ) ) ) {
       bgPDFs.add(powerlaw);
       if ( useOnlyPowerLaw )
 	wfit.import(powerlaw);
@@ -1127,7 +1151,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       if ( (bestBernsteinOrder < 0 && fitStatusBernstein[to-1]==0 && TMath::Prob(ftestChi2,1) > 0.05 && to-1 >= 0) || to>maxpolyorder ) 
 	bestBernsteinOrder = to-1;
       // If zero events, or less than 10 events and less than 0.1 events/GeV, only use lowest order
-      if ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+10.0*stddev-std::max(minMforFit,mass-10.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) {
+      if ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) {
 	   bestBernsteinOrder=0;
       }
 
@@ -1145,11 +1169,11 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
               continue;
 	  if ( tto < 0 ) continue;
 	  // If zero events, or less than 10 events and less than 0.1 events/GeV, only use lowest order
-	  if ( (nBG.getVal() < 1 || ( nBG.getVal()/(mass+10.0*stddev-std::max(minMforFit,mass-10.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) && tto > 0 ) continue;
+	  if ( (nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) && tto > 0 ) continue;
 	  // If p-value is zero, fit does not converge, zero events, or less than 10 events and less than 0.1 events/GeV, do not include
 	  if ( ( chi2BernsteinPvalue[tto] > 0.01 &&
 		 fitStatusBernstein[tto]==0 )
-	       || ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+10.0*stddev-std::max(minMforFit,mass-10.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
+	       || ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
 	    bernsteinPDFOrders.push_back(tto);
 	    //RooAbsPdf *bernstein;
 	    if (tto == 0) {
