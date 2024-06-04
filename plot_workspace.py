@@ -15,19 +15,21 @@ doPull = False
 useSignalMC = True
 doPartialUnblinding = True
 normalizeSignal = False # Only if background is > 0
-plotBackground = False
-plotSignal = True
-plotOnlySignal = True
+plotBackground = True
+plotSignal = False
+plotOnlySignal = False
 useData = not plotOnlySignal
+year = '2023'
 
 wsname = "wfit"
 thisDir = os.environ.get("PWD")
-inDir  = "%s/fitResults_allEras/"%thisDir
+#inDir  = "%s/fitResults_%s/"%(thisDir, year)
+inDir = sys.argv[1]
 
 useCategorizedSignal = True
 useCategorizedBackground = True
 
-outDir = ("%s/fitPlots_"%(thisDir))+today
+outDir = ("%s/fitPlots_%s_"%(thisDir, year))+today
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 
@@ -77,12 +79,7 @@ dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
 #dNames.append("")
 
 years = []
-#years.append("2022")
-#years.append("2017")
-#years.append("2016APV")
-#years.append("2016nonAPV")
-###
-years.append("allEras")
+years.append(year)
 
 # Signals
 sigModels = []
@@ -93,7 +90,11 @@ sigModels.append("Y3")
 
 sigMasses = []
 if useSignalMC:
-    sigMasses.append("5.0")
+#    sigMasses.append("0.5")
+#    sigMasses.append("0.7")
+    sigMasses.append("1.5")
+    sigMasses.append("2.0")
+    sigMasses.append("2.5")
 else:
     mF = 350.0
     mL = 2000.0
@@ -107,6 +108,7 @@ else:
       else: tm=tm+50.0
       sigMasses.append("%.0f"%tm)
 sigCtau = ["1", "10", "100"]
+sigCtau = ["1"]
 
 def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
     # Labels
@@ -239,9 +241,9 @@ for y in years:
                 catExtS = ""
                 catExtB = ""
                 if useCategorizedSignal:
-                    catExtS = "_ch%d"%binidx
+                    catExtS = "_ch%d_%s"%(binidx, year)
                 if useCategorizedBackground:
-                    catExtB = "_ch%d"%binidx
+                    catExtB = "_ch%d_%s"%(binidx, year)
                 print(catExtS, catExtB)
                 # Open input file with workspace
                 f = ROOT.TFile(finame)
@@ -257,7 +259,7 @@ for y in years:
                 #nBins = int((maxx-minx)/(0.01*float(m)))
                 nBins = 5*10;
                 # Retrieve signal normalization
-                lumi=35.                
+                lumi=35. if year=='2022' else 17.1 # 27.2              
                 if doPartialUnblinding:
                     lumi = 0.1*lumi
                 nSig = w.var("signalNorm%s"%catExtS).getValV()
@@ -571,7 +573,7 @@ for y in years:
                     legend = getLegend(binidx,g_data,pn,hp,hs,llabel,float(m), -1, True, False, True, hmc, g_gauss, g_dcb)
                 else:
                     legend = getLegend(binidx,g_data,pn,hp,hs,llabel,float(m), -1, plotSignal)
-                year="all"
+                #year="2022"
                 drawLabels(year,lumi,useData)
                 legend.Draw("same")
                 pads[0].Update()

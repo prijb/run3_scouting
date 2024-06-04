@@ -13,7 +13,7 @@ mkdir -p ScoutingRun3
 cp ../HiggsAnalysis/ ScoutingRun3/. -r # Copy relevant folders
 #cp CMSSW_12_6_0 tmp_create_package/ScoutingRun3/. -r # Copy relevant folders
 #cp combineScripts tmp_create_package/ScoutingRun3/. -r 
-tar -cf - ../combineScripts ../${INDIR} ../fitResults_{$PERIOD} | tar -xf - -C ScoutingRun3/. # Copy cpp folder without the plot folders
+tar -cf - ../combineScripts ../${INDIR} ../fitResults_${PERIOD} | tar -xf - -C ScoutingRun3/. # Copy cpp folder without the plot folders
 
 tar -chJf package.tar.gz ScoutingRun3
 

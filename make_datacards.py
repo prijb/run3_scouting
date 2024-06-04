@@ -262,6 +262,8 @@ for y in years:
            #nSig = nSig*intLumi*1000.0/200000.0
            if doPartiaUnblinding:
                nSig = 0.1*nSig
+           if nSig < 1e-6:
+               nSig = 1e-6
            # Retrieve signal mean and std. deviation
            mean = w.var("mean%s"%catExtS).getValV()
            sigma = w.var("sigma%s"%catExtS).getValV()
@@ -407,7 +409,7 @@ for y in years:
                if doCounting:
                    card.write("rate %.3f %.3f\n"%(nSig,nBG))
                else:
-                   card.write("rate %.3f 1\n"%(nSig)) # CELIANOTE: Is this really correct? 
+                   card.write("rate %e 1\n"%(nSig)) # CELIANOTE: Is this really correct? 
                card.write("------------\n")  
                # Systematics
                card.write("lumi_13TeV lnN 1.016 -\n") # Integrated luminosity uncertainty on signal (fully correlated)

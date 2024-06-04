@@ -6,11 +6,11 @@ ROOT.gROOT.SetBatch(1)
 drawObserved = True
 drawPoints = True
 maskSMResonances = True
-typeOfLimit = "xsecBR" # "r", "xsec", "xsecBR" "BRH" 
+typeOfLimit = "BRH" # "r", "xsec", "xsecBR" "BRH" 
 xsec = 1.0 # in pb, used to normalize the MC
 xsec_h = 59.8 # higgs cross section in pb at 13.6 GeV, used to normalize the MC
-scaleToFullLumi = False
-compare = False
+scaleToFullLumi = True
+compare = True
 luminosity = 3.5
 
 model = sys.argv[1]
@@ -32,6 +32,8 @@ m2sl  = []
 m1sl  = []
 p1sl  = []
 p2sl  = []
+mext  = []
+pext  = []
 
 if typeOfLimit=="r":
     ylabel = "95% CL upper limit on #sigma/#sigma_{theory}"
@@ -79,8 +81,8 @@ for l in fin.readlines():
                         break
         scale = xsec*BR
         print(float(ls[1]), float(ls[4]), BR)
-    if scaleToFullLumi:
-        scale = scale / math.sqrt(10.0)
+    #if scaleToFullLumi:
+    #    scale = scale / math.sqrt(10.0)
     if model=="HTo2ZdTo2mu2x" and float(ctau) > 10 and float(ls[1]) < 1.5:
         continue
     massl.append(float(ls[1]))
@@ -90,6 +92,11 @@ for l in fin.readlines():
     m1sl .append(scale*float(ls[6]))
     p1sl .append(scale*float(ls[7]))
     p2sl .append(scale*float(ls[8]))
+
+    if scaleToFullLumi:
+        mext .append(scale*float(ls[4])/10.0)
+        pext .append(scale*float(ls[4])/math.sqrt(10.0))
+
 fin.close()
 
 massv = np.array(massl,"d")
@@ -103,27 +110,31 @@ p2sv  = np.array(p2sl ,"d")
 cfile = None
 if compare:
     print("> Request to open files to compare")
-    if model=="HTo2ZdTo2mu2x":
-        if typeOfLimit=="BRH":
-            if ctau=="1":
-                cfile = ROOT.TFile("data/run-2/scouting/HEPData-ins1997201-v2-Figure_8a.root")
-                cgobs = cfile.Get("Figure 8a/Graph1D_y1")
-                cgexp = cfile.Get("Figure 8a/Graph1D_y2")
-            if ctau=="100":
-                cfile = ROOT.TFile("data/run-2/scouting/HEPData-ins1997201-v2-Figure_8b.root")
-                cgobs = cfile.Get("Figure 8b/Graph1D_y1")
-                cgexp = cfile.Get("Figure 8b/Graph1D_y2")
-    cgobs.SetLineColor(ROOT.kBlue)
-    cgobs.SetMarkerColor(ROOT.kBlue)
-    cgobs.SetMarkerStyle(20)
-    cgobs.SetLineStyle(1)
-    cgobs.SetLineWidth(2)
-    cgexp.SetLineColor(ROOT.kBlue)
-    cgexp.SetMarkerColor(ROOT.kBlue)
-    cgexp.SetMarkerStyle(20)
-    cgexp.SetLineStyle(2)
-    cgexp.SetLineWidth(2)
-    print("> Files accessed")
+    try:
+        if model=="HTo2ZdTo2mu2x":
+            if typeOfLimit=="BRH":
+                if ctau=="1":
+                    cfile = ROOT.TFile("data/run-2/scouting/HEPData-ins1997201-v2-Figure_8a.root")
+                    cgobs = cfile.Get("Figure 8a/Graph1D_y1")
+                    cgexp = cfile.Get("Figure 8a/Graph1D_y2")
+                if ctau=="100":
+                    cfile = ROOT.TFile("data/run-2/scouting/HEPData-ins1997201-v2-Figure_8b.root")
+                    cgobs = cfile.Get("Figure 8b/Graph1D_y1")
+                    cgexp = cfile.Get("Figure 8b/Graph1D_y2")
+        cgobs.SetLineColor(ROOT.kBlue)
+        cgobs.SetMarkerColor(ROOT.kBlue)
+        cgobs.SetMarkerStyle(20)
+        cgobs.SetLineStyle(1)
+        cgobs.SetLineWidth(2)
+        cgexp.SetLineColor(ROOT.kBlue)
+        cgexp.SetMarkerColor(ROOT.kBlue)
+        cgexp.SetMarkerStyle(20)
+        cgexp.SetLineStyle(2)
+        cgexp.SetLineWidth(2)
+        print("> Files accessed")
+    except NameError:
+        print("> Files not available")
+        pass
 
 miny = 999.
 maxy = -1.0
@@ -139,8 +150,9 @@ if max(obsl)>maxy:
 if max(p1sl)>maxy:
     maxy=max(p1sl)*10.0
 
-#miny=0.1
-#maxy=50.
+if compare:
+    miny=5e-6
+    maxy=0.1
 
 gobs = ROOT.TGraph(len(massv),massv,obsv)
 gobs.SetLineColor(1)
@@ -177,6 +189,14 @@ g1s.SetFillColor(ROOT.kGreen+2)
 g1s.SetMarkerColor(ROOT.kGreen+2)
 g1s.SetMarkerStyle(1)
 
+if scaleToFullLumi:
+    gext = ROOT.TGraphAsymmErrors(len(massv),massv,expv, dummy, dummy, expv-mext, pext-expv)
+    gext.SetLineColor(2)
+    gext.SetFillColor(2)
+    gext.SetFillStyle(3244)
+    gext.SetMarkerColor(2)
+    gext.SetMarkerStyle(1)
+
 g2s = ROOT.TGraphAsymmErrors(len(massv),massv,expv, dummy, dummy, expv-m2sv, p2sv-expv)
 g2s.SetLineColor(ROOT.kOrange)
 g2s.SetFillColor(ROOT.kOrange)
@@ -205,6 +225,8 @@ if drawObserved:
 leg.AddEntry(gexp,"Expected","L")
 leg.AddEntry(g1s,"#pm1#sigma expected","F")
 leg.AddEntry(g2s,"#pm2#sigma expected","F")
+if scaleToFullLumi:
+    leg.AddEntry(gext,"Full lumi extrapolated","F")
 if compare and cfile is not None:
     leg.AddEntry(cgexp,"Run 2 dimuon scouting 101 fb^{-1} (expected)","L")
 
@@ -236,12 +258,16 @@ if not drawPoints:
     g2s.Draw("3")
     g1s.Draw("3")
     gexp.Draw("L")
+    if scaleToFullLumi:
+        gext.Draw("3")
     if drawObserved:
         gobs.Draw("L")
 else:
     g2s.Draw("3")
     g1s.Draw("3")
     gexp.Draw("PL")
+    if scaleToFullLumi:
+        gext.Draw("3")
     if drawObserved:
         gobs.Draw("PL")
 
