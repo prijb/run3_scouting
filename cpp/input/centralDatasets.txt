@@ -309,4 +309,6 @@ Signal_BToPhi_MPhi-2p0_ctau-100mm_2022postEE,/BToPhi_MPhi-2p0_ctau-100mm-pythia8
 ####################################
 #### For systematics 
 ####################################
-DileptonMinBias_2022,/InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8/ppradeep-crab_skim4__2022X_InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8_5-346c49976912bed03826aa1703cc0687/USER
+DileptonMinBias_sys_2022,/InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8/ppradeep-crab_skim4__2022X_InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8_5_syst-cf0b66eebbd8a1efdeefe3d3090bd687/USER
+DataF_sys_2022,/ScoutingPFRun3/ppradeep-crab_skim4__2022F__5_syst-d1bd6d04f9245580703ff40c0586a17f/USER
+DataG_sys_2022,/ScoutingPFRun3/ppradeep-crab_skim4__2022G__5_syst-d1bd6d04f9245580703ff40c0586a17f/USER

@@ -40,6 +40,8 @@ if (len(sys.argv)>2):
         config.JobType.pyCfgParams=["era={}".format(era),"data=True","monitor=True"]
     else: #MC
         config.Data.inputDataset = sys.argv[2]
+        #Including orthogonal triggers in MC for now
+        config.JobType.pyCfgParams=["era={}".format(era),"data=False", "sys=True"]
         extra = sys.argv[2].split("/")[1]
 elif(data): #other data
     config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
@@ -47,7 +49,7 @@ elif(data): #other data
 else:
     quit()
 
-ntuple_version = "5_trig_test"
+ntuple_version = "5_syst"
 
 config.General.requestName = 'skim4__{}_{}_{}'.format(
         era,
@@ -68,15 +70,15 @@ config.JobType.psetName = 'Scouting/NtupleMaker/test/producer_Run3.py'
 config.Data.splitting = 'FileBased'
 
 if (data):
-    #config.Data.unitsPerJob = int(10e6/3)
+    config.Data.unitsPerJob = int(10e6/3)
     #config.Data.unitsPerJob = int(10e3/3)
-    config.Data.unitsPerJob = int(1)
+    #config.Data.unitsPerJob = int(1)
 else:
     #config.Data.unitsPerJob = int(10e4)
-    config.Data.unitsPerJob = int(1)
+    config.Data.unitsPerJob = int(10)
 
 #Testing for n files    
-NJOBS = 100
+NJOBS = 1400
 config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 
 #something like this can be useful for limited disk availability
