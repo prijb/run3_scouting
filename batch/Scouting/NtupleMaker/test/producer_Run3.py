@@ -47,7 +47,8 @@ if opts.data:
         #gtag="124X_dataRun3_Prompt_v4"
         #gtag="124X_dataRun3_HLT_v7" # latest HLT GT
     else:
-        gtag="130X_dataRun3_Prompt_frozen_v3" # latest prompt RECO GT (CMSSW>=13_0_10)
+        #gtag="130X_dataRun3_Prompt_frozen_v3" # latest prompt RECO GT (CMSSW>=13_0_10)
+        gtag="130X_dataRun3_Prompt_v4"
         #gtag="130X_dataRun3_HLT_frozen_v3" # latest HLT GT (CMSSW>=13_0_10)
 else:
     if '2022' in opts.era:

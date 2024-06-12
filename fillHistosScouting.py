@@ -25,6 +25,7 @@ parser.add_argument("--data", default=False, action="store_true", help="Process 
 parser.add_argument("--signal", default=False, action="store_true", help="Process signal")
 parser.add_argument("--year", default="2022", help="Year to be processed. Default: 2022")
 parser.add_argument("--weightMC", default=True, help="Indicate if MC is weighted")
+parser.add_argument("--rooWeight", default="1.00", help="Weight to be used for RooDatasets and Signal Regions (It doesn't weight other histograms)")
 parser.add_argument("--partialUnblinding", default=False, action="store_true", help="Process x% (default: x=50) of available data")
 parser.add_argument("--partialUnblindingFraction", default="0.5", help="Fraction of available data to be processed")
 parser.add_argument("--removeDuplicates", default=False, action="store_true", help="Check for and remove duplicates")
@@ -390,6 +391,7 @@ roow4 = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
 roods = {}
 catmass = {}
 dbins = []
+rooweight = float(args.rooWeight) # Weight for RooDataset
 # Categories
 dbins.append("FourMu_sep") # 4mu, multivertex
 dbins.append("FourMu_osv") # 4mu, 4mu-vertex
@@ -408,9 +410,6 @@ for dbin in dbins:
     if 'Dimuon' in dname:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{#mu#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
-#    elif 'FourMu_sep' in dname:
-#        catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; <m_{#mu#mu}> [GeV]; Events / 0.01 GeV",15000, 0., 150.)
-#        roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
     else:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{4#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(m4fit,roow4),"roow")
@@ -978,9 +977,9 @@ for e in range(firste,laste):
         # Scan:
         if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
             m4fit.setVal(mass)
-            roow4.setVal(lumiweight);
+            roow4.setVal(lumiweight*rooweight);
             roods["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
-            catmass["FourMu_sep"].Fill(mass, lumiweight);
+            catmass["FourMu_sep"].Fill(mass, lumiweight*rooweight);
             #mfit.setVal(avgmass)
             #roow.setVal(lumiweight);
             #roods["FourMu_sep"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
@@ -1154,9 +1153,9 @@ for e in range(firste,laste):
         # Scan:
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             m4fit.setVal(mass)
-            roow4.setVal(lumiweight);
+            roow4.setVal(lumiweight*rooweight);
             roods["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
-            catmass["FourMu_osv"].Fill(mass, lumiweight);
+            catmass["FourMu_osv"].Fill(mass, lumiweight*rooweight);
             filledcat4muosv = True
         else:
             filledcat4muosv = False
@@ -1359,9 +1358,9 @@ for e in range(firste,laste):
                         break
             if slice!="":
                 mfit.setVal(mass)
-                roow.setVal(lumiweight);
+                roow.setVal(lumiweight*rooweight);
                 roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-                catmass[slice].Fill(mass, lumiweight);
+                catmass[slice].Fill(mass, lumiweight*rooweight);
                 roods["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
                 roods["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
                 filledcat2mu = True
@@ -1540,9 +1539,9 @@ for e in range(firste,laste):
                         slice = "Dimuon_"+label+"_non-pointing"
                         break
             mfit.setVal(mass)
-            roow.setVal(lumiweight);
+            roow.setVal(lumiweight*rooweight);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-            catmass[slice].Fill(mass, lumiweight);
+            catmass[slice].Fill(mass, lumiweight*rooweight);
             roods["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
             roods["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
             filledcat2mu = True

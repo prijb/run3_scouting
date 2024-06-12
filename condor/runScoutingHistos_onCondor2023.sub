@@ -19,9 +19,6 @@ use_x509userproxy = True
 # Comment out any of the following configurations
 queue arguments from (
 ###
-###DataB
-$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataB  --year 2023 --splitIndex 0 --splitPace 1000000 $ENV(SCOUTINGARGS)
-$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataB  --year 2023 --splitIndex 1 --splitPace 1000000 $ENV(SCOUTINGARGS)
 ###DataC
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC-triggerV10  --year 2023 --splitIndex 0 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC-triggerV10  --year 2023 --splitIndex 1 --splitPace 1000000 $ENV(SCOUTINGARGS)
@@ -66,11 +63,30 @@ $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC 
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC --year 2023 --splitIndex 24 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC --year 2023 --splitIndex 25 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC --year 2023 --splitIndex 26 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC --year 2023 --splitIndex 27 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC --year 2023 --splitIndex 28 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataC --year 2023 --splitIndex 29 --splitPace 1000000 $ENV(SCOUTINGARGS)
 #Data D
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 0 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 1 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 2 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 3 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 4 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 5 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 6 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 7 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 8 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 9 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 10 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 11 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 12 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 13 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 14 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 15 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 16 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 17 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 18 --splitPace 1000000 $ENV(SCOUTINGARGS)
+$ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --data --inSample DataD  --year 2023 --splitIndex 19 --splitPace 1000000 $ENV(SCOUTINGARGS)
 ##### Signal HTo2ZdTo2mu2x
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --signal --inSample Signal_HTo2ZdTo2mu2x_MZd-0p5_ctau-1mm_2023 --year 2023 --splitIndex 0 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --signal --inSample Signal_HTo2ZdTo2mu2x_MZd-0p5_ctau-10mm_2023 --year 2023 --splitIndex 0 --splitPace 1000000 $ENV(SCOUTINGARGS)
@@ -218,17 +234,6 @@ $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --signal --inSample Sign
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --signal --inSample Signal_HTo2ZdTo2mu2x_MZd-50p0_ctau-100mm_2023BPix --year 2023 --splitIndex 0 --splitPace 1000000 $ENV(SCOUTINGARGS)
 $ENV(SCOUTINGINPUTDIR) $ENV(SCOUTINGOUTPUTDIR) --condor --signal --inSample Signal_HTo2ZdTo2mu2x_MZd-50p0_ctau-1000mm_2023BPix --year 2023 --splitIndex 0 --splitPace 1000000 $ENV(SCOUTINGARGS)
 )
-
-#1000000
-#1298212
-
-#1000000
-#25866581
-
-#25767944
-
-#1000000
-#13167789
 
 #1000000
 #3765643

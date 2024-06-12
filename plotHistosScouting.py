@@ -18,6 +18,7 @@ parser.add_argument("--inDir", default=os.environ.get("PWD")+"/outputHistograms_
 parser.add_argument("--inSamples", default=[], nargs="+", help="Choose sample(s); for all data samples in input directory, choose 'Data'")
 parser.add_argument("--inMultiDir", default=[], nargs="+", help="Choose directories for one sample")
 parser.add_argument("--inMultiLeg", default=[], nargs="+", help="Choose legends for different flavors of one sample, if --inMultiDir is used")
+parser.add_argument("--inMultiWeights", default=[], nargs="+", help="Choose weights for different flavors of one sample, if --inMultiDir is used")
 parser.add_argument("--outDir", default=os.environ.get("PWD")+"/plots_"+today, help="Choose output directory. Default: '"+os.environ.get("PWD")+"/plots_"+today+"'")
 parser.add_argument("--outSuffix", default="", help="Choose output directory. Default: ''")
 parser.add_argument("--data", default=False, action="store_true", help="Plot data")
@@ -84,12 +85,15 @@ luminosity2022E = 5.866801170
 luminosity2022F = 18.006671456
 luminosity2022G = 3.108858306
 luminosity2023 = 27.208114203999997
+#luminosity2023 = 17.0604 # Excluding B and D
 luminosity2023B = 0.622430830
 luminosity2023C = 5.557004785
 luminosity2023C_triggerV10 = 11.503479528
 luminosity2023D = 9.525199061
 if float(args.lumi) > 0.00001:
     luminosity = float(args.lumi)
+elif samples[0]=="Data" and args.year=="allYears":
+    luminosity = luminosity2022 + luminosity2023
 elif samples[0]!="Data" and len(samples)==1 and args.year=="2022":
     ts = samples[0]
     if ts=="DataB":
@@ -195,12 +199,21 @@ os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
 isMultiDir = (len(samples)==1 and len(args.inMultiDir)>1 or len(samples)==len(args.inMultiDir))
 inmultidirs = []
 inmultilegs = []
+inmultiweights = []
 if isMultiDir:
     inmultidirs = args.inMultiDir
     inmultilegs = args.inMultiLeg
 if len(inmultilegs)<len(inmultidirs):
     for i in range(len(inmultilegs),len(inmultidirs)):
         inmultilegs.append("Unknown")
+if len(args.inMultiWeights)>0:
+    if len(args.inMultiWeights)!=len(args.inMultiDir):
+        print("Weight structure is wrong! Exiting...")
+        exit
+    else:
+        inmultiweights = [float(x) for x in args.inMultiWeights]
+else:
+    inmultiweights = [1.0 for n in range(0, len(inmultidirs))]
 
 doRatio = args.doRatio
 if len(samples)<=1 and not isMultiDir:
@@ -235,7 +248,10 @@ else:
             infiles.append(d+'/'+hname+'_'+samples[i]+'_'+inyears[i]+'_all.root')        
         else:
             if not os.path.isfile("%s/%s_%s_%s_all.root"%(d,hname,samples[0],inyears[i])):
-                os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_'+inyears[i]+'_*.root")')
+                if inyears[i]=='allYears':
+                    os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_*_*.root")')
+                else:
+                    os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_'+inyears[i]+'_*.root")')
             infiles.append(d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root')        
 
 if len(infiles)<1:
@@ -432,7 +448,7 @@ for fn,f in enumerate(infiles):
             else:
                 leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "L")
         else:
-            leg.SetHeader(legnames[samples[0].split(" ")[0]])
+            #leg.SetHeader(legnames[samples[0].split(" ")[0]])
             if "Data" in samples[0] and '2022' in inyears and '2023' in inyears:
                 leg.AddEntry(h1d[fn][0], inmultilegs[fn] + " ({})".format(inyears[fn]), "PEL")
             else:
@@ -475,7 +491,10 @@ for s_,s in enumerate(samples):
         weights.append(1.0)
 
 # Labels
-yearenergy = "%.2f fb^{-1} (%s, 13.6 TeV)"%(luminosity,args.year)
+if args.year!='allYears':
+    yearenergy = "%.2f fb^{-1} (%s, 13.6 TeV)"%(luminosity,args.year)
+else:
+    yearenergy = "%.2f fb^{-1} (2022+2023, 13.6 TeV)"%(luminosity)
 cmsExtra = "Preliminary"
 if not isData:
     yearenergy = "(13.6 TeV)"
@@ -633,6 +652,8 @@ for hn,hnn in enumerate(h1dn):
 
         if scaleSignal:
             h1d[fn][hn].Scale(weights[fn])
+        if isMultiDir:
+            h1d[fn][hn].Scale(inmultiweights[fn])
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
         tbm = 1
         tbM = h1d[fn][hn].GetNbinsX()
@@ -711,7 +732,7 @@ for hn,hnn in enumerate(h1dn):
             tminY = 0.0
             if doLogy:
                 tmaxY = max(tmaxY, 1000*h1d[fn][hn].GetMaximum())
-                tminY = 0.01
+                tminY = 0.1 # change to 0.01
             else:
                 tmaxY = max(tmaxY, 1.4*h1d[fn][hn].GetMaximum())
         h1dr[fn][hn].Divide(h1dr_den[hn])
@@ -822,7 +843,7 @@ for hn,hnn in enumerate(h1dn):
             pads[1].SetLogy()
         pads[1].SetTickx()
         pads[1].SetTicky()
-        h_axis_ratio[hn].Draw("")
+        h_axis_ratio[hn].Draw("AXIS")
         for fn in range(1,len(infiles)):
             h1dr[fn][hn].Draw("SAME,P,E")
         line[hn].SetLineStyle(2)
