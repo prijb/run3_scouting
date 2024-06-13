@@ -48,10 +48,7 @@ export SCOUTINGOUTPUTDIR=${indir}
 export STARTDIR=$PWD
 
 mkdir -p condor/plotting_logs
-#mkdir -p /ceph/cms/store/user/$USER/Run3ScoutingOutput/$SCOUTINGOUTPUTDIR
-
-echo "Output directory"
-echo ${SCOUTINGOUTPUTDIR}
+mkdir -p /ceph/cms/store/user/$USER/Run3ScoutingOutput/$SCOUTINGOUTPUTDIR
 
 if [ ${notar} -gt 0 ]
 then

@@ -63,8 +63,8 @@ do
   echo "File $FILE to be copied..."
   echo ""
   COPY_SRC="file://`pwd`/${OUTDIR}/$FILE"
-  #COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
-  COPY_DEST="davs://gfe02.grid.hep.ph.ic.ac.uk:2880/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
+  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
+  #COPY_DEST="davs://gfe02.grid.hep.ph.ic.ac.uk:2880/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
   #COPY_DEST="root://gfe02.grid.hep.ph.ic.ac.uk:1097/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
   stageout $COPY_SRC $COPY_DEST
 done;
