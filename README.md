@@ -138,6 +138,28 @@ python3 combineScripts/plot1DLimits.py <model> <limit output directory> <ctau> <
 ```
 which will create the png limit plot.
 
+## Running the analysis
+
+This set of commands assumed that we are taking the ntuples as starting point (skimmer and looper should have been run before). Latest sets of ntupels are available here:
+```
+2022: /ceph/cms/store/user/fernance/Run3ScoutingOutput/looperOutput_2022_Feb-05-2024/
+2023: /ceph/cms/store/user/fernance/Run3ScoutingOutput/looperOutput_2023_May-26-2024/
+```
+
+### Plotting the variables
+
+To obtain general plots for 2022 and 2023 you have to run the filler. Cuts are applied automatically, and $m_{\mu\mu}$ spectra are filled in the form of both ```TH1D```'s and a ```RooDataSet```s for each Signal Region (SR):
+```
+sh condor/runScoutingHistos_onCondor.sh /ceph/cms/store/user/fernance/Run3ScoutingOutput/looperOutput_2022_Feb-05-2024 outputHistograms_Jun-14-2024_allCuts
+sh condor/runScoutingHistos_onCondor.sh 2023 /ceph/cms/store/user/fernance/Run3ScoutingOutput/looperOutput_2023_May-26-2024/ outputHistograms_Jun-14-2024_allCuts
+```
+
+Then run the plotter on the generated outputs e.g.
+```
+python3 plotHistosScouting.py --inSamples Data Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-10mm Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-10mm --inDir /ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts --logY --outSuffix 2022_allCuts_shape --year 2022 --extraLabelBold "Dimuon" --extraLabel "All cuts" --pdf (--shape)
+python3 plotHistosScouting.py --inSamples Data Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-10mm Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-10mm --inDir /ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts --logY --outSuffix 2023_allCuts_shape --year 2023 --extraLabelBold "Dimuon" --extraLabel "All cuts" --pdf (--shape)
+```
+
 ## Draft analysis code with uproot and coffea
 
 This is a draft of some potential analysis code, based on uproot and coffea.
