@@ -15,16 +15,26 @@ doPull = False
 useSignalMC = True
 doPartialUnblinding = True
 normalizeSignal = False # Only if background is > 0
-plotBackground = True
-plotSignal = False
-plotOnlySignal = False
-useData = not plotOnlySignal
-year = '2023'
 
 wsname = "wfit"
 thisDir = os.environ.get("PWD")
-#inDir  = "%s/fitResults_%s/"%(thisDir, year)
+
+if len(sys.argv) < 4:
+    exit
 inDir = sys.argv[1]
+year = sys.argv[2]
+if sys.argv[3]=='Signal':
+    plotBackground = False
+    plotSignal = True
+    plotOnlySignal = True
+elif sys.argv[3]=='Background':
+    plotBackground = True
+    plotSignal = False
+    plotOnlySignal = False
+else:
+    print('Argument 2 must be Signal or Background')
+useData = not plotOnlySignal
+
 
 useCategorizedSignal = True
 useCategorizedBackground = True
@@ -90,11 +100,7 @@ sigModels.append("Y3")
 
 sigMasses = []
 if useSignalMC:
-#    sigMasses.append("0.5")
-#    sigMasses.append("0.7")
-    sigMasses.append("1.5")
-    sigMasses.append("2.0")
-    sigMasses.append("2.5")
+    sigMasses = [0.5, 0.7, 2.0, 2.5, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
 else:
     mF = 350.0
     mL = 2000.0
@@ -108,7 +114,6 @@ else:
       else: tm=tm+50.0
       sigMasses.append("%.0f"%tm)
 sigCtau = ["1", "10", "100"]
-sigCtau = ["1"]
 
 def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
     # Labels
@@ -191,7 +196,10 @@ mean = 0.0
 sigma = 0.0
 for y in years:
     for t in sigCtau:
-        for m in sigMasses:
+        for mf in sigMasses:
+            if mf < 1.0 and t=="100":
+                continue
+            m = str(mf)
             for d_,d in enumerate(dNames):
                 sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm"%(m.replace(".", "p"),t)
                 finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)

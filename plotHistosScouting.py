@@ -456,7 +456,7 @@ for fn,f in enumerate(infiles):
 
 # Draw histograms
 unityArea = args.shape
-scaleSignal = not args.shape and args.scaleSignal 
+scaleSignal = (not args.shape) and (not args.scaleSignal==1.0)
 doLogy = args.logY
 doLogx = args.logX
 rebinWindow = int(args.rebinWindow)

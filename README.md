@@ -5,6 +5,13 @@ Clone repository from GitHub with:
 git clone --recursive https://github.com/cmstas/run3_scouting.git
 ```
 
+Full workflow is divided in three stages:
+1. Production of skims reading from RAW/AODSIM. It processes and stores trigger and tracker information.
+2. Production of ntuples reading from the skimmed datasets.
+3. Analysis, including histogram plotting, fitting and limit derivation.
+
+Each part is described below, but **a set of example commands to reproduce some of the plots of the analysis is collected in Section [Running the analysis](#running-the-analysis).**
+
 ## Skimming
 
 The skimming code resides in `batch/`.
@@ -140,13 +147,20 @@ which will create the png limit plot.
 
 ## Running the analysis
 
-This set of commands assumed that we are taking the ntuples as starting point (skimmer and looper should have been run before). Latest sets of ntupels are available here:
+This set of commands assumed that we are **taking the ntuples as starting point** (skimmer and looper should have been run before). Latest sets of ntupels are available here:
 ```
 2022: /ceph/cms/store/user/fernance/Run3ScoutingOutput/looperOutput_2022_Feb-05-2024/
 2023: /ceph/cms/store/user/fernance/Run3ScoutingOutput/looperOutput_2023_May-26-2024/
 ```
 
-### Plotting the variables
+**You may need to setup the environment as described above in the relevant setions**
+
+### Plotting the variables and getting RooDataSets for invariant mass spectra
+
+Init with:
+```
+source cpp/setup.sh
+```
 
 To obtain general plots for 2022 and 2023 you have to run the filler. Cuts are applied automatically, and $m_{\mu\mu}$ spectra are filled in the form of both ```TH1D```'s and a ```RooDataSet```s for each Signal Region (SR):
 ```
@@ -160,6 +174,58 @@ python3 plotHistosScouting.py --inSamples Data Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau
 python3 plotHistosScouting.py --inSamples Data Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-10mm Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-10mm --inDir /ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts --logY --outSuffix 2023_allCuts_shape --year 2023 --extraLabelBold "Dimuon" --extraLabel "All cuts" --pdf (--shape)
 ```
 
+If you want to go directly to fitting, you can just fill the spectra and ```RooDataSet```'s in the filling step.
+
+### Fitting mass windows
+
+Init with:
+```
+source cpp/setFittingEnv.sh
+```
+
+To fit the mass windows, modify the lines within ```cpp/doAll_fitDimuonMass.C``` to define ```period``` and ```inDir```. With the examples below:
+```
+2022: period=2022, inDir=/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts
+2023: period=2023, inDir=/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts
+```
+
+Then run once for each period:
+```
+root -b -q -l -n cpp/doAll_fitDimuonMass.C
+```
+Which will create ```fitResults_2022``` and ```fitResults_2023```.
+
+### Make datacards
+
+```
+python3 make_datacards.py 2022
+python3 make_datacards.py 2023
+```
+
+### Limit extraction
+
+Make sure you have followed the steps for setup in #{combine-in-condor} and
+```
+sh condor/limits/runLimits_onCondor.sh datacards_all_Jun-14-2024_2022 limits_Jun-14-2024_2022 2022
+sh condor/limits/runLimits_onCondor.sh datacards_all_Jun-14-2024_2023 limits_Jun-14-2024_2023 2023
+```
+
+Then, for extracting the result in the output directories:
+```
+python3 combineScripts/readAsymptoticLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 2022
+python3 combineScripts/readAsymptoticLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 2023
+```
+
+And finally for plotting (may be needed to change options in the script):
+```
+python3 combineScripts/plot1DLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 1 2022
+python3 combineScripts/plot1DLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 10 2022
+python3 combineScripts/plot1DLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 100 2022
+python3 combineScripts/plot1DLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 1 2023
+python3 combineScripts/plot1DLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 10 2023
+python3 combineScripts/plot1DLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 100 2023
+```
+
 ## Draft analysis code with uproot and coffea
 
 This is a draft of some potential analysis code, based on uproot and coffea.
@@ -167,4 +233,4 @@ To install on the uaf, run `source bootstrap.sh` (only required once).
 Then, `./shell` will start the singularity container.
 
 Inside `scouting/`, run `python minimal.py`.
-
+`

@@ -10,7 +10,7 @@ typeOfLimit = "BRH" # "r", "xsec", "xsecBR" "BRH"
 xsec = 1.0 # in pb, used to normalize the MC
 xsec_h = 59.8 # higgs cross section in pb at 13.6 GeV, used to normalize the MC
 scaleToFullLumi = True
-compare = True
+compare = False
 luminosity = 3.5
 
 model = sys.argv[1]
@@ -142,7 +142,7 @@ if min(obsl)<miny:
     miny=min(obsl)*0.1
 if min(m1sl)<miny:
     miny=min(m1sl)*0.1
-miny=5e-5
+miny=5e-6
 maxy=1e-1
 
 if max(obsl)>maxy:

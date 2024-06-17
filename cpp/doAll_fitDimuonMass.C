@@ -18,8 +18,8 @@
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Apr-19-2024_allCut_v2/";
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-17-2024_allCuts/";
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-17-2024_allCuts/"; // Updated 2023
-  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-27-2024_2023_allCuts_w1/"; // Updated 2023
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-28-2024_2023_allCuts_w10/"; // Updated 2023
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-27-2024_2023_allCuts_w1/"; // Updated 2023
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-28-2024_2023_allCuts_w10/"; // Updated 2023
 
   // Names of the search regions
   vector<TString> dNames = { };
