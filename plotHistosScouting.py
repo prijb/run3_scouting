@@ -4,6 +4,7 @@ import argparse
 from datetime import date    
 import numpy as np
 import copy
+import math
 sys.path.append('utils')
 import plotUtils
 
@@ -17,12 +18,14 @@ parser.add_argument("--inDir", default=os.environ.get("PWD")+"/outputHistograms_
 parser.add_argument("--inSamples", default=[], nargs="+", help="Choose sample(s); for all data samples in input directory, choose 'Data'")
 parser.add_argument("--inMultiDir", default=[], nargs="+", help="Choose directories for one sample")
 parser.add_argument("--inMultiLeg", default=[], nargs="+", help="Choose legends for different flavors of one sample, if --inMultiDir is used")
+parser.add_argument("--inMultiWeights", default=[], nargs="+", help="Choose weights for different flavors of one sample, if --inMultiDir is used")
 parser.add_argument("--outDir", default=os.environ.get("PWD")+"/plots_"+today, help="Choose output directory. Default: '"+os.environ.get("PWD")+"/plots_"+today+"'")
 parser.add_argument("--outSuffix", default="", help="Choose output directory. Default: ''")
 parser.add_argument("--data", default=False, action="store_true", help="Plot data")
 parser.add_argument("--signal", default=False, action="store_true", help="Plot signal")
 parser.add_argument("--generator", default=False, action="store_true", help="Plot GEN-level histograms")
 parser.add_argument("--year", default="2022", help="Year to be processes. Default: 2022")
+parser.add_argument("--lumi", default=0.0, help="Luminosity in case we want to set one manually")
 parser.add_argument("--inYears", default=[], nargs="+", help="Choose years if data/simulation from different years is used (using year if not set)")
 parser.add_argument("--partialUnblinding", default=False, action="store_true", help="Have processed x% (default: x=50) of available data")
 parser.add_argument("--partialUnblindingFraction", default="0.5", help="Fraction of available data that have been processed")
@@ -40,9 +43,10 @@ parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: f
 parser.add_argument("--relaxedSVSel", default=False, action="store_true", help="Extend range for 1D histograms of SV selection variables")
 parser.add_argument("--doRatio", default=False, action="store_true", help="Plot ratios for 1D histograms")
 parser.add_argument("--shape", default=False, action="store_true", help="Shape normalization")
-parser.add_argument("--weightSignal", default=False, action="store_true", help="Signal normalization")
+parser.add_argument("--scaleSignal", default=1.0, help="Signal normalization")
 parser.add_argument("--rebinWindow", default=0, help="Rebin mass window, set to 1 for automattic rebinning")
 parser.add_argument("--logY", default=False, action="store_true", help="Log-scale for Y axis")
+parser.add_argument("--logX", default=False, action="store_true", help="Log-scale for X axis")
 parser.add_argument("--zoomMass", default=[], nargs="+", help="Zoom mass [1] < mass < [0] GeV")
 parser.add_argument("--zoomLxy", default=[], nargs="+", help="Zoom lxy [1] < lxy < [0] cm")
 parser.add_argument("--zoomPixel2D", default=False, action="store_true", help="Zoom -20 <(x,y)< 20 cm")
@@ -52,6 +56,8 @@ parser.add_argument("--noDiMuon", default=False, action="store_true", help="Do n
 parser.add_argument("--noFourMuon", default=False, action="store_true", help="Do not plot four-muon histograms for four-muon systems")
 parser.add_argument("--noFourMuonOSV", default=False, action="store_true", help="Do not plot four-muon histograms for four-muon systems from overlapping SVs")
 parser.add_argument("--plotOSV", default=False, action="store_true", help="Plot histograms for (di-/four-) muons from overlapping SVs")
+parser.add_argument("--extraLabel", default="", help="Label to put on top of the plot")
+parser.add_argument("--extraLabelBold", default="", help="Label to put on top of the plot")
 parser.add_argument("--pdf", default=False, action="store_true", help="Output format: .pdf. Default: .png")
 args = parser.parse_args()
 
@@ -79,11 +85,16 @@ luminosity2022E = 5.866801170
 luminosity2022F = 18.006671456
 luminosity2022G = 3.108858306
 luminosity2023 = 27.208114203999997
+#luminosity2023 = 17.0604 # Excluding B and D
 luminosity2023B = 0.622430830
 luminosity2023C = 5.557004785
 luminosity2023C_triggerV10 = 11.503479528
 luminosity2023D = 9.525199061
-if samples[0]!="Data" and len(samples)==1 and args.year=="2022":
+if float(args.lumi) > 0.00001:
+    luminosity = float(args.lumi)
+elif samples[0]=="Data" and args.year=="allYears":
+    luminosity = luminosity2022 + luminosity2023
+elif samples[0]!="Data" and len(samples)==1 and args.year=="2022":
     ts = samples[0]
     if ts=="DataB":
         luminosity = luminosity2022B
@@ -97,6 +108,8 @@ if samples[0]!="Data" and len(samples)==1 and args.year=="2022":
         luminosity = luminosity2022F
     elif ts=="DataG":
         luminosity = luminosity2022G
+    else:
+        luminosity = luminosity2022
 elif samples[0]=="Data" and args.year=="2022":
     luminosity = luminosity2022
 elif samples[0]!="Data" and len(samples)==1 and args.year=="2023":
@@ -111,6 +124,8 @@ elif samples[0]!="Data" and len(samples)==1 and args.year=="2023":
         luminosity = luminosity2023D
 elif samples[0]=="Data" and args.year=="2023":
     luminosity = luminosity2023
+else:
+    luminosity = 1.0
 luminosity      = 0.1*luminosity
 luminosity2022  = 0.1*luminosity2022
 luminosity2022B = 0.1*luminosity2022B
@@ -133,26 +148,6 @@ if skimEvents and skimFraction>0.0:
     luminosity2022F = skimFraction*luminosity2022F
     luminosity2022G = skimFraction*luminosity2022G
 
-colors = dict()
-colors["Data"]  = [ROOT.kBlack, ROOT.kBlue]
-colors["DataB"] = ROOT.kYellow+1
-colors["DataC"] = ROOT.kOrange+1
-colors["DataD"] = ROOT.kRed+1
-colors["DataE"] = ROOT.kPink+1
-colors["DataF"] = ROOT.kMagenta+1
-colors["DataG"] = ROOT.kViolet+1
-colors["signal"] = [ROOT.kAzure+2, ROOT.kOrange+7, ROOT.kGreen+2, ROOT.kRed+1, ROOT.kMagenta-2]
-colors["mc"] = [ROOT.kRed-3]
-
-
-colorsMultiDir = [ROOT.kBlack,
-                  ROOT.kBlue,
-                  ROOT.kRed,
-                  ROOT.kOrange,
-                  ROOT.kYellow,
-                  ROOT.kGreen+1,
-                  ROOT.kCyan,
-                  ROOT.kAzure]
 
 
 legnames = dict()
@@ -168,15 +163,17 @@ legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-06"] = "HAHM: 10, #epsilon = 1x10
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon5e-07"] = "HAHM: 10, #epsilon = 5x10^{-7}"
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon1e-07"] = "HAHM: 10, #epsilon = 1x10^{-7}"
 legnames["Signal_HTo2ZdTo2mu2x_MZd10_Epsilon3e-08"] = "HAHM: 10, #epsilon = 3x10^{-8}"
-legnames["Signal_ScenB1_30_9p9_4p8_ctau_1mm"] = "ScenB1: m = 4.8 GeV, c#tau = 1 mm"
-legnames["Signal_ScenB1_30_9p9_4p8_ctau_10mm"] = "ScenB1: m = 4.8 GeV, c#tau = 10 mm"
-legnames["Signal_ScenB1_30_9p9_4p8_ctau_100mm"] = "ScenB1: m = 4.8 GeV, c#tau = 100 mm"
+legnames["Signal_ScenB1_30_9p9_4p8_ctau_1mm"] = "#pi_{3}#rightarrowA'A': (m_{#pi_{3}},m_{A'}) = (9.9, 4.8) GeV, c#tau_{#pi_{3}} = 1 mm"
+legnames["Signal_ScenB1_30_9p9_4p8_ctau_10mm"] = "#pi_{3}#rightarrowA'A': (m_{#pi_{3}},m_{A'}) = (9.9, 4.8) GeV, c#tau_{#pi_{3}} = 10 mm"
+legnames["Signal_ScenB1_30_9p9_4p8_ctau_100mm"] = "#pi_{3}#rightarrowA'A': (m_{#pi_{3}},m_{A'}) = (9.9, 4.8) GeV, c#tau_{#pi_{3}} = 100 mm"
 
 for s in samples:
     if "Signal" in s and s not in legnames.keys():
         legnames[s] = s.replace("_"," ")
     if 'Signal_HTo2ZdTo2mu2x_MZd' in s and 'ctau' in s:
-        legtxt = "HAHM: m = {} GeV, c#tau = {} mm".format(s.split('MZd-')[1].split('_')[0].replace('p', '.'), s.split( 'ctau-')[1].split('mm')[0])
+        legtxt = "h#rightarrowZ_{{D}}Z_{{D}}: m = {} GeV, c#tau_{{Z_{{D}}}} = {}".format(s.split('MZd-')[1].split('_')[0].replace('p', '.'), s.split( 'ctau-')[1].split('mm')[0])
+        if "integrated" not in s:
+            legtxt = legtxt + " mm"
         legnames[s] = legtxt
 
 samplecol   = []
@@ -202,12 +199,21 @@ os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outdir)
 isMultiDir = (len(samples)==1 and len(args.inMultiDir)>1 or len(samples)==len(args.inMultiDir))
 inmultidirs = []
 inmultilegs = []
+inmultiweights = []
 if isMultiDir:
     inmultidirs = args.inMultiDir
     inmultilegs = args.inMultiLeg
 if len(inmultilegs)<len(inmultidirs):
     for i in range(len(inmultilegs),len(inmultidirs)):
         inmultilegs.append("Unknown")
+if len(args.inMultiWeights)>0:
+    if len(args.inMultiWeights)!=len(args.inMultiDir):
+        print("Weight structure is wrong! Exiting...")
+        exit
+    else:
+        inmultiweights = [float(x) for x in args.inMultiWeights]
+else:
+    inmultiweights = [1.0 for n in range(0, len(inmultidirs))]
 
 doRatio = args.doRatio
 if len(samples)<=1 and not isMultiDir:
@@ -219,10 +225,13 @@ if not doRatio:
 
 infiles = []
 inyears = []
-if len(args.inYears) > 0:
+if len(args.inYears) > 1:
     inyears = args.inYears
 else:
-    inyears = [args.year for s in samples]
+    if not isMultiDir:
+        inyears = len(samples)*[args.year]
+    else:
+        inyears = len(inmultidirs)*[args.year]
 hname = "histograms"
 if args.generator:
     hname = "histograms_GEN"
@@ -239,12 +248,74 @@ else:
             infiles.append(d+'/'+hname+'_'+samples[i]+'_'+inyears[i]+'_all.root')        
         else:
             if not os.path.isfile("%s/%s_%s_%s_all.root"%(d,hname,samples[0],inyears[i])):
-                os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_'+inyears[i]+'_*.root")')
+                if inyears[i]=='allYears':
+                    os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_*_*.root")')
+                else:
+                    os.system('hadd '+d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root $(find '+d+' -name "'+hname+'_'+samples[0]+'*_'+inyears[i]+'_*.root")')
             infiles.append(d+'/'+hname+'_'+samples[0]+'_'+inyears[i]+'_all.root')        
 
 if len(infiles)<1:
     print("No matching input file was found in %s."%indir)
     exit()
+
+colors = dict()
+colors["Data"]  = [ROOT.kBlack, ROOT.kBlue]
+colors["DataB"] = ROOT.kYellow+1
+colors["DataC"] = ROOT.kOrange+1
+colors["DataD"] = ROOT.kRed+1
+colors["DataE"] = ROOT.kPink+1
+colors["DataF"] = ROOT.kMagenta+1
+colors["DataG"] = ROOT.kViolet+1
+colors["signal"] = [ROOT.kAzure+2, ROOT.kOrange+7, ROOT.kGreen+2, ROOT.kRed+1, ROOT.kMagenta-2]
+colors["mc"] = [ROOT.kRed-3]
+
+"""
+colorsMultiDir = [ROOT.kBlack,
+                  ROOT.TColor.GetColor('#017B93'),
+                  ROOT.TColor.GetColor('#10D9DC'),
+                  ROOT.TColor.GetColor('#F1B950'),
+                  ROOT.TColor.GetColor('#CA6702'),
+                  ROOT.TColor.GetColor('#AE2012')]
+"""
+
+if isMultiDir > 0:
+    """
+    if len(inmultidirs) < 8:    
+        colorsMultiDir = [ROOT.kBlack,
+                          ROOT.TColor.GetColor('#448aff'),
+                          ROOT.TColor.GetColor('#009688'),
+                          ROOT.TColor.GetColor('#8bc34a'),
+                          ROOT.TColor.GetColor('#ffc107'),
+                          ROOT.TColor.GetColor('#f44336'),
+                          ROOT.TColor.GetColor('#f15bb5')]
+    """
+    if len(inmultidirs) < 7:    
+        colorsMultiDir = [ROOT.kBlack,
+                          ROOT.TColor.GetColor('#448aff'),
+                          ROOT.TColor.GetColor('#8bc34a'),
+                          ROOT.TColor.GetColor('#ffc107'),
+                          ROOT.TColor.GetColor('#f44336'),
+                          ROOT.TColor.GetColor('#f15bb5')]
+    elif len(inmultidirs) < 9:    
+        colorsMultiDir = [ROOT.kBlack,
+                          ROOT.TColor.GetColor('#448aff'),
+                          ROOT.TColor.GetColor('#1565c0'),
+                          ROOT.TColor.GetColor('#009688'),
+                          ROOT.TColor.GetColor('#8bc34a'),
+                          ROOT.TColor.GetColor('#ffc107'),
+                          ROOT.TColor.GetColor('#f44336'),
+                          ROOT.TColor.GetColor('#f15bb5')]
+    else:
+        colorsMultiDir = [ROOT.kBlack,
+                          ROOT.TColor.GetColor('#448aff'),
+                          ROOT.TColor.GetColor('#1565c0'),
+                          ROOT.TColor.GetColor('#009688'),
+                          ROOT.TColor.GetColor('#8bc34a'),
+                          ROOT.TColor.GetColor('#ffc107'),
+                          ROOT.TColor.GetColor('#ff9800'),
+                          ROOT.TColor.GetColor('#f44336'),
+                          ROOT.TColor.GetColor('#ad1457'),
+                          ROOT.TColor.GetColor('#9d4edd')]
 
 fin = ROOT.TFile.Open(infiles[0],"r")
 listkeys = fin.GetListOfKeys()
@@ -260,22 +331,37 @@ h1d = []
 h2d = []
 inf = []
 
+# Legend
 ncl = 1
-xol = 0.35
-if len(samples)>5 or len(inmultidirs)>5:
+xol = 0.30
+if len(samples)>5:
     ncl=2
     xol=0.5
-leg = ROOT.TLegend(0.62-xol, 0.89-0.06*max(len(samples),len(inmultidirs)+1)/ncl, 0.89, 0.89)
+if len(inmultidirs)>5:
+    longLabel = False
+    for label in inmultilegs:
+        if len(label) > 30:
+            longLabel = True
+            break
+    if not longLabel:
+        ncl=2
+        xol=0.5
+    else:
+        xol=0.35
+
+leg = ROOT.TLegend(0.62-xol, 0.89-0.045*max(len(samples),len(inmultidirs)+1)/ncl, 0.89, 0.89)
 leg.SetNColumns(ncl)
 leg.SetFillColor(0)
 leg.SetFillStyle(0)
 leg.SetLineWidth(0)
-leg.SetTextSize(0.036)
+leg.SetTextSize(0.033)
+leg.SetMargin(0.1)
 
 nDataSamples = 0
 nSigSamples = 0
 nMCSamples = 0
 for fn,f in enumerate(infiles):
+    print(fn, f)
     inf.append(ROOT.TFile(f))
     if len(h1dn)>0:
         h1d.append([])
@@ -313,6 +399,7 @@ for fn,f in enumerate(infiles):
                 h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]][nDataSamples])
                 h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nDataSamples])
                 h1d[fn][len(h1d[fn])-1].SetMarkerStyle(20)
+                h1d[fn][len(h1d[fn])-1].SetMarkerSize(0.5)
             elif "mc" not in samplecol[fn]:
                 h1d[fn][len(h1d[fn])-1].SetLineColor  (colors[samplecol[fn]][nSigSamples])
                 h1d[fn][len(h1d[fn])-1].SetMarkerColor(colors[samplecol[fn]][nSigSamples])
@@ -354,46 +441,60 @@ for fn,f in enumerate(infiles):
 
     if len(h1d[fn])>0:
         if not isMultiDir:
-            if "Data" in samples[fn]:
+            if "Data" in samples[fn] and '2022' in inyears and '2023' in inyears:
                 leg.AddEntry(h1d[fn][0], legnames[samples[fn]] + " ({})".format(inyears[fn]), "PEL")
             elif "mc" in samplecol[fn]:
                 leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "F")
             else:
                 leg.AddEntry(h1d[fn][0], legnames[samples[fn]], "L")
         else:
-            leg.SetHeader(legnames[samples[0].split(" ")[0]])
-            if "Data" in samples[0]:
+            #leg.SetHeader(legnames[samples[0].split(" ")[0]])
+            if "Data" in samples[0] and '2022' in inyears and '2023' in inyears:
                 leg.AddEntry(h1d[fn][0], inmultilegs[fn] + " ({})".format(inyears[fn]), "PEL")
             else:
                 leg.AddEntry(h1d[fn][0], inmultilegs[fn], "L")
 
 # Draw histograms
 unityArea = args.shape
-weightSignal = not args.shape and args.weightSignal 
+scaleSignal = (not args.shape) and (not args.scaleSignal==1.0)
 doLogy = args.logY
+doLogx = args.logX
 rebinWindow = int(args.rebinWindow)
 
-# Weights
+# Weights (deactivated as signal should be weighted in filler for better handling of different eras conditions)
 # Default xsec of 1 pb for every signal
-nevents = {}
-with open("data/Info_SignalMC.txt", "r") as file_:
-    info = file_.readlines()
-    for s in info:
-        if s[0]=="#": continue
-        s.replace('\n','')
-        nevents[s.split(',')[0]] = float(s.split(',')[1])
+#nevents = {}
+#with open("data/Info_SignalMC.txt", "r") as file_:
+#    info = file_.readlines()
+#    for s in info:
+#        if s[0]=="#": continue
+#        s.replace('\n','')
+#        nevents[s.split(',')[0]] = float(s.split(',')[1])
+#weights = []
+#for s_,s in enumerate(samples):
+#    if "Signal" in s:
+#        sampleTag = s.replace('Signal_', '').split('_202')[0]
+#        if s not in nevents.keys():
+#            print("ATTENTION: Not weighting due to lack of information in Info_SignalMC.txt")
+#            weights.append(1.0) # Default for data (MC not considered)
+#        elif "2022" in inyears[s_]:
+#            weights.append(1000.0*luminosity2022/nevents[s]*100)
+#        elif "2023" in inyears[s_]:
+#            weights.append(1000.0*luminosity2023/nevents[s])
+#    else:
+#        weights.append(1.0) # Default for data (MC not considered)
 weights = []
 for s_,s in enumerate(samples):
     if "Signal" in s:
-        if "2022" in inyears[s_]:
-            weights.append(1000.0*luminosity2022/nevents[s])
-        elif "2023" in inyears[s_]:
-            weights.append(1000.0*luminosity2023/nevents[s])
+        weights.append(float(args.scaleSignal))
     else:
-        weights.append(1.0) # Default for data (MC not considered)
+        weights.append(1.0)
 
 # Labels
-yearenergy = "%.2f fb^{-1} (%s, 13.6 TeV)"%(luminosity,args.year)
+if args.year!='allYears':
+    yearenergy = "%.2f fb^{-1} (%s, 13.6 TeV)"%(luminosity,args.year)
+else:
+    yearenergy = "%.2f fb^{-1} (2022+2023, 13.6 TeV)"%(luminosity)
 cmsExtra = "Preliminary"
 if not isData:
     yearenergy = "(13.6 TeV)"
@@ -409,13 +510,23 @@ latex.SetNDC(True)
 #
 latexCMS = ROOT.TLatex()
 latexCMS.SetTextFont(61)
-latexCMS.SetTextSize(0.045)
+latexCMS.SetTextSize(0.055)
 latexCMS.SetNDC(True)
 #
 latexCMSExtra = ROOT.TLatex()
 latexCMSExtra.SetTextFont(52)
 latexCMSExtra.SetTextSize(0.04)
 latexCMSExtra.SetNDC(True)
+#
+latexExtra = ROOT.TLatex()
+latexExtra.SetTextFont(42)
+latexExtra.SetTextSize(0.034)
+latexExtra.SetNDC(True)
+#
+latexExtraBold = ROOT.TLatex()
+latexExtraBold.SetTextFont(62)
+latexExtraBold.SetTextSize(0.034)
+latexExtraBold.SetNDC(True)
 
 h1dr     = []
 h1dr_den = []
@@ -479,13 +590,13 @@ for hn,hnn in enumerate(h1dn):
                     isZoom = True
                     if len(args.zoomMass)>1:
                         xmin=float(args.zoomMass[1])
-                if "dimuon" in hnn:
+                if "dimuon" in hnn or "Dimuon" in hnn:
                     if len(args.dimuonMassSel)>0:
                         xmin=float(args.dimuonMassSel[0])
                         isZoom = True
                         if len(args.dimuonMassSel)>1:
                             xmax=float(args.dimuonMassSel[1])
-                if "fourmuon_mass" in hnn:
+                if "fourmuon_mass" in hnn or "FourMu" in hnn:
                     if len(args.fourmuonMassSel)>0:
                         xmin=float(args.fourmuonMassSel[0])
                         isZoom = True
@@ -497,10 +608,14 @@ for hn,hnn in enumerate(h1dn):
                 xmax=0.10*sfSVrange
             if "sv" in hnn and "chi2ndof" in hnn and not "muon" in hnn:
                 xmax=5.0*sfSVrange
+            if "sv" in hnn and "d3derr" in hnn:
+                xmax=0.15
             if not isZoom:
                 plotUtils.PutUnderflowInFirstBin(h1d[fn][hn],xmin)
                 plotUtils.PutOverflowInLastBin(h1d[fn][hn],xmax)
-                if "mass" in hnn and "reld" not in hnn:
+                if "mass" in hnn and "reld" not in hnn and rebinWindow > 0:
+                    h1d[fn][hn].Rebin(rebinWindow)
+                elif "mass" in hnn and "reld" not in hnn and rebinWindow < 1:
                     h1d[fn][hn].Rebin(10)
                     ytitle = h1d[fn][hn].GetYaxis().GetTitle()
                     ytitle = ytitle.replace("0.01","0.1")
@@ -509,6 +624,11 @@ for hn,hnn in enumerate(h1dn):
                     h1d[fn][hn].Rebin(5)
                     ytitle = h1d[fn][hn].GetYaxis().GetTitle()
                     ytitle = ytitle.replace("0.1","0.5")
+                    h1d[fn][hn].GetYaxis().SetTitle(ytitle)
+                if "dphisv" in hnn or "3danglesv" in hnn:
+                    h1d[fn][hn].Rebin(10)
+                    ytitle = h1d[fn][hn].GetYaxis().GetTitle()
+                    ytitle = ytitle.replace("0.01","0.1")
                     h1d[fn][hn].GetYaxis().SetTitle(ytitle)
             else:
                 if "mass" in hnn and "reld" not in hnn and rebinWindow > 0:
@@ -519,10 +639,21 @@ for hn,hnn in enumerate(h1dn):
                             if nbins%n==0:
                                 h1d[fn][hn].Rebin(int(nbins/n))
                                 break
+                        ytitle = h1d[fn][hn].GetYaxis().GetTitle()
+                        ytitle = ytitle.replace("0.01","{:.2f}".format(int(nbins/n)*0.01))
+                        h1d[fn][hn].GetYaxis().SetTitle(ytitle)
                     else: 
                         h1d[fn][hn].Rebin(rebinWindow)
-        if weightSignal:
+                        ytitle = h1d[fn][hn].GetYaxis().GetTitle()
+                        ytitle = ytitle.replace("0.01","{:.2f}".format(rebinWindow*0.01))
+                        h1d[fn][hn].GetYaxis().SetTitle(ytitle)
+            if "reld" in hnn:
+                h1d[fn][hn].Rebin(5)
+
+        if scaleSignal:
             h1d[fn][hn].Scale(weights[fn])
+        if isMultiDir:
+            h1d[fn][hn].Scale(inmultiweights[fn])
         h1dr[fn].append(h1d[fn][hn].Clone("%s_ratio"%hnn))
         tbm = 1
         tbM = h1d[fn][hn].GetNbinsX()
@@ -561,14 +692,16 @@ for hn,hnn in enumerate(h1dn):
             h1d[fn][hn].GetYaxis().SetMaxDigits(3)
             h1d[fn][hn].SetLineWidth(2)
             ytitle = h1d[fn][hn].GetYaxis().GetTitle()
+            """ 
             if not unityArea:
                 tmaxY = max(tmaxY, 1.4*h1d[fn][hn].GetMaximum())
                 tminY = 0.0
                 if doLogy:
                     tmaxY = 100*tmaxY
-                    tminY = 0.9
+                    tminY = 0.1
                     if weightSignal:
                         tminY = 0.001
+            """
         h1d[fn][hn].SetLineWidth(2)
         if unityArea:
             ytitle = ytitle.replace("Events", "Fraction of events")
@@ -586,14 +719,22 @@ for hn,hnn in enumerate(h1dn):
                         continue
                     if h1d[fn][hn].GetBinContent(b)<minb and h1d[fn][hn].GetBinContent(b)>0.0:
                         minb = h1d[fn][hn].GetBinContent(b)
-                if integral>0.0:
-                    tminY = min(tminY, max(0.1*minb,0.1/integral))
-                    tmaxY = max(10000*tmaxY/integral, 1.0)
+                tminY = min(0.1*minb,0.1)
+                if h1d[fn][hn].GetMaximum() > 0.0:
+                    tmaxY = 10**((math.log10(h1d[fn][hn].GetMaximum()) - math.log10(tminY)))
+                    #print(h1d[fn][hn].GetName(), tmaxY, h1d[fn][hn].GetMaximum(), tminY)
                 else:
-                    tminY = min(tminY, 0.1)
-                    tmaxY = max(tmaxY, 1.0)
+                    tmaxY = 1.0
             else:
                 tminY = 0.0
+                tmaxY = 1.5*h1d[fn][hn].GetMaximum()
+        else:
+            tminY = 0.0
+            if doLogy:
+                tmaxY = max(tmaxY, 1000*h1d[fn][hn].GetMaximum())
+                tminY = 0.1 # change to 0.01
+            else:
+                tmaxY = max(tmaxY, 1.4*h1d[fn][hn].GetMaximum())
         h1dr[fn][hn].Divide(h1dr_den[hn])
         if "hsv" in hnn and not "mind" in hnn and not "maxd" in hnn:
             ytitle = ytitle.replace("Events", "Number of SVs")
@@ -605,6 +746,7 @@ for hn,hnn in enumerate(h1dn):
         if fn==0:
             h_axis.append(h1d[fn][hn].Clone("axis_%s"%hnn))
             h_axis[hn].Reset("ICE")
+            h_axis[hn].SetTitle("")
             h_axis[hn].GetYaxis().SetTitleSize(0.04)
             h_axis[hn].GetYaxis().SetTitleOffset(1.35)
             h_axis[hn].GetXaxis().SetTitleSize(0.04)
@@ -633,7 +775,11 @@ for hn,hnn in enumerate(h1dn):
                 maxY[hn]=tmaxY
 
 ROOT.gStyle.SetOptStat(0)
-can = ROOT.TCanvas("can","",600, 600)
+ROOT.gStyle.SetFrameLineWidth(2);
+if doRatio: 
+    can = ROOT.TCanvas("can","",600, 600)
+else:
+    can = ROOT.TCanvas("can","",700, 600)
 minR = []
 maxR = []
 for hn,hnn in enumerate(h1dn):
@@ -697,7 +843,7 @@ for hn,hnn in enumerate(h1dn):
             pads[1].SetLogy()
         pads[1].SetTickx()
         pads[1].SetTicky()
-        h_axis_ratio[hn].Draw("")
+        h_axis_ratio[hn].Draw("AXIS")
         for fn in range(1,len(infiles)):
             h1dr[fn][hn].Draw("SAME,P,E")
         line[hn].SetLineStyle(2)
@@ -711,21 +857,27 @@ for hn,hnn in enumerate(h1dn):
         pads[1].Update()
 
     else:
+        h_axis[hn].GetXaxis().SetTitleSize(0.04)
+        h_axis[hn].GetXaxis().SetLabelSize(0.04)
+        h_axis[hn].GetYaxis().SetTitleSize(0.04)
+        h_axis[hn].GetYaxis().SetLabelSize(0.04)
+        #h_axis[hn].GetYaxis().SetTitleOffset(1.05)
         pads[0].Draw()
 
     pads[0].cd()
-    pads[0].SetTicky()
+    #pads[0].SetTickx()
+    #pads[0].SetTicky()
     if doLogy:
         pads[0].SetLogy()
+    if doLogx:
+        pads[0].SetLogx()
+        if doRatio:
+            pads[1].SetLogx()
     #h_axis[hn].GetYaxis().SetMoreLogLabels()
-    if ("hits" in hnn) or ("layers" in hnn) or ("nmu" in hnn) or h1d[0][hn].GetXaxis().GetBinLowEdge(1)<0.0:
-        maxY[hn] = 1.25*maxY[hn]
-        if doLogy:
-            maxY[hn] = 5.0*maxY[hn]
     if doLogy:
-        maxY[hn] = 10.0*maxY[hn]
+        maxY[hn] = maxY[hn]
     else:
-        maxY[hn] = 2.0*maxY[hn]
+        maxY[hn] = maxY[hn]
     h_axis[hn].GetYaxis().SetRangeUser(minY[hn], maxY[hn])
     h_axis[hn].SetMinimum(minY[hn])
     h_axis[hn].SetMaximum(maxY[hn])
@@ -733,7 +885,8 @@ for hn,hnn in enumerate(h1dn):
     fnd = []
     for fn in range(len(infiles)):
         if (isMultiDir and "Data" in samples[0]):
-            h1d[fn][hn].Draw("SAME,P,E")
+            #h1d[fn][hn].Draw("SAME,P,E")
+            h1d[fn][hn].Draw("SAME,HIST")
         elif (not isMultiDir and "Data" in samples[fn]):
             fnd.append(fn)
         else:
@@ -748,12 +901,45 @@ for hn,hnn in enumerate(h1dn):
     latex.DrawLatex(0.95, 0.945-roff, yearenergy);
     if drawCMSOnTop:
         latexCMS.DrawLatex(0.11,0.945-roff,"CMS");
-        latexCMSExtra.DrawLatex(0.21,0.945-roff, cmsExtra);
+        if doRatio:
+            latexCMSExtra.DrawLatex(0.23,0.945-roff, cmsExtra);
+        else:
+            latexCMSExtra.DrawLatex(0.21,0.945-roff, cmsExtra);
     else:
         latexCMS.DrawLatex(0.14,0.875,"CMS");
         latexCMSExtra.DrawLatex(0.14,0.825, cmsExtra);
+    latexExtra.DrawLatex(0.14,0.8,args.extraLabel);
+    latexExtraBold.DrawLatex(0.14,0.85,args.extraLabelBold);
     outname = "%s"%hnn
-    if "h_" in outname:
+    if "d_Dimuon" in outname:
+        if "excluded" in outname:
+            latexExtra.DrawLatex(0.14,0.86,"Dimuon") 
+            latexExtra.DrawLatex(0.14,0.76,"Excluded")
+        elif 'inclusive' in outname:
+            latexExtra.DrawLatex(0.14,0.86,"Dimuon") 
+            latexExtra.DrawLatex(0.14,0.76,"Inclusive")
+        elif "non-pointing" not in outname:
+            latexExtra.DrawLatex(0.14,0.86,"Dimuon") 
+            catnames = outname.split("_")
+            lxybin = catnames[2]
+            lxybin = (lxybin[3:]).split("to")
+            latexExtra.DrawLatex(0.14,0.81,"l_{{xy}} #in [{},{}]".format(lxybin[0].replace("p", "."), lxybin[1].replace("p", ".")))
+            isobin = "Isolated" if catnames[3]=="iso1" else "Non isolated"
+            latexExtra.DrawLatex(0.14,0.76,isobin)
+            ptbin = "High p_{T}^{#mu#mu}" if catnames[4]=="pthigh" else "Low p_{T}^{#mu#mu}"
+            latexExtra.DrawLatex(0.14,0.71,ptbin)
+        else:
+            latexExtra.DrawLatex(0.14,0.86,"Dimuon") 
+            catnames = outname.split("_")
+            lxybin = catnames[2]
+            lxybin = (lxybin[3:]).split("to")
+            latexExtra.DrawLatex(0.14,0.81,"l_{{xy}} #in [{},{}]".format(lxybin[0].replace("p", "."), lxybin[1].replace("p", ".")))
+            latexExtra.DrawLatex(0.14,0.76,"Non-pointing")
+    elif "d_FourMu" in outname:
+        latexExtraBold.DrawLatex(0.14,0.86,"Four muon") 
+        fourmucat = "Resolved" if "sep" in outname else "Overlapping"
+        latexExtra.DrawLatex(0.14,0.81,fourmucat) 
+    if "h_" in outname and not "d_" in outname:
         outname = outname.replace("h_","")
     elif "hsv" in outname or "hmuon" in outname or "hsel" in outname:
         outname = outname.replace("hsv","sv")
@@ -850,6 +1036,8 @@ for hn,hnn in enumerate(h2dn):
         h.GetZaxis().SetTitle(ztitle)
         if isMultiDir:
             h.SetTitle(inmultilegs[fn])
+        else:
+            h.SetTitle("")
         can.cd()
         if unityArea:
             ROOT.gStyle.SetPaintTextFormat(".2f");

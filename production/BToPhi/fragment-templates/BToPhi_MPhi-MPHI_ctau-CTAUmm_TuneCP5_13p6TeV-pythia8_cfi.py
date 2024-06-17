@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.StandardSequences.Eras import eras
 from Configuration.Generator.Pythia8CommonSettings_cfi import *
-from Configuration.Generator.MCTunes2017.PythiaCP5Settings_cfi import *
+from Configuration.Generator.MCTunesRun3ECM13p6TeV.PythiaCP5Settings_cfi import *
 
 # Production Info
 configurationMetadata = cms.untracked.PSet(
@@ -10,7 +10,7 @@ configurationMetadata = cms.untracked.PSet(
         annotation = cms.untracked.string('Generic BBbar with a long-lived scalar resonance, m={MPHI} GeV, ctau={CTAU} mm')
 )
 
-generator = cms.EDFilter("Pythia8GeneratorFilter",
+generator = cms.EDFilter("Pythia8ConcurrentGeneratorFilter",
     PythiaParameters = cms.PSet(
             pythia8CommonSettingsBlock,
             pythia8CP5SettingsBlock,
