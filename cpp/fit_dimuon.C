@@ -1,6 +1,6 @@
-#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
-#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
-#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
+#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
+#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
+#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
 #include "RooCategory.h"
 #include "RooWorkspace.h"
 #include "RooFitResult.h"
@@ -54,7 +54,7 @@ bool doBinnedFit = false;
 //bool refitSignal = false;
 bool categorizeSignal = true;
 bool categorizeBackground = true; // true?
-bool useFixedSigma = true;
+bool useFixedSigma = false;
 //bool useFixedSigma = false;
 bool addBernsteinOrders = false;
 //bool saveFitResult = true;
@@ -100,22 +100,41 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   if ( ( (mass - 10.77) < (mass - minMforFit) ) && (mass > 10.77) ) // Upsilon 3S
     minMforFit = 10.77;
 
+  // Get the lxy range to obtain the initial fit parameters
+  //
+  TString lxyString;
+  TString datasetname(mmumuAll.GetName());
+  if ( datasetname.Contains("d_FourMu_sep") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
+  else if ( datasetname.Contains("d_FourMu_osv") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
+  else if ( datasetname.Contains("lxy0p0to0p2") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
+  else if ( datasetname.Contains("lxy0p2to1p0") ) lxyString = "d_Dimuon_lxy0p2to1p0_inclusive";
+  else if ( datasetname.Contains("lxy1p0to2p4") ) lxyString = "d_Dimuon_lxy1p0to2p4_inclusive";
+  else if ( datasetname.Contains("lxy2p4to3p1") ) lxyString = "d_Dimuon_lxy2p4to3p1_inclusive";
+  else if ( datasetname.Contains("lxy3p1to7p0") ) lxyString = "d_Dimuon_lxy3p1to7p0_inclusive";
+  else if ( datasetname.Contains("lxy7p0to11p0") ) lxyString = "d_Dimuon_lxy7p0to11p0_inclusive";
+  else if ( datasetname.Contains("lxy11p0to16p0") ) lxyString = "d_Dimuon_lxy11p0to16p0_inclusive";
+  else if ( datasetname.Contains("lxy16p0to70p0") ) lxyString = "d_Dimuon_lxy16p0to70p0_inclusive";
 
-  bool useSpline = false;
+  bool useSpline = true;
   double minMforSpline =  200.0;
   double maxMforSpline = 2000.0;
-  if ( mass < (minMforSpline - 0.001) || mass > (maxMforSpline + 0.001) )
-    useSpline = false;
-  TFile *ffitParams = TFile::Open("utils/signalFitParameters_default.root", "READ");
+  //if ( mass < (minMforSpline - 0.001) || mass > (maxMforSpline + 0.001) )
+  //  useSpline = false;
+  //TFile *ffitParams = TFile::Open("utils/signalFitParameters_default.root", "READ");
+  TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022.root", "READ");
   
   //////Set starting standard deviation (sigma)
   double stddev = 0.012*mass; // Updated, before 2%
   double minstddev = 0.01*mass;
   double maxstddev = 0.25*mass;
+  double stddev_window = 0.012*mass; // Updated, before 2%
+  double minstddev_window = 0.01*mass;
+  double maxstddev_window = 0.25*mass;
   //
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
-      TSpline5 *fstddev = (TSpline5 *) ffitParams->Get("splines");
+      TSpline5 *fstddev = (TSpline5 *) ffitParams->Get(Form("splines_%s", lxyString.Data()));
+      //TSpline5 *fstddev = (TSpline5 *) ffitParams->Get("splines");
       stddev = fstddev->Eval(mass);
     }
     else {
@@ -132,7 +151,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double meanm = mass;
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
-      TSpline5 *fmean = (TSpline5 *) ffitParams->Get("splinem");
+      TSpline5 *fmean = (TSpline5 *) ffitParams->Get(Form("splinem_%s", lxyString.Data()));
+      //TSpline5 *fmean = (TSpline5 *) ffitParams->Get("splinem", lxyString.Data()));
       meanm = fmean->Eval(mass);
     }
     else {
@@ -148,7 +168,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
-      TSpline5 *falphaR = (TSpline5 *) ffitParams->Get("splineaR");
+      TSpline5 *falphaR = (TSpline5 *) ffitParams->Get(Form("splineaR_%s", lxyString.Data()));
+      //TSpline5 *falphaR = (TSpline5 *) ffitParams->Get("splineaR");
       alphaR = falphaR->Eval(mass);
     }
     else {
@@ -167,7 +188,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
-      TSpline5 *falphaL = (TSpline5 *) ffitParams->Get("splineaL");
+      TSpline5 *falphaL = (TSpline5 *) ffitParams->Get(Form("splineaL_%s", lxyString.Data()));
+      //TSpline5 *falphaL = (TSpline5 *) ffitParams->Get("splineaL");
       alphaL = falphaL->Eval(mass);
     }
     else {
@@ -186,7 +208,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
-      TSpline5 *fnR = (TSpline5 *) ffitParams->Get("splinenR");
+      TSpline5 *fnR = (TSpline5 *) ffitParams->Get(Form("splinenR_%s", lxyString.Data()));
+      //TSpline5 *fnR = (TSpline5 *) ffitParams->Get("splinenR");
       nR = fnR->Eval(mass);
     }
     else {
@@ -204,7 +227,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
-      TSpline5 *fnL = (TSpline5 *) ffitParams->Get("splinenL");
+      TSpline5 *fnL = (TSpline5 *) ffitParams->Get(Form("splinenL_%s", lxyString.Data()));
+      //TSpline5 *fnL = (TSpline5 *) ffitParams->Get("splinenL");
       nL = fnL->Eval(mass);
     }
     else {
@@ -221,6 +245,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double minfrac = 0.0;
   double maxfrac = 1.0;
   //
+  /*
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *ffrac = (TSpline5 *) ffitParams->Get("splinef");
@@ -234,6 +259,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     minfrac = 0.75*frac;
     maxfrac = 1.25*frac;
   }
+  */
 
   ffitParams->Close();
 
@@ -251,15 +277,15 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     TString fitRange;
     TString varname;
     if (fourmu) {
-      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
       varname = "m4fit";
     } else { 
-      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
       varname = "mfit";
     }
 
     //////Get RooRealVar from RooDataSet
-    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     (*mmumu).Print();
     RooRealVar x;
@@ -268,14 +294,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     else 
       x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
     x.Print();
-    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
-    int nBins = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/binsize;
-    int nBinsPlot = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/(0.5*binsizePlot);
+    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    int nBins = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsize;
+    int nBinsPlot = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/(0.5*binsizePlot);
     if ( doBinnedFit )
       x.setBins(nBins);
-    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
 
-    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     frame->SetTitle("");//Signal dimuon mass fit");
     frame->SetMinimum(0.0);
     //////Plot RooDataSet onto frame
@@ -628,14 +654,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     TString fitRange;
     TString varname;
     if (fourmu) {
-      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
       varname = "m4fit";
     } else { 
-      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
       varname = "mfit";
     }
     //////Get RooRealVar from RooDataSet
-    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     //if ((*mmumu).numEntries() < 1)
     //  return;
@@ -644,12 +670,12 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       x = *((RooRealVar*) (*mmumu).get()->find("m4fit"));
     else 
       x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
-    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
-    int nBins = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/binsize;
-    int nBinsPlot = (mass+5.0*stddev - std::max(minMforFit,mass-5.0*stddev))/binsizePlot;
+    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    int nBins = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsize;
+    int nBinsPlot = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsizePlot;
     if ( doBinnedFit )
       x.setBins(nBins);
-    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
 
     RooDataSet *mmumuFit;
     double bgNormalizationForToy = (*mmumu).sumEntries(fitRange.Data());
@@ -665,7 +691,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       
       mmumuFit = (RooDataSet*) mmumuTOY.Clone((*mmumu).GetName());
 
-      RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+      RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
       frame->SetTitle("");//BG dimuon mass fit");
       frame->SetMinimum(0.0);
       
@@ -693,7 +719,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       mmumuFit = (RooDataSet*) (*mmumu).Clone((*mmumu).GetName());
     }
 
-    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev),mass+5.0*stddev);
+    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     frame->SetTitle("");//BG dimuon mass fit");
     frame->SetMinimum(0.0);
 
@@ -844,7 +870,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     // If p-value is zero, fit does not converge, zero events, or less than 10 events and less than 0.1 events/GeV, do not include
     if ( chi2ExponentialPvalue > 0.01 &&
 	 fitStatusExponential==0 &&
-	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
+	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
       bgPDFs.add(exponential);
       if ( useOnlyExponential ) 
 	wfit.import(exponential);
@@ -965,7 +991,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     // If p-value is zero, fit does not converge, zero events, or less than 1 events and less than 0.1 events/GeV, do not include
     if ( chi2PowerlawPvalue > 0.01 &&
 	 fitStatusPowerlaw==0 && 
-	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 10 ) ) ) {
+	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 10 ) ) ) {
       bgPDFs.add(powerlaw);
       if ( useOnlyPowerLaw )
 	wfit.import(powerlaw);
@@ -1154,7 +1180,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       if ( (bestBernsteinOrder < 0 && fitStatusBernstein[to-1]==0 && TMath::Prob(ftestChi2,1) > 0.05 && to-1 >= 0) || to>maxpolyorder ) 
 	bestBernsteinOrder = to-1;
       // If zero events, or less than 10 events and less than 0.1 events/GeV, only use lowest order
-      if ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) {
+      if ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) {
 	   bestBernsteinOrder=0;
       }
 
@@ -1174,15 +1200,15 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
               continue;
 	  if ( tto < 0 ) continue;
 	  // If zero events, or less than 10 events and less than 0.1 events/GeV, only use lowest order
-	  if ( (nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) && tto > 0 ) continue;
+	  if ( (nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) && tto > 0 ) continue;
 	  // If p-value is zero, fit does not converge, zero events, or less than 10 events and less than 0.1 events/GeV, do not include
 	  if ( ( chi2BernsteinPvalue[tto] > 0.01 &&
 		 fitStatusBernstein[tto]==0 )
-	       || ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev-std::max(minMforFit,mass-5.0*stddev)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
+	       || ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
 	    bernsteinPDFOrders.push_back(tto);
 	    //RooAbsPdf *bernstein;
 	    if (tto == 0) {
-	      if ( (*mmumuFit).sumEntries(Form("%s>=%.3f",varname.Data(),mass+3.0*stddev)) < (*mmumuFit).sumEntries(Form("%s<%.3f",varname.Data(),mass-3.0*stddev)) ) {
+	      if ( (*mmumuFit).sumEntries(Form("%s>=%.3f",varname.Data(),mass+3.0*stddev_window)) < (*mmumuFit).sumEntries(Form("%s<%.3f",varname.Data(),mass-3.0*stddev_window)) ) {
 		bernstein = new RooBernsteinFast<1>(Form("background_bernstein%s",catExt.Data()),Form("background_bernstein%s",catExt.Data()),x,parListBernstein[tto]);
 	      } else {
 		bernstein = new RooUniform(Form("background_uniform%s",catExt.Data()),Form("background_uniform%s",catExt.Data()),x);

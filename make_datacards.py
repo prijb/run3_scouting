@@ -138,6 +138,7 @@ sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
         sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+        #sigMasses = [0.5, 0.7, 7.0, 8.0, 50.0]
         for  m in sigMasses:
             sigCTaus = [1, 10, 100, 100]
             for t in sigCTaus:
@@ -282,7 +283,8 @@ for y in years:
                #finame = "%s_%s_M%s_%s_workspace.root"%(d,s,m,y)
 
            # Define systematics that are independent of signal mass
-           btagsyst = 0.10
+           trgsyst = 0.30
+           selsyst = 0.10
            #if binidx>=2:
            #    btagsyst = 0.05
            #
@@ -412,11 +414,12 @@ for y in years:
                    card.write("rate %e 1\n"%(nSig)) # CELIANOTE: Is this really correct? 
                card.write("------------\n")  
                # Systematics
-               card.write("lumi_13TeV lnN 1.016 -\n") # Integrated luminosity uncertainty on signal (fully correlated)
+               card.write("lumi_13TeV lnN 1.014 -\n") # Integrated luminosity uncertainty on signal (fully correlated)
                #card.write("CMS_eff_trigger lnN %.3f -\n"%(1.0+triggersyst)) # Systematic uncertainty on signal from trigger (fully correlated)
                #card.write("CMS_eff_muonid lnN %.3f -\n"%(1.0+muonsfsyst)) # Systematic uncertainty on signal from muon RECO, ID, isolation (fully correlated)
                #card.write("CMS_eff_muonsel lnN %.3f -\n"%(1.0+muonselsyst)) # Systematic uncertainty on signal from muon additional selection (fully correlated)
-               card.write("CMS_eff_btag lnN %.3f -\n"%(1.0+btagsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
+               card.write("CMS_eff_trg lnN %.3f -\n"%(1.0+trgsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
+               card.write("CMS_eff_sel lnN %.3f -\n"%(1.0+selsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
                #card.write("CMS_scale_jet_ch%d lnN %.3f -\n"%(binidx,1.0+jecsyst)) # Systematic uncertainty on signal from JES (uncorrelated)
                #card.write("mcstat_ch%d lnN %.3f -\n"%(binidx,1.0+mcstatunc)) # MC stat. uncertainty (uncorrelated)
                #card.write("accstat_ch%d lnN %.3f -\n"%(binidx,1.0+terrtot)) # Stat. uncertainty on average acceptance (uncorrelated)

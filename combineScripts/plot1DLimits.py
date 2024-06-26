@@ -9,7 +9,7 @@ maskSMResonances = True
 typeOfLimit = "BRH" # "r", "xsec", "xsecBR" "BRH" 
 xsec = 1.0 # in pb, used to normalize the MC
 xsec_h = 59.8 # higgs cross section in pb at 13.6 GeV, used to normalize the MC
-scaleToFullLumi = True
+scaleToFullLumi = False
 compare = False
 luminosity = 3.5
 
