@@ -179,6 +179,14 @@ else:
     # for run >=367621 (during era Run2023C)
     L1Info = ["L1_DoubleMu_12_5","L1_DoubleMu_15_7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18","L1_DoubleMu4_SQ_OS_dR_Max1p2","L1_DoubleMu4p5_SQ_OS_dR_Max1p2","L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4","L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4","L1_DoubleMu8_SQ"]
     HLTInfo = [ [ 'Run3_DoubleMu3_PFScouting', 'DST_Run3_DoubleMu3_PFScoutingPixelTracking_v*' ] ]
+    # For systematics
+    if opts.sys:
+        L1Info = L1Info + ["L1_DoubleEG_LooseIso16_LooseIso12_er1p5", "L1_DoubleEG_LooseIso18_LooseIso12_er1p5", "L1_DoubleEG_LooseIso20_LooseIso12_er1p5", "L1_DoubleEG_LooseIso22_LooseIso12_er1p5", "L1_SingleLooseIsoEG28er2p1", "L1_SingleLooseIsoEG28er1p5", "L1_SingleLooseIsoEG30er1p5", "L1_SingleIsoEG28er2p1", "L1_SingleIsoEG30er2p1", "L1_SingleIsoEG32er2p1"]
+        L1Info = L1Info + ["L1_HTT200er", "L1_HTT255er", "L1_HTT280er", "L1_HTT320er", "L1_HTT360er", "L1_HTT400er", "L1_HTT450er", "L1_ETT2000", "L1_SingleJet180", "L1_SingleJet200", "L1_DoubleJet30er2p5_Mass_Min300_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min330_dEta_Max1p5", "L1_DoubleJet30er2p5_Mass_Min360_dEta_Max1p5"]
+        HLTInfo = HLTInfo + [
+            ['DST_Run3_EG16_EG12_PFScoutingPixelTracking',  'DST_Run3_EG16_EG12_PFScoutingPixelTracking_v*'],
+            ['DST_Run3_EG30_PFScoutingPixelTracking', 'DST_Run3_EG30_PFScoutingPixelTracking_v*'],
+            ['DST_Run3_JetHT_PFScoutingPixelTracking', 'DST_Run3_JetHT_PFScoutingPixelTracking_v*']]
     if opts.monitor:
         HLTInfo = HLTInfo + [
             ['DST_Run3_EG16_EG12_PFScoutingPixelTracking', 'DST_Run3_EG16_EG12_PFScoutingPixelTracking_v*'],

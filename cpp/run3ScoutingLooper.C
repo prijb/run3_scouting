@@ -656,8 +656,9 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           passL1 = true;
         }
       }
-      if (!passL1)
-	continue;
+  // Prijith: I've commeneted out these lines so that the looper keeps all events especially for MC
+  //    if (!passL1)
+	//continue;
 
       // HLT selection
       auto hlts = getObject<std::vector<bool>>(ev, "triggerMaker", "hltresult");
@@ -668,8 +669,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           break;
         }
       }
-      if (!passHLT)
-	continue;
+  //    if (!passHLT)
+	//continue;
 
       // PV selection
       auto pvs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingPrimaryVertexPacker", "primaryVtx");

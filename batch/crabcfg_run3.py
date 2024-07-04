@@ -27,6 +27,10 @@ if (len(sys.argv)>2):
         extra=sys.argv[2]+"_"+sys.argv[3]
         config.Data.inputDataset = '/ScoutingPFMonitor/Run{}-v1/RAW'.format(era)
         config.JobType.pyCfgParams=["era={}".format(era+"-triggerV10"),"data=True","monitor=True"]  
+    elif(data and "systematic" in sys.argv[2] and len(sys.argv)>3 and "triggerV10" in sys.argv[3]): #Systematics (v10)
+        extra=sys.argv[3]
+        config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
+        config.JobType.pyCfgParams=["era={}".format(era+"-triggerV10"),"data=True","sys=True"]
     elif(data and "systematic" in sys.argv[2]): #Systematics
         config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
         config.JobType.pyCfgParams=["era={}".format(era),"data=True","sys=True"]
@@ -49,7 +53,7 @@ elif(data): #other data
 else:
     quit()
 
-ntuple_version = "5_syst"
+ntuple_version = "5_syst_test"
 
 config.General.requestName = 'skim4__{}_{}_{}'.format(
         era,
@@ -70,15 +74,15 @@ config.JobType.psetName = 'Scouting/NtupleMaker/test/producer_Run3.py'
 config.Data.splitting = 'FileBased'
 
 if (data):
-    config.Data.unitsPerJob = int(10e6/3)
+    #config.Data.unitsPerJob = int(10e6/3)
     #config.Data.unitsPerJob = int(10e3/3)
-    #config.Data.unitsPerJob = int(1)
+    config.Data.unitsPerJob = int(1)
 else:
     #config.Data.unitsPerJob = int(10e4)
     config.Data.unitsPerJob = int(10)
 
 #Testing for n files    
-NJOBS = 1400
+NJOBS = 10
 config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 
 #something like this can be useful for limited disk availability
@@ -102,7 +106,8 @@ if (data and year==2022):
 #config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_version # DB no
 config.Data.outLFNDirBase = '/store/user/ppradeep/Run3Scouting/RAWScouting_'+ntuple_version # DB no
 config.Data.publication = True
-config.Site.storageSite = "T2_UK_London_IC"
+#config.Site.storageSite = "T2_UK_London_IC"
+config.Site.storageSite = "T2_US_UCSD"
 
 print(config)
 crabCommand('submit', config = config, dryrun = False) ## dryrun = True for local test
