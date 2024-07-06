@@ -145,8 +145,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     minstddev = 0.75*stddev;
     maxstddev = 1.25*stddev;      
   }
-  double binsize = 0.1*stddev;
-  double binsizePlot = 1.0*stddev;
+  double binsize = 0.1*stddev_window;
+  double binsizePlot = 1.0*stddev_window;
 
   double meanm = mass;
   if ( !useFixedSigma ) {
