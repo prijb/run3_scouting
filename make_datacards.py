@@ -19,7 +19,6 @@ useCategorizedSignal = True
 useCategorizedBackground = True
 
 useData = True
-intLumi = 3.51 # Not used!!!! Signals weighted at filler level
 useSignalMC = True
 doPartiaUnblinding = False
 ext = "data"
@@ -138,9 +137,10 @@ sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
         sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-        #sigMasses = [0.5, 0.7, 7.0, 8.0, 50.0]
+        sigMasses = [5.0]
         for  m in sigMasses:
             sigCTaus = [1, 10, 100, 100]
+            sigCTaus = [10]
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
@@ -260,7 +260,6 @@ for y in years:
            w = f.Get(wsname)
            # Retrieve signal normalization
            nSig = w.var("signalNorm%s"%catExtS).getValV()
-           #nSig = nSig*intLumi*1000.0/200000.0
            if doPartiaUnblinding:
                nSig = 0.1*nSig
            if nSig < 1e-6:
@@ -420,8 +419,8 @@ for y in years:
                #card.write("CMS_eff_muonsel lnN %.3f -\n"%(1.0+muonselsyst)) # Systematic uncertainty on signal from muon additional selection (fully correlated)
                card.write("CMS_eff_trg lnN %.3f -\n"%(1.0+trgsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
                card.write("CMS_eff_sel lnN %.3f -\n"%(1.0+selsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
+               card.write("mcstat_ch%d lnN %.3f -\n"%(binidx,1.0+mcstatunc)) # MC stat. uncertainty (uncorrelated)
                #card.write("CMS_scale_jet_ch%d lnN %.3f -\n"%(binidx,1.0+jecsyst)) # Systematic uncertainty on signal from JES (uncorrelated)
-               #card.write("mcstat_ch%d lnN %.3f -\n"%(binidx,1.0+mcstatunc)) # MC stat. uncertainty (uncorrelated)
                #card.write("accstat_ch%d lnN %.3f -\n"%(binidx,1.0+terrtot)) # Stat. uncertainty on average acceptance (uncorrelated)
                #if meanFloat:
                #    card.write("mean param %.3f -%.3f/+%.3f\n"%(mean,0.5*sigma,0.5*sigma)) # Shape systematic on dimuon mass mean value
