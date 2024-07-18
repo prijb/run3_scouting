@@ -913,6 +913,9 @@ for e in range(firste,laste):
         minpt = min(qmu_dmuvecminlxy[vn].Pt(), qmu_dmuvecmaxlxy[vn].Pt())
         maxpt = max(qmu_dmuvecminlxy[vn].Pt(), qmu_dmuvecmaxlxy[vn].Pt())
         nhitsbeforesvtotal = t.Muon_nhitsbeforesv[qmuidxs[vn*4]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+1]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+2]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+3]]
+        ptlist = [t.Muon_pt[qmuidxs[vn*4]], t.Muon_pt[qmuidxs[vn*4+1]], t.Muon_pt[qmuidxs[vn*4+2]], t.Muon_pt[qmuidxs[vn*4+3]]]
+        ptlist.sort(reverse=True)
+        subpt = ptlist[1]
         for m in range(vn*4,vn*4+4):
             if not m%2==0:
                 continue
@@ -1105,7 +1108,7 @@ for e in range(firste,laste):
         sf_trg, sf_trg_up, sf_trg_down  = 1., 1., 1.
         sf_sel, sf_sel_up, sf_sel_down  = 1., 1.2, 1.2
         if not isData:
-            sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, lxy)
+            sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, minlxy)
         if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
             m4fit.setVal(mass)
             roow4.setVal(lumiweight*rooweight*sf_trg*sf_sel);
@@ -1171,6 +1174,9 @@ for e in range(firste,laste):
         mass = v.M()
         pt   = v.Pt()
         nhitsbeforesvtotal = t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+1]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+2]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+3]]
+        ptlist = [t.Muon_pt[qmuidxs_osv[vn*4]], t.Muon_pt[qmuidxs_osv[vn*4+1]], t.Muon_pt[qmuidxs_osv[vn*4+2]], t.Muon_pt[qmuidxs_osv[vn*4+3]]]
+        ptlist.sort(reverse=True)
+        subpt = ptlist[1]
         for m in range(vn*4,vn*4+4):
             for mm in range(m+1,vn*4+4):
                 drmm = t.Muon_vec[qmuidxs_osv[m]].DeltaR(t.Muon_vec[qmuidxs_osv[mm]])
@@ -1879,5 +1885,9 @@ for dbin in dbins:
     roods_trg_up[dbin].Write()
     print("RooDataSet (down) {}  with {} entries".format(dbin, roods_trg_down[dbin].sumEntries()))
     roods_trg_down[dbin].Write()
+    print("RooDataSet (up) {}  with {} entries".format(dbin, roods_sel_up[dbin].sumEntries()))
+    roods_sel_up[dbin].Write()
+    print("RooDataSet (down) {}  with {} entries".format(dbin, roods_sel_down[dbin].sumEntries()))
+    roods_sel_down[dbin].Write()
     catmass[dbin].Write()
 fout.Close()

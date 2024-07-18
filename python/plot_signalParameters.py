@@ -3,6 +3,9 @@ import numpy
 import copy
 import os,sys
 from datetime import date
+import mplhep as hep
+import numpy as np
+import matplotlib.pyplot as plt
 #import plotUtils
 
 ROOT.gROOT.SetBatch(1)
@@ -155,125 +158,97 @@ def getLegend(ch,gd,p,hp,hs,smodel,smass,sigsf=-1.0,plotSignal=True,plotData=Tru
 
 ROOT.gStyle.SetOptStat(0)
 
-f = ROOT.TFile.Open("utils/signalFitParameters.root")
+f = ROOT.TFile.Open("utils/signalFitParameters_lxybins_2022_new.root")
 
 params = []
-params.append(['gsigma', 'splines', '#sigma'])
-params.append(['gmean', 'splinem', '#mu'])
-params.append(['gnL', 'splinenL', 'n_{L}'])
-params.append(['gnR', 'splinenR', 'n_{R}'])
-params.append(['gaL', 'splineaL', 'a_{L}'])
-params.append(['gaR', 'splineaR', 'a_{R}'])
+params.append(['gsigma', 'splines', r'width $\sigma$'])
+params.append(['gmean', 'splinem', r'mean $\mu$'])
+params.append(['gnL', 'splinenL', r'$n_{L}$'])
+params.append(['gnR', 'splinenR', r'$n_{R}$'])
+params.append(['gaL', 'splineaL', r'$a_{L}$'])
+params.append(['gaR', 'splineaR', r'$a_{R}$'])
 
-colors = [ROOT.kAzure, ROOT.kRed+1, ROOT.kGreen+2, ROOT.kOrange]
+colors = ['#3f90da', '#ffa90e', '#bd1f01', '#94a4a2', '#832db6', '#a96b59', '#e76300', '#b9ac70', '#717581', '#92dadd']
+isRelative = True
 
 for p,par in enumerate(params):
 
-    can = ROOT.TCanvas("can","",800, 600)
-    can.cd()
+    lxybins = []
+    lxybins.append('lxy0p0to0p2')
+    lxybins.append('lxy0p2to1p0')
+    lxybins.append('lxy1p0to2p4')
+    lxybins.append('lxy2p4to3p1')
+    lxybins.append('lxy3p1to7p0')
+    lxybins.append('lxy7p0to11p0')
+    lxybins.append('lxy11p0to16p0')
+    lxybins.append('lxy16p0to70p0')
 
-    pads = []
-    pads.append(ROOT.TPad("1","1",0,0,1,1))
-    pads[0].SetTopMargin(0.08)
-    pads[0].SetLeftMargin(0.15)
-    pads[0].SetRightMargin(0.05)
-    pads[0].Draw()
+    xmass_axis = np.logspace(-1, 2, 300)
 
-    pads[0].cd()
+    plt.style.use(hep.style.CMS)
+    fig, ax = plt.subplots(figsize=(9, 7))
 
-    ## Create axis plot
-    ymax = 0.01
-    h_axis = ROOT.TH1D("h_axis","", 100, 0.0, 50.0)
-    h_axis.GetXaxis().SetTitle("m_{#mu#mu} [GeV]")
-    h_axis.GetYaxis().SetTitle("Parameter")
-    h_axis.SetMinimum(0.0)
-    h_axis.SetMaximum(1.0)
-    h_axis.GetYaxis().SetRangeUser(0.0,1.0)
-    h_axis.GetXaxis().SetTitleSize(0.045)
-    h_axis.GetXaxis().SetLabelSize(0.04)
-    h_axis.GetYaxis().SetTitleSize(0.045)
-    h_axis.GetYaxis().SetLabelSize(0.04)
-    h_axis.GetXaxis().SetTitleOffset(1.1)
-    h_axis.Draw("")
+    for t,lxy in enumerate(lxybins):
 
-    legend = ROOT.TLegend(0.15,0.85,0.95,0.92)
-    #legend.SetLineColor(0)
-    legend.SetTextSize(0.04)
-    legend.SetLineWidth(1)
-    legend.SetNColumns(3)
-
-    relgraph = []
-    for t,ctau in enumerate([1, 10, 100]):
-
-        gname = "%s_%smm"%(par[0], str(ctau))
-        sname = "%s_%smm"%(par[1], str(ctau))
+        gname = "%s_d_Dimuon_%s_inclusive"%(par[0], str(lxy))
+        sname = "%s_d_Dimuon_%s_inclusive"%(par[1], str(lxy))
         print(gname, sname)
 
         graph = f.Get(gname)
-        graph.SetMarkerStyle(20)
-        graph.SetMarkerColor(colors[t])
-        graph.SetMarkerSize(1.2)
-        graph.SetLineWidth(2)
-
+        points = np.array([graph.GetPointY(i) for i in range(graph.GetN())])
+        masses = np.array([graph.GetPointX(i) for i in range(graph.GetN())])
+   
         spline = f.Get(gname)
-        spline.SetLineWidth(2)
-        spline.SetLineColor(colors[t])
-        spline.SetLineStyle(2)
+        spline_val = []
+        for mass in xmass_axis:
+            spline_val.append(spline.Eval(mass))
+        inter = np.array(spline_val)
 
-        relgraph.append(ROOT.TGraph())
-        relgraph[-1].SetName(gname + "_rel")
-        relgraph[-1].SetMarkerStyle(20)
-        relgraph[-1].SetMarkerColor(colors[t])
-        relgraph[-1].SetMarkerSize(1.2)
-        relgraph[-1].SetLineWidth(2)
-        for i in range(0, graph.GetN()):
-            relgraph[-1].AddPoint(graph.GetX()[i], graph.GetY()[i]/graph.GetX()[i])
+        relpoints = points/masses
+        relinter = inter/xmass_axis
 
-        #minR=0.5*min(graph.GetY())
-        #maxR=1.5*max(graph.GetY())
-        
-        #graph.Draw("AP")
-        if not t:
-            ylabel = par[2]
-            if doRel: 
-                ylabel += "/m_{#mu#mu}"
-            h_axis.GetYaxis().SetTitle(ylabel)
-
-        if doRel:
-            relgraph[-1].Draw("P, SAME")
-            ymax = max(relgraph[-1].GetY()) if max(relgraph[-1].GetY()) > ymax else ymax
-            legend.AddEntry(relgraph[-1], f"c#tau = {ctau} mm", "p")
-        else:
-            ymax = max(graph.GetY()) if max(graph.GetY()) > ymax else ymax
-            graph.Draw("P, SAME")
-            spline.Draw("L, SAME")
-            legend.AddEntry(graph, f"c#tau = {ctau} mm", "p")
-
-    #llabel = "M_{Z_{D}} = %s, c#tau = %s mm"%(m, t)
-    #legend = getLegend(binidx,g_data,pn,hp,hs,llabel,float(m), -1, plotSignal)
-    #year="all"
-    #drawLabels(year,lumi,useData)
-    #legend.Draw("same")
-    h_axis.GetYaxis().SetRangeUser(0.0,1.4*ymax)
-    pads[0].Update()
-    pads[0].RedrawAxis()
-    legend.Draw()
+        labeltag = ''
+        if lxy=='lxy0p0to0p2': labeltag = r'$l_{xy} \in [0.0, 0.2]$ cm'
+        if lxy=='lxy0p2to1p0': labeltag = r'$l_{xy} \in [0.2, 1.0]$ cm'
+        if lxy=='lxy1p0to2p4': labeltag = r'$l_{xy} \in [1.0, 2.4]$ cm'
+        if lxy=='lxy2p4to3p1': labeltag = r'$l_{xy} \in [2.4, 3.1]$ cm'
+        if lxy=='lxy3p1to7p0': labeltag = r'$l_{xy} \in [3.1, 7.0]$ cm'
+        if lxy=='lxy7p0to11p0': labeltag = r'$l_{xy} \in [7.0, 11.0]$ cm'
+        if lxy=='lxy11p0to16p0': labeltag = r'$l_{xy} \in [11.0, 16.0]$ cm'
+        if lxy=='lxy16p0to70p0': labeltag = r'$l_{xy} \in [16.0, 70.0]$ cm'
     
-    ## Search region labels
-    #
-    latexExtra = ROOT.TLatex()
-    latexExtra.SetTextFont(42)
-    latexExtra.SetTextSize(0.04)
-    latexExtra.SetNDC(True)
-    #
-    latexExtraBold = ROOT.TLatex()
-    latexExtraBold.SetTextFont(62)
-    latexExtraBold.SetTextSize(0.04)
-    latexExtraBold.SetNDC(True)
+        if isRelative:
+            ax.plot(xmass_axis, relinter, label=labeltag, linestyle='-', color = colors[t])
+            ax.scatter(masses, relpoints, color = colors[t])
+        else:
+            ax.plot(xmass_axis, inter, label=labeltag, linestyle='-', color = colors[t])
+            ax.scatter(masses, points, color = colors[t])
 
-    ## Save canvas
-    can.SaveAs("%s/%s.png"%(outDir,par[0]))
-    can.SaveAs("%s/%s.pdf"%(outDir,par[0]))
+    hep.cms.label("", data=False, year='2022', com='13.6')
+    ax.set_xlabel(r'Dimuon invariant mass $m_{\mu\mu}$ (GeV)', fontsize=20)
+    if isRelative:
+        ax.set_ylabel('Relative ' + par[2], fontsize=20)
+    else:
+        ax.set_ylabel(par[2], fontsize=20)
+    ax.set_xscale('log')
+    ax.set_xlim(0.5, 50.0)
+    if isRelative:
+        ax.set_ylim(0.1*min(relpoints), 1.1*max(relpoints))
+    else:
+        ax.set_ylim(0.3*min(points), 3*max(points))
+
+    legsize = 15
+    ax.legend(fontsize=15, ncol = 2)
+
+    if isRelative:
+        ax.text(0.6, 2.1*max(relpoints), r'$h\rightarrow Z_{D}Z_{D}$, $Z_{D}\rightarrow\mu\mu$ (c$\tau$ = 1, 10, 100, 1000 mm)', fontsize=13)
+
+    if isRelative:
+        fig.savefig('rel_%s.png'%(par[0]), dpi=140)
+    else:
+        fig.savefig('%s.png'%(par[0]), dpi=140)
+
+
 
 f.Close()
 

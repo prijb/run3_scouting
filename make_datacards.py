@@ -20,6 +20,11 @@ useCategorizedBackground = True
 
 useData = True
 useSignalMC = True
+
+# Constant to control the yields of the signal in the datacard (to be used consistently when limits are made)
+useNorm = True
+NORMCONST = 0.001 
+
 doPartiaUnblinding = False
 ext = "data"
 if not useData:
@@ -137,10 +142,8 @@ sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
         sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-        sigMasses = [5.0]
         for  m in sigMasses:
-            sigCTaus = [1, 10, 100, 100]
-            sigCTaus = [10]
+            sigCTaus = [1, 10, 100, 1000]
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
@@ -260,6 +263,8 @@ for y in years:
            w = f.Get(wsname)
            # Retrieve signal normalization
            nSig = w.var("signalNorm%s"%catExtS).getValV()
+           if useNorm:
+               nSig = NORMCONST*nSig
            if doPartiaUnblinding:
                nSig = 0.1*nSig
            if nSig < 1e-6:
@@ -274,16 +279,32 @@ for y in years:
                mcstatunc = 1.0
            # Retrive BG normalization:
            nBG = w.data("data_obs%s"%catExtB).sumEntries()
-           # Close input file with workspace
-           f.Close()
            #if not doCounting:
            #    os.system("cp %s %s/"%(finame,outDir))
            #    finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
                #finame = "%s_%s_M%s_%s_workspace.root"%(d,s,m,y)
 
-           # Define systematics that are independent of signal mass
-           trgsyst = 0.30
-           selsyst = 0.10
+           # Define systematics from up and down variations
+           # Trigger systematic:
+           w_trg_up = f.Get(wsname + '_trg_up')
+           w_trg_down = f.Get(wsname + '_trg_down')
+           nSig_trgUp = w_trg_up.var("signalNorm%s"%catExtS).getValV()
+           nSig_trgDown = w_trg_down.var("signalNorm%s"%catExtS).getValV()
+           if useNorm:
+               nSig_trgUp = NORMCONST*nSig_trgUp
+               nSig_trgDown = NORMCONST*nSig_trgDown
+           trgsyst = max([(nSig_trgUp/nSig - 1.0), (1.0 - nSig_trgDown/nSig)])
+           # Selection systematic:
+           w_sel_up = f.Get(wsname + '_sel_up')
+           w_sel_down = f.Get(wsname + '_sel_down')
+           nSig_selUp = w_sel_up.var("signalNorm%s"%catExtS).getValV()
+           nSig_selDown = w_sel_down.var("signalNorm%s"%catExtS).getValV()
+           if useNorm:
+               nSig_selUp = NORMCONST*nSig_selUp
+               nSig_selDown = NORMCONST*nSig_selDown
+           selsyst = max([(nSig_selUp/nSig - 1.0), (1.0 - nSig_selDown/nSig)])
+           # Close input file with workspace
+           f.Close()
            #if binidx>=2:
            #    btagsyst = 0.05
            #
@@ -413,14 +434,10 @@ for y in years:
                    card.write("rate %e 1\n"%(nSig)) # CELIANOTE: Is this really correct? 
                card.write("------------\n")  
                # Systematics
-               card.write("lumi_13TeV lnN 1.014 -\n") # Integrated luminosity uncertainty on signal (fully correlated)
-               #card.write("CMS_eff_trigger lnN %.3f -\n"%(1.0+triggersyst)) # Systematic uncertainty on signal from trigger (fully correlated)
-               #card.write("CMS_eff_muonid lnN %.3f -\n"%(1.0+muonsfsyst)) # Systematic uncertainty on signal from muon RECO, ID, isolation (fully correlated)
-               #card.write("CMS_eff_muonsel lnN %.3f -\n"%(1.0+muonselsyst)) # Systematic uncertainty on signal from muon additional selection (fully correlated)
-               card.write("CMS_eff_trg lnN %.3f -\n"%(1.0+trgsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
-               card.write("CMS_eff_sel lnN %.3f -\n"%(1.0+selsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
+               card.write("lumi_13p6TeV lnN 1.014 -\n") # Integrated luminosity uncertainty on signal (fully correlated)
+               card.write("CMS_eff_trg_%s lnN %.3f -\n"%(year, 1.0+trgsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
+               card.write("CMS_eff_sel_%s lnN %.3f -\n"%(year, 1.0+selsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
                card.write("mcstat_ch%d lnN %.3f -\n"%(binidx,1.0+mcstatunc)) # MC stat. uncertainty (uncorrelated)
-               #card.write("CMS_scale_jet_ch%d lnN %.3f -\n"%(binidx,1.0+jecsyst)) # Systematic uncertainty on signal from JES (uncorrelated)
                #card.write("accstat_ch%d lnN %.3f -\n"%(binidx,1.0+terrtot)) # Stat. uncertainty on average acceptance (uncorrelated)
                #if meanFloat:
                #    card.write("mean param %.3f -%.3f/+%.3f\n"%(mean,0.5*sigma,0.5*sigma)) # Shape systematic on dimuon mass mean value
@@ -439,12 +456,12 @@ for y in years:
                card.close()
            
                ## text2workspace for individual cards:
-               #os.chdir(outDir)
-               #if noModel:
-               #    os.system("text2workspace.py card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(cname,binidx,m,y,m))
-               #else:
-               #    os.system("text2workspace.py card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(cname,binidx,sigModel,M,T,y))                        
-               #os.chdir(thisDir)
+               os.chdir(outDir)
+               if noModel:
+                   os.system("text2workspace.py card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(cname,binidx,m,y,m))
+               else:
+                   os.system("text2workspace.py card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(cname,binidx,sigModel,M,T,y))                        
+               os.chdir(thisDir)
 
        ## Combine cards:
        if len(dNames)>1:

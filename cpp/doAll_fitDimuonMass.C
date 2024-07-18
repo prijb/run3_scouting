@@ -7,15 +7,17 @@
   //bool useSignalMC = true;
   bool mergeEras = true;
   bool writeWS = true;
-  TString period = "2023"; // Either 2022 or 2023
+  bool doUpAndDownVariations = true;
+  TString period = "2022"; // Either 2022 or 2023
   TString model = "HTo2ZdTo2mu2x";
   float mF = 350.0;
   float mL = 2000.0;
   
 
   // Dir with the RooDataSets
-  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2022"; // last 2022
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2023"; // last 2023
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-02-2024_2022_SRsOnly"; // last 2022
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2023"; // last 2023
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-10-2024_2022_allCuts_full"; // last 2022 (unblinded)
 
   // Names of the search regions
   vector<TString> dNames = { };
@@ -92,7 +94,6 @@
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
   vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-  //vector<float> sigMass = {0.5, 0.7, 7.0, 8.0, 50.0};
   vector<float> sigCtau = {1, 10, 100, 1000};
   for ( unsigned int m=0; m<sigMass.size(); m++ ) {
     TString massString = Form("%.1f",sigMass[m]); 
@@ -129,6 +130,10 @@
  TList* files = dir.GetListOfFiles(); 
  vector<RooDataSet> mmumu_bkgs = {};
  vector<vector<RooDataSet>> mmumu_sigs {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_trg_up {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_trg_down {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_sel_up {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_sel_down {{}}; 
  cout << "Preparing to read datasets..." << endl;
  for ( unsigned int d=0; d<dNames.size(); d++ ) {
    // Loop over datasets
@@ -139,12 +144,10 @@
      TString year = "2022";
      if (era.Contains("2022"))
        year = "2022";
-     // else if (era.Contains("2023"))
      else
        year = "2023";
      if (era=="2022") {
        dataEras.push_back("DataC"); dataEras.push_back("DataD"); dataEras.push_back("DataE");
-     //} else if (year=="2022postEE") {
      } else if (era=="2022postEE") {
        dataEras.push_back("DataF"); dataEras.push_back("DataG");
      } else if (era=="2023") {
@@ -196,11 +199,32 @@
          std::cout << "Reading signal file: " <<  inFile << ", with dataset with entries: " << tds->sumEntries() << std::endl;
          if (iera == 0) {
            vector<RooDataSet> tds_aux{};
-           //tds_aux.push_back( *tds );
            mmumu_sigs.push_back( tds_aux );
-           mmumu_sigs[isample].push_back( *tds );
-         } else {
-           mmumu_sigs[isample].push_back( *tds );
+         }
+         mmumu_sigs[isample].push_back( *tds );
+         if (doUpAndDownVariations) {
+           RooDataSet *tds_trg_up = (RooDataSet*) fin.Get(dNames[d]+"_trg_up")->Clone();
+           RooDataSet *tds_trg_down = (RooDataSet*) fin.Get(dNames[d]+"_trg_down")->Clone();
+           RooDataSet *tds_sel_up = (RooDataSet*) fin.Get(dNames[d]+"_sel_up")->Clone();
+           RooDataSet *tds_sel_down = (RooDataSet*) fin.Get(dNames[d]+"_sel_down")->Clone();
+           tds_trg_up->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_trg_up");
+           tds_trg_down->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_trg_down");
+           tds_sel_up->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_sel_up");
+           tds_sel_down->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_sel_down");
+           if (iera == 0) {
+             vector<RooDataSet> tds_aux_trg_up{};
+             vector<RooDataSet> tds_aux_trg_down{};
+             vector<RooDataSet> tds_aux_sel_up{};
+             vector<RooDataSet> tds_aux_sel_down{};
+             mmumu_sigs_trg_up.push_back( tds_aux_trg_up );
+             mmumu_sigs_trg_down.push_back( tds_aux_trg_down );
+             mmumu_sigs_sel_up.push_back( tds_aux_sel_up );
+             mmumu_sigs_sel_down.push_back( tds_aux_sel_down );
+           }
+           mmumu_sigs_trg_up[isample].push_back( *tds_trg_up );
+           mmumu_sigs_trg_down[isample].push_back( *tds_trg_down );
+           mmumu_sigs_sel_up[isample].push_back( *tds_sel_up );
+           mmumu_sigs_sel_down[isample].push_back( *tds_sel_down );
          }
          fin.Close();
        } //else {
@@ -220,10 +244,18 @@
      mmumu_bkg_merged.SetName(dNames[d]+"_Data_"+period);
      cout << "Merged dataset for background has entries: " << mmumu_bkg_merged.sumEntries() << endl;
      vector<RooDataSet> mmumu_sig_merged = {};
+     vector<RooDataSet> mmumu_sig_trg_up_merged = {};
+     vector<RooDataSet> mmumu_sig_trg_down_merged = {};
+     vector<RooDataSet> mmumu_sig_sel_up_merged = {};
+     vector<RooDataSet> mmumu_sig_sel_down_merged = {};
      for (unsigned int isample=0; isample<sigsamples.size(); isample++ ) {
        // Create worksapce, import data and model
        std::cout << "Creating merged workspace" << std::endl;
        RooWorkspace wfit("wfit","workspace"); 
+       RooWorkspace wfit_trg_up("wfit_trg_up","workspace_trg_up");
+       RooWorkspace wfit_trg_down("wfit_trg_down","workspace_trg_down");
+       RooWorkspace wfit_sel_up("wfit_sel_up","workspace_sel_up");
+       RooWorkspace wfit_sel_down("wfit_sel_down","workspace_sel_down");
        for (unsigned int iera=0; iera<eras.size(); iera++ ) {
          if (iera==0)
            mmumu_sig_merged.push_back(mmumu_sigs[isample][iera]);
@@ -231,10 +263,28 @@
            mmumu_sig_merged[isample].append(mmumu_sigs[isample][iera]);
        }  
        mmumu_sig_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period);
+       if (doUpAndDownVariations) {
+         for (unsigned int iera=0; iera<eras.size(); iera++ ) {
+           if (iera==0) {
+             mmumu_sig_trg_up_merged.push_back(mmumu_sigs_trg_up[isample][iera]);
+             mmumu_sig_trg_down_merged.push_back(mmumu_sigs_trg_down[isample][iera]);
+             mmumu_sig_sel_up_merged.push_back(mmumu_sigs_sel_up[isample][iera]);
+             mmumu_sig_sel_down_merged.push_back(mmumu_sigs_sel_down[isample][iera]);
+           } else {
+             mmumu_sig_trg_up_merged[isample].append(mmumu_sigs_trg_up[isample][iera]);
+             mmumu_sig_trg_down_merged[isample].append(mmumu_sigs_trg_down[isample][iera]);
+             mmumu_sig_sel_up_merged[isample].append(mmumu_sigs_sel_up[isample][iera]);
+             mmumu_sig_sel_down_merged[isample].append(mmumu_sigs_sel_down[isample][iera]);
+           }
+         }  
+         mmumu_sig_trg_up_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_trg_up");
+         mmumu_sig_trg_down_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_trg_down");
+         mmumu_sig_sel_up_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_sel_up");
+         mmumu_sig_sel_down_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_sel_down");
+       }
        cout << "Merged dataset for signal " << sigsamples[isample] << " with entries " << mmumu_sig_merged[isample].sumEntries() << endl;
        // Fit invariant mass
        std::cout << "Prepare to fit..." << std::endl;
-       //if (dNames[d].BeginsWith("d_FourMu_osv")) {
        if (dNames[d].BeginsWith("d_FourMu_")) {
          fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "dcbfastg", outDir);
          fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "", outDir); 
@@ -242,6 +292,20 @@
          fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "dcbfastg", outDir);
          fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "", outDir); 
        }
+       if (doUpAndDownVariations) { 
+         if (dNames[d].BeginsWith("d_FourMu_")) {
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_trg_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_trg_down, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_sel_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_sel_down, true, period, "dcbfastg", outDir);
+         } else {
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_trg_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_trg_down, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_sel_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_sel_down, false, period, "dcbfastg", outDir);
+         }
+       }
+       
     
        // Print workspace contents
        std::cout << "Workspace contents: " << std::endl;
@@ -254,6 +318,12 @@
          fws->cd();
          cout << "Writing workspace..." << endl;
          wfit.Write();
+         if (doUpAndDownVariations) { 
+           wfit_trg_up.Write();
+           wfit_trg_down.Write();
+           wfit_sel_up.Write();
+           wfit_sel_down.Write();
+         }
          fws->Close();
        }
        cout<<endl;
@@ -261,8 +331,16 @@
    }
    for ( int isample=0; isample<sigsamples.size(); isample++ ) {
      mmumu_sigs[isample].clear();
+     mmumu_sigs_trg_up[isample].clear();
+     mmumu_sigs_trg_down[isample].clear();
+     mmumu_sigs_sel_up[isample].clear();
+     mmumu_sigs_sel_down[isample].clear();
    }
    mmumu_sigs.clear();
+   mmumu_sigs_trg_up.clear();
+   mmumu_sigs_trg_down.clear();
+   mmumu_sigs_sel_up.clear();
+   mmumu_sigs_sel_down.clear();
    mmumu_bkgs.clear();
  }
 

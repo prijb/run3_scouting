@@ -13,7 +13,7 @@ today= date.today().strftime("%b-%d-%Y")
 doRatio = False
 doPull = False
 useSignalMC = True
-doPartialUnblinding = True
+doPartialUnblinding = False
 normalizeSignal = False # Only if background is > 0
 
 wsname = "wfit"
@@ -100,7 +100,7 @@ sigModels.append("Y3")
 
 sigMasses = []
 if useSignalMC:
-    sigMasses = [0.5, 0.7, 2.0, 2.5, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+    sigMasses = [0.5, 0.7, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
 else:
     mF = 350.0
     mL = 2000.0
@@ -267,7 +267,7 @@ for y in years:
                 #nBins = int((maxx-minx)/(0.01*float(m)))
                 nBins = 5*10;
                 # Retrieve signal normalization
-                lumi=35. if year=='2022' else 17.1 # 27.2              
+                lumi=35. if year=='2022' else 27.2 # 27.2              
                 if doPartialUnblinding:
                     lumi = 0.1*lumi
                 nSig = w.var("signalNorm%s"%catExtS).getValV()
@@ -623,8 +623,8 @@ for y in years:
                     can.SaveAs("%s/fitSIG_M%s_CT_%smm_%s.png"%(outDir,m,t,d))
                     can.SaveAs("%s/fitSIG_M%s_CT_%smm_%s.pdf"%(outDir,m,t,d))
                 else:
-                    can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.png"%(outDir,m,t,d))
-                    can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.pdf"%(outDir,m,t,d))
+                    can.SaveAs("%s/fitBG_M%s_%s.png"%(outDir,m,d))
+                    can.SaveAs("%s/fitBG_M%s_%s.pdf"%(outDir,m,d))
 
                 # Close input file with workspace                
                 f.Close()

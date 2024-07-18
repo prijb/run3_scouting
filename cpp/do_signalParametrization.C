@@ -12,18 +12,20 @@
   // Dir with the RooDataSets
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Apr-03-2024_onlySignal";
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Mar-26-2024_allCuts";
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2022";
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2022";
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-10-2024_2022_allCuts_full";
 
   // Names of the search regions we want to parametrize
   vector<TString> dNames = { };
   //dNames.push_back("d_Dimuon_full_inclusive");
-  //dNames.push_back("d_Dimuon_lxy0p0to0p2_inclusive");
-  //dNames.push_back("d_Dimuon_lxy0p2to1p0_inclusive");
-  //dNames.push_back("d_Dimuon_lxy1p0to2p4_inclusive");
-  //dNames.push_back("d_Dimuon_lxy2p4to3p1_inclusive");
-  //dNames.push_back("d_Dimuon_lxy3p1to7p0_inclusive");
-  //dNames.push_back("d_Dimuon_lxy7p0to11p0_inclusive");
-  //dNames.push_back("d_Dimuon_lxy11p0to16p0_inclusive");
+  dNames.push_back("d_FourMu_sep");
+  dNames.push_back("d_Dimuon_lxy0p0to0p2_inclusive");
+  dNames.push_back("d_Dimuon_lxy0p2to1p0_inclusive");
+  dNames.push_back("d_Dimuon_lxy1p0to2p4_inclusive");
+  dNames.push_back("d_Dimuon_lxy2p4to3p1_inclusive");
+  dNames.push_back("d_Dimuon_lxy3p1to7p0_inclusive");
+  dNames.push_back("d_Dimuon_lxy7p0to11p0_inclusive");
+  dNames.push_back("d_Dimuon_lxy11p0to16p0_inclusive");
   dNames.push_back("d_Dimuon_lxy16p0to70p0_inclusive");
 
   // Eras (to be uncommented when adding 2023 and splitting in eras)
@@ -43,10 +45,7 @@
   vector<float> selectedPoint;
   if ( model=="HTo2ZdTo2mu2x" ) {
     sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-    //sigMass = {6.0};
-    //sigMass = {0.5, 0.7, 1.5, 2.0, 2.5};
-    //vector<float> sigCtau = {1, 10, 100, 1000};
-    sigCtau = {1, 10, 100};
+    sigCtau = {1, 10, 100, 1000};
     sigTemplate = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm";
     for (unsigned int t=0; t<sigCtau.size(); t++) {
       for (unsigned int m=0; m<sigMass.size(); m++) {
@@ -57,8 +56,6 @@
       }
     }
   }
-
-  std::cout << "Control" << std::endl;
 
   // Loop over signals 
   vector<vector<RooDataSet>> mmumu_sigs {{}};
@@ -185,12 +182,27 @@
          wfit.Print();
 
          // Get the values
-         RooRealVar *sigma = wfit.var("sigma_ch-1_allEras");
-         RooRealVar *nL = wfit.var("nL_ch-1_allEras");
-         RooRealVar *nR = wfit.var("nR_ch-1_allEras");
-         RooRealVar *aL = wfit.var("alphaL_ch-1_allEras");
-         RooRealVar *aR = wfit.var("alphaR_ch-1_allEras");
-         RooRealVar *mean = wfit.var("mean_ch-1_allEras");
+         RooRealVar *sigma;
+         RooRealVar *nL;
+         RooRealVar *nR;
+         RooRealVar *aL;
+         RooRealVar *aR;
+         RooRealVar *mean;
+         if (dNames[d].BeginsWith("d_FourMu_")) {
+           sigma = wfit.var("sigma_ch1_allEras");
+           nL = wfit.var("nL_ch1_allEras");
+           nR = wfit.var("nR_ch1_allEras");
+           aL = wfit.var("alphaL_ch1_allEras");
+           aR = wfit.var("alphaR_ch1_allEras");
+           mean = wfit.var("mean_ch1_allEras");
+         } else {
+           sigma = wfit.var("sigma_ch-1_allEras");
+           nL = wfit.var("nL_ch-1_allEras");
+           nR = wfit.var("nR_ch-1_allEras");
+           aL = wfit.var("alphaL_ch-1_allEras");
+           aR = wfit.var("alphaR_ch-1_allEras");
+           mean = wfit.var("mean_ch-1_allEras");
+         }
 
          // Fill graphs
          gsigma->AddPoint(sigMass[m], sigma->getVal());
@@ -277,9 +289,9 @@
            // Fit invariant mass
            std::cout << "Prepare to fit..." << std::endl;
            if (dNames[d].BeginsWith("d_FourMu_")) {
-             fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample , 125., wfit, true, "allEras", "dcbfastg", outDir);
+             fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample , 125., wfit, true, "2022", "dcbfastg", outDir);
            } else {
-             fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample, sigMass[m], wfit, false, "allEras", "dcbfastg", outDir);
+             fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample, sigMass[m], wfit, false, "2022", "dcbfastg", outDir);
            }
     
            // Print workspace contents
@@ -335,150 +347,15 @@
           gaR->Write();
           fs->Close();
 
-         //splineList.push_back(*splines); splineList.push_back(*splinem); splineList.push_back(*splinenL); splineList.push_back(*splinenR); splineList.push_back(*splineaL); splineList.push_back(*splineaR);
-         //graphList.push_back(*gsigma); graphList.push_back(*gmean); graphList.push_back(*gnL); graphList.push_back(*gnR); graphList.push_back(*gaL); graphList.push_back(*gaR);
-
        }
      } // end mergeLifetimes
    }
 
    
-   //for ( int isample=0; isample<sigMass.size()+sigCtau.size(); isample++ ) {
-   //  mmumu_sigs[isample].clear();
-   //} 
-   //mmumu_sigs.clear();
+   for ( int isample=0; isample<sigMass.size()+sigCtau.size(); isample++ ) {
+     mmumu_sigs[isample].clear();
+   } 
+   mmumu_sigs.clear();
  }
 
-  /*
-  if ( !mergeYears ) {
-    for ( int iyear=0; iyear<years.size(); iyear++ ) {
-	for ( int isample=0; isample<sigsamples.size(); isample++ ) {
-	  TString sample = sigsamples[isample];
-	  cout<<"Sample: "<<sample<<endl;
-	  if ( useSignalMC ) {
-	    TString inFile = Form("%s/output_%s_%s.root",inDir.Data(),sample.Data(),year.Data());
-	    TFile fin(inFile);
-	    RooDataSet *tds = (RooDataSet*) fin.Get(dNames[d])->Clone();
-	    tds->SetName(dNames[d]+"_"+sample+"_"+year);
-	    mmumu_sig.push_back( *tds );
-	    fin.Close();
-	  }
-	  else {
-	    RooDataSet *tds = (RooDataSet*) mmumu_bkg->emptyClone(dNames[d]+"_"+sample+"_"+year, "");
-	    mmumu_sig.push_back( *tds );
-	  }
-	  // Create workspace, import data and model
-	  TString outDir = "fitResults";
-	  RooWorkspace wfit("wfit","workspace");
-
-	  fitmass(mmumu_sig[isample], sample, false, true, false, sigmodels[isample], sigmasses[isample], wfit, "dcbfastg", outDir);
-	  if ( samples.size() > 0 ) {
-	    if ( useData )
-	      fitmass(*mmumu_bkg, "Background", true, false, false, sigmodels[isample], sigmasses[isample], wfit, "", outDir);
-	    else
-	      fitmass(*mmumu_bkg, "Background", false, false, false, sigmodels[isample], sigmasses[isample], wfit, "", outDir);
-	  }
-
-	  // Print workspace contents
-	  wfit.Print();
-
-	  if ( writeWS ) {
-	    // Save the workspace into a ROOT file
-	    TString fwsname = Form("%s/%s_workspace.root",outDir.Data(),mmumu_sig[isample].GetName());
-	    TFile *fws = new TFile(fwsname, "RECREATE");
-	    fws->cd();
-	    cout << "Writing workspace..." << endl;
-	    wfit.Write();
-	    fws->Close();
-	  }
-	  cout<<endl;
-	}
-      }
-    }
-  }
-  else {
-    for ( unsigned int d=0; d<dNames.size(); d++ ) {  
-      RooDataSet *mmumu_bkg;
-      cout<<endl;
-      cout<<"Dataset: "<<d<<endl;
-      cout<<"------------"<<endl;
-      for ( int isample=0; isample<samples.size(); isample++ ) {
-      	TString sample = samples[isample];
-      	cout<<"Sample: "<<sample<<endl;
-      	for ( int iyear=0; iyear<years.size(); iyear++ ) {
-      	  TString year = years[iyear];
-      	  cout<<endl;
-      	  cout<<"Year: "<<year<<endl;
-      	  TString inFile = Form("%s/output_%s_%s.root",inDir.Data(),sample.Data(),year.Data());
-      	  TFile fin(inFile);
-      	  if ( isample==0 && iyear==0 ) {
-      	    mmumu_bkg = (RooDataSet*) fin.Get(dNames[d])->Clone();
-      	  }
-      	  else {
-      	    RooDataSet *tds_other = (RooDataSet*) fin.Get(dNames[d])->Clone();
-      	    mmumu_bkg->append( *tds_other );
-      	  }
-      	  fin.Close();
-      	}
-      }
-      if ( useData )
-      	mmumu_bkg->SetName(dNames[d]+"_data_allyears");
-      else
-      	mmumu_bkg->SetName(dNames[d]+"_BGMC_allyears");
-      vector<RooDataSet*> mmumu_sig = { };
-      for ( int isample=0; isample<sigsamples.size(); isample++ ) {
-	TString sample = sigsamples[isample];
-	cout<<"Sample: "<<sample<<endl;
-	if ( useSignalMC ) {
-	  for ( int iyear=0; iyear<years.size(); iyear++ ) {
-	    TString year = years[iyear];
-	    cout<<endl;
-	    cout<<"Year: "<<year<<endl;
-	    TString inFile = Form("%s/output_%s_%s.root",inDir.Data(),sample.Data(),year.Data());
-	    TFile fin(inFile);
-	    RooDataSet *tds;
-	    if ( iyear==0 ) {
-	      tds = (RooDataSet*) fin.Get(dNames[d])->Clone();
-	      mmumu_sig.push_back(tds);
-	    }
-	    else {
-	      RooDataSet *tds_other = (RooDataSet*) fin.Get(dNames[d])->Clone();
-	      mmumu_sig[isample]->append( *tds_other );
-	    }
-	    fin.Close();
-	  }
-	  mmumu_sig[isample]->SetName(dNames[d]+"_"+sample+"_allyears");
-	}
-	else { 
-	  mmumu_sig.push_back( (RooDataSet*) mmumu_bkg->emptyClone(dNames[d]+"_"+sample+"_allyears", "") );
-	}
-	// Create workspace, import data and model
-	TString outDir = "fitResults_fullRange";
-	RooWorkspace wfit("wfit","workspace");
-
-	fitmass(*mmumu_sig[isample], sample, false, true, false, sigmodels[isample], sigmasses[isample], wfit, "dcbfastg", outDir);
-	if ( samples.size() > 0 ) {
-	  if ( useData )
-	    fitmass(*mmumu_bkg, "Background", true, false, false, sigmodels[isample], sigmasses[isample], wfit, "", outDir);
-	  else
-	    fitmass(*mmumu_bkg, "Background", false, false, false, sigmodels[isample], sigmasses[isample], wfit, "", outDir);
-	}
-
-	// Print workspace contents
-	wfit.Print();
-
-	if ( writeWS ) {
-	  // Save the workspace into a ROOT file
-	  TString fwsname = Form("%s/%s_workspace.root",outDir.Data(),mmumu_sig[isample]->GetName());
-	  TFile *fws = new TFile(fwsname, "RECREATE");
-	  fws->cd();
-	  cout << "Writing workspace..." << endl;
-	  wfit.Write();
-	  fws->Close();
-	}
-	cout<<endl;
-      }
-    }
-  }
-  */
 }

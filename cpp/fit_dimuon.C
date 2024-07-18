@@ -104,8 +104,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //
   TString lxyString;
   TString datasetname(mmumuAll.GetName());
-  if ( datasetname.Contains("d_FourMu_sep") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
-  else if ( datasetname.Contains("d_FourMu_osv") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
+  if ( datasetname.Contains("d_FourMu_sep") ) lxyString = "d_FourMu_sep";
+  else if ( datasetname.Contains("d_FourMu_osv") ) lxyString = "d_FourMu_sep";
   else if ( datasetname.Contains("lxy0p0to0p2") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
   else if ( datasetname.Contains("lxy0p2to1p0") ) lxyString = "d_Dimuon_lxy0p2to1p0_inclusive";
   else if ( datasetname.Contains("lxy1p0to2p4") ) lxyString = "d_Dimuon_lxy1p0to2p4_inclusive";
@@ -124,10 +124,10 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022.root", "READ");
   
   //////Set starting standard deviation (sigma)
-  double stddev = 0.012*mass; // Updated, before 2%
+  double stddev = 0.018*mass; // Updated, before 2%
   double minstddev = 0.01*mass;
   double maxstddev = 0.25*mass;
-  double stddev_window = 0.012*mass; // Updated, before 2%
+  double stddev_window = 0.018*mass; // Updated, before 2%
   double minstddev_window = 0.01*mass;
   double maxstddev_window = 0.25*mass;
   //
@@ -148,7 +148,9 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double binsize = 0.1*stddev_window;
   double binsizePlot = 1.0*stddev_window;
 
+  // Always use as starting point the hypothesis mass
   double meanm = mass;
+  /*
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *fmean = (TSpline5 *) ffitParams->Get(Form("splinem_%s", lxyString.Data()));
@@ -160,6 +162,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       meanm = fmean->Eval(mass);
     }
   }
+  */
 
   //////Set starting alphaR
   double alphaR = 1.0;
@@ -799,7 +802,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 
     //////Exponential PDF
     //RooRealVar expo_slope(Form("expo_slope%s",catExt.Data()),Form("expo_slope%s",catExt.Data()),-0.02,-0.1,-0.0001); // decreasing slope
-    RooRealVar expo_slope(Form("expo_slope%s",catExt.Data()),Form("expo_slope%s",catExt.Data()),-0.02,-5.0,5.0);
+    RooRealVar expo_slope(Form("expo_slope%s",catExt.Data()),Form("expo_slope%s",catExt.Data()),-0.02,-20.0,20.0);
     RooExponential exponential(Form("background_exponential%s",catExt.Data()),Form("background_exponential%s",catExt.Data()),x,expo_slope);
     //////Fit
     std::cout << "Exponential fit................." << std::endl;
@@ -922,7 +925,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     //////Power-law PDF
     std::cout << "Power-law fit................." << std::endl;
     //RooRealVar plaw_power(Form("plaw_power%s",catExt.Data()),Form("plaw_power%s",catExt.Data()),-3.0,-6.0,-0.0001); // Decreasing slope
-    RooRealVar plaw_power(Form("plaw_power%s",catExt.Data()),Form("plaw_power%s",catExt.Data()),-3.0,-12.0,12.0);
+    RooRealVar plaw_power(Form("plaw_power%s",catExt.Data()),Form("plaw_power%s",catExt.Data()),-3.0,-25.0,12.0);
     RooGenericPdf powerlaw(Form("background_powerlaw%s",catExt.Data()),"TMath::Power(@0,@1)",RooArgList(x,plaw_power));
     //////Fit
     nFitParams = 1;
@@ -1208,12 +1211,12 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	    bernsteinPDFOrders.push_back(tto);
 	    //RooAbsPdf *bernstein;
 	    if (tto == 0) {
-	      if ( (*mmumuFit).sumEntries(Form("%s>=%.3f",varname.Data(),mass+3.0*stddev_window)) < (*mmumuFit).sumEntries(Form("%s<%.3f",varname.Data(),mass-3.0*stddev_window)) ) {
+	      //if ( (*mmumuFit).sumEntries(Form("%s>=%.3f",varname.Data(),mass+3.0*stddev_window)) < (*mmumuFit).sumEntries(Form("%s<%.3f",varname.Data(),mass-3.0*stddev_window)) ) {
 		bernstein = new RooBernsteinFast<1>(Form("background_bernstein%s",catExt.Data()),Form("background_bernstein%s",catExt.Data()),x,parListBernstein[tto]);
-	      } else {
-		bernstein = new RooUniform(Form("background_uniform%s",catExt.Data()),Form("background_uniform%s",catExt.Data()),x);
-		isUniform = true;
-              }
+	      //} else {
+	      //bernstein = new RooUniform(Form("background_uniform%s",catExt.Data()),Form("background_uniform%s",catExt.Data()),x);
+	      //isUniform = true;
+              //}
 	    }
 	    else if (tto == 1)
 	      bernstein = new RooBernsteinFast<2>(Form("background_bernstein%s",catExt.Data()),Form("background_bernstein%s",catExt.Data()),x,parListBernstein[tto]);
