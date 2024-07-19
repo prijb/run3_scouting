@@ -11,9 +11,12 @@ cd tmp_create_package
 mkdir -p ScoutingRun3
 
 cp ../HiggsAnalysis/ ScoutingRun3/. -r # Copy relevant folders
-#cp CMSSW_12_6_0 tmp_create_package/ScoutingRun3/. -r # Copy relevant folders
+#cp CMSSW_13_3_0 tmp_create_package/ScoutingRun3/. -r # Copy relevant folders
 #cp combineScripts tmp_create_package/ScoutingRun3/. -r 
-tar -cf - ../combineScripts ../${INDIR} ../fitResults_${PERIOD} | tar -xf - -C ScoutingRun3/. # Copy cpp folder without the plot folders
+#tar -cf - ../combineScripts ../${INDIR} ../fitResults_${PERIOD} | tar -xf - -C ScoutingRun3/. # Copy cpp folder without the plot folders
+echo "Checking what is inside the package:"
+ls -la ScoutingRun3/
+tar -cf - ../combineScripts ../${INDIR} | tar -xf - -C ScoutingRun3/. # Copy cpp folder without the plot folders
 
 tar -chJf package.tar.gz ScoutingRun3
 

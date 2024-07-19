@@ -128,6 +128,10 @@
  // Loop over datasets
  TSystemDirectory dir(inDir, inDir);
  TList* files = dir.GetListOfFiles(); 
+ if (!files) {
+   std::cerr << "Error: List of files can't be listed" << inDir << std::endl;
+   return;
+ }
  vector<RooDataSet> mmumu_bkgs = {};
  vector<vector<RooDataSet>> mmumu_sigs {{}}; 
  vector<vector<RooDataSet>> mmumu_sigs_trg_up {{}}; 
@@ -158,7 +162,6 @@
      // Loop over data files
      int idata = 0;
      for (const auto& file : *files) {
-       //std::cout << "File: " << file->GetName() << std::endl;
        TString filename = file->GetName();
        if (!filename.BeginsWith("histograms_Data") || filename.EndsWith("all.root"))
          continue;

@@ -1,6 +1,6 @@
-#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
-#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
-#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
+#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
+#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
+#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
 #include "RooCategory.h"
 #include "RooWorkspace.h"
 #include "RooFitResult.h"
@@ -291,11 +291,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     (*mmumu).Print();
-    RooRealVar x;
+    RooRealVar* xref = nullptr;
     if (fourmu)
-      x = *((RooRealVar*) (*mmumu).get()->find("m4fit"));
+      xref = (RooRealVar*) (*mmumu).get()->find("m4fit");
     else 
-      x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
+      xref = (RooRealVar*) (*mmumu).get()->find("mfit");
+    std::cout << "AQUI" << std::endl;
+    RooRealVar &x = *xref;
+    std::cout << "AQUI 2" << std::endl;
     x.Print();
     x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     int nBins = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsize;
@@ -668,11 +671,12 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     //if ((*mmumu).numEntries() < 1)
     //  return;
-    RooRealVar x;
+    RooRealVar* xref = nullptr;
     if (fourmu)
-      x = *((RooRealVar*) (*mmumu).get()->find("m4fit"));
-    else 
-      x = *((RooRealVar*) (*mmumu).get()->find("mfit"));
+      xref = (RooRealVar*) (*mmumu).get()->find("m4fit");
+    else
+      xref = (RooRealVar*) (*mmumu).get()->find("mfit");
+    RooRealVar &x = *xref;
     x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     int nBins = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsize;
     int nBinsPlot = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsizePlot;
@@ -1189,7 +1193,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 
       //frame->remove(Form("background_bernstein_order%d",to+1));
       if ( (bestBernsteinOrder >= 0 && to > bestBernsteinOrder) || to > maxpolyorder ) {
-	RooAbsPdf *bernstein;
+	RooAbsPdf *bernstein = nullptr;
 	bool isUniform = false;
 	vector<int> bernsteinPDFOrders;
 	int minBernsteinOrder = (addBernsteinOrders) ? bestBernsteinOrder-1 : bestBernsteinOrder;
@@ -1283,10 +1287,12 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	    frame->remove(Form("background_bernstein_order%d",tto+1));
             }
 	    }
-	    if (!isUniform || bgPDFs.getSize()<1)
-	      bgPDFs.add(*bernstein);
-	    if ( useOnlyBernstein )
-	      wfit.import(*bernstein);
+	    if (bernstein) {
+	      if (!isUniform || bgPDFs.getSize()<1)
+	        bgPDFs.add(*bernstein);
+	      if ( useOnlyBernstein )
+	        wfit.import(*bernstein);
+	    }
 	}
 	break;
       }
