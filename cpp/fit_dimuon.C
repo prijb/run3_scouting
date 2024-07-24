@@ -54,7 +54,7 @@ bool doBinnedFit = false;
 //bool refitSignal = false;
 bool categorizeSignal = true;
 bool categorizeBackground = true; // true?
-bool useFixedSigma = false;
+bool useFixedSigma = true;
 //bool useFixedSigma = false;
 bool addBernsteinOrders = false;
 //bool saveFitResult = true;
@@ -64,7 +64,7 @@ bool drawResidual = false;
 //
 bool useOnlyExponential = false;
 bool useOnlyPowerLaw = false;
-bool useOnlyBernstein = false;
+bool useOnlyBernstein = true;
 bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernstein ) ? true : false;
 
 void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
@@ -121,7 +121,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //if ( mass < (minMforSpline - 0.001) || mass > (maxMforSpline + 0.001) )
   //  useSpline = false;
   //TFile *ffitParams = TFile::Open("utils/signalFitParameters_default.root", "READ");
-  TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022.root", "READ");
+  TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022_v3.root", "READ");
   
   //////Set starting standard deviation (sigma)
   double stddev = 0.018*mass; // Updated, before 2%
@@ -141,7 +141,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       TF1 *fstddev = (TF1 *) ffitParams->Get("fsigma");
       stddev = fstddev->Eval(mass);
     }
-    stddev = std::max(0.1, stddev);
+    stddev = std::max(1.0e-6, stddev);
     minstddev = 0.75*stddev;
     maxstddev = 1.25*stddev;      
   }
@@ -248,10 +248,10 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double minfrac = 0.0;
   double maxfrac = 1.0;
   //
-  /*
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
-      TSpline5 *ffrac = (TSpline5 *) ffitParams->Get("splinef");
+      TSpline5 *ffrac = (TSpline5 *) ffitParams->Get(Form("splinef_%s", lxyString.Data()));
+      //TSpline5 *ffrac = (TSpline5 *) ffitParams->Get("splinef");
       frac = ffrac->Eval(mass);
     }
     else {
@@ -262,7 +262,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     minfrac = 0.75*frac;
     maxfrac = 1.25*frac;
   }
-  */
 
   ffitParams->Close();
 
@@ -296,9 +295,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       xref = (RooRealVar*) (*mmumu).get()->find("m4fit");
     else 
       xref = (RooRealVar*) (*mmumu).get()->find("mfit");
-    std::cout << "AQUI" << std::endl;
     RooRealVar &x = *xref;
-    std::cout << "AQUI 2" << std::endl;
     x.Print();
     x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
     int nBins = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsize;
@@ -422,6 +419,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       sigRawEntries = (int) ((sigNormalization/(txsecbb+txsecsb))*sigRawAll);
     }
     std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Import of the signal " << std::endl;
+    std::cout << "Refitting signal? " << refitSignal << std::endl;
     RooRealVar nSig(Form("signalNorm%s",catExt.Data()),Form("signalNorm%s",catExt.Data()),sigNormalization);
     RooRealVar nSigRaw(Form("signalRawNorm%s",catExt.Data()),Form("signalRawNorm%s",catExt.Data()),sigRawEntries);
     wfit.import(*(mmumu));

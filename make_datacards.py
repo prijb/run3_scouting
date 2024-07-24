@@ -39,7 +39,12 @@ meanFloat = False
 doMuonResolution = True
 noModel = False
 dirExt = ""
-""" # Privisionally removed but maybe used in future?
+
+if len(sys.argv)>1:
+    fit = sys.argv[1]
+    inDir = sys.argv[2]
+    year = sys.argv[3]
+
 if len(sys.argv)>1:
     if sys.argv[1]=="expo":
         useOnlyExponential = True
@@ -65,14 +70,11 @@ if len(sys.argv)>1:
     if len(sys.argv)>2 and sys.argv[2]=="nomodel":
         noModel=True
         dirExt = dirExt+"_nomodel"
-"""
-if len(sys.argv)>1:
-    year = sys.argv[1]
 
 outDir = ("%s/datacards_all%s_"%(thisDir,dirExt))+today+"_"+year
 if not os.path.exists(outDir):
     os.makedirs(outDir)
-inDir  = "%s/fitResults_%s/"%(thisDir, year)
+inDir  = "%s/%s/"%(thisDir, inDir)
 
 useSinglePDF = False
 if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
@@ -142,8 +144,9 @@ sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
         sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+        sigMasses = [5.0]
         for  m in sigMasses:
-            sigCTaus = [1, 10, 100, 1000]
+            sigCTaus = [1]
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
@@ -263,12 +266,12 @@ for y in years:
            w = f.Get(wsname)
            # Retrieve signal normalization
            nSig = w.var("signalNorm%s"%catExtS).getValV()
-           if useNorm:
-               nSig = NORMCONST*nSig
            if doPartiaUnblinding:
                nSig = 0.1*nSig
            if nSig < 1e-6:
                nSig = 1e-6
+           if useNorm:
+               nSig = NORMCONST*nSig
            # Retrieve signal mean and std. deviation
            mean = w.var("mean%s"%catExtS).getValV()
            sigma = w.var("sigma%s"%catExtS).getValV()
@@ -294,6 +297,7 @@ for y in years:
                nSig_trgUp = NORMCONST*nSig_trgUp
                nSig_trgDown = NORMCONST*nSig_trgDown
            trgsyst = max([(nSig_trgUp/nSig - 1.0), (1.0 - nSig_trgDown/nSig)])
+           print(trgsyst, nSig_trgUp, nSig_trgDown, nSig)
            # Selection systematic:
            w_sel_up = f.Get(wsname + '_sel_up')
            w_sel_down = f.Get(wsname + '_sel_down')
@@ -305,9 +309,6 @@ for y in years:
            selsyst = max([(nSig_selUp/nSig - 1.0), (1.0 - nSig_selDown/nSig)])
            # Close input file with workspace
            f.Close()
-           #if binidx>=2:
-           #    btagsyst = 0.05
-           #
            #muonselsyst = 0.05
            #
            ## Derive mass-dependent systematic uncertainties
@@ -384,6 +385,13 @@ for y in years:
            #        terrsb  = max(errupsb_nb2.Eval(float(m)),errdnsb_nb2.Eval(float(m)))
            #        terrtot = ROOT.TMath.Sqrt(terrbb+terrsb)/tacctot if tacctot > 0.0 else 1.0
 
+           # Check if it has uniform (meaning no other functions are there)
+           useOnlyUniform = False
+           for obj in list(w.allPdfs()):
+               if "background_uniform" in obj.GetName():
+                   useOnlyUniform = True
+                   break
+           #
            f2l = [1.0]
            for f in f2l:
                cname = ""
@@ -410,6 +418,8 @@ for y in years:
                    card.write("shapes signal * %s %s:signal%s\n"%(finame,wsname,catExtS))
                    if not useSinglePDF:
                        card.write("shapes background * %s %s:roomultipdf%s\n"%(finame,wsname,catExtB))
+                   elif useOnlyUniform:
+                       card.write("shapes background * %s %s:background_uniform%s\n"%(finame,wsname,catExtB))
                    elif useOnlyExponential:
                        card.write("shapes background * %s %s:background_exponential%s\n"%(finame,wsname,catExtB))
                    elif useOnlyPowerLaw:
