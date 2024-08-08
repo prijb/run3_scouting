@@ -3,10 +3,10 @@ import numpy as np
 import ROOT
 
 ROOT.gROOT.SetBatch(1)
-drawObserved = False
+drawObserved = True
 drawPoints = True
 maskSMResonances = True
-NORMCONST = 0.001 # Needs to be consistent with what it was put on make_datacards.py e.g. if signal was scaled by NORMCONST xsec should be divided by it
+NORMCONST = 0.01 # Needs to be consistent with what it was put on make_datacards.py e.g. if signal was scaled by NORMCONST xsec should be divided by it
 typeOfLimit = "BRH" # "r", "xsec", "xsecBR" "BRH" 
 xsec = 1.0 # in pb, used to normalize the MC
 xsec_h = 59.8 # higgs cross section in pb at 13.6 GeV, used to normalize the MC
@@ -361,5 +361,9 @@ if scaleToFullLumi:
     can.SaveAs("%s/limits_%s_ctau%s_%s_scaled.png"%(limdir,model,ctau,typeOfLimit))
     can.SaveAs("%s/limits_%s_ctau%s_%s_scaled.pdf"%(limdir,model,ctau,typeOfLimit))
 else:
-    can.SaveAs("%s/limits_%s_ctau%s_%s.png"%(limdir,model,ctau,typeOfLimit))
-    can.SaveAs("%s/limits_%s_ctau%s_%s.pdf"%(limdir,model,ctau,typeOfLimit))
+    if drawObserved:
+        can.SaveAs("%s/limits_%s_ctau%s_%s_obs.png"%(limdir,model,ctau,typeOfLimit))
+        can.SaveAs("%s/limits_%s_ctau%s_%s_obs.pdf"%(limdir,model,ctau,typeOfLimit))
+    else:
+        can.SaveAs("%s/limits_%s_ctau%s_%s.png"%(limdir,model,ctau,typeOfLimit))
+        can.SaveAs("%s/limits_%s_ctau%s_%s.pdf"%(limdir,model,ctau,typeOfLimit))

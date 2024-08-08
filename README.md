@@ -126,7 +126,7 @@ source scripts/submitLocalAddHistosScouting.sh
 
 To run a set of fits just run:
 ```
-cmssw-el8
+cmssw-el8 --bind /ceph/cms/store/
 cd CMSSW_13_3_0/src
 cmsenv
 cd ../../
@@ -190,10 +190,7 @@ If you want to go directly to fitting, you can just fill the spectra and ```RooD
 
 ### Fitting mass windows
 
-Init with:
-```
-source cpp/setFittingEnv.sh
-```
+Follow the steps above to run the fitting within a cmssw-el8 env.
 
 To fit the mass windows, modify the lines within ```cpp/doAll_fitDimuonMass.C``` to define ```period``` and ```inDir```. With the examples below:
 ```

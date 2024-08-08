@@ -57,24 +57,16 @@ function stageout {
 }
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
+cmssw-el8
 tar xvf package.tar.gz
 cd ScoutingRun3/
-#cmsrel CMSSW_12_6_0
-#cp -r HiggsAnalysis CMSSW_12_6_0/src
-#cp -r CombineHarvester CMSSW_12_6_0/src
-#cd CMSSW_12_6_0/src
-#scramv1 b clean; scramv1 b
-#cd ../../
-cd HiggsAnalysis/CombinedLimit
-. env_standalone.sh
-cd ../../
 
-#cd CMSSW_12_6_0/src
-#scram b -j 8
-#cmsenv
-#cd HiggsAnalysis/CombinedLimit
-#. env_standalone.sh
-#cd ../../../../
+cmsrel CMSSW_13_3_0
+cp -r HiggsAnalysis CMSSW_13_3_0/src
+cd CMSSW_13_3_0/src
+scramv1 b clean; scramv1 b
+cmsenv
+cd ../../
 
 ls -la
 

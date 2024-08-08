@@ -23,7 +23,7 @@ useSignalMC = True
 
 # Constant to control the yields of the signal in the datacard (to be used consistently when limits are made)
 useNorm = True
-NORMCONST = 0.001 
+NORMCONST = 0.01 
 
 doPartiaUnblinding = False
 ext = "data"
@@ -144,9 +144,10 @@ sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
         sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-        sigMasses = [5.0]
+        #sigMasses = [2.0]
         for  m in sigMasses:
-            sigCTaus = [1]
+            sigCTaus = [1, 10, 100, 1000]
+            #sigCTaus = [10]
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
@@ -287,7 +288,7 @@ for y in years:
            #    finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
                #finame = "%s_%s_M%s_%s_workspace.root"%(d,s,m,y)
 
-           # Define systematics from up and down variations
+           ## Define systematics from up and down variations
            # Trigger systematic:
            w_trg_up = f.Get(wsname + '_trg_up')
            w_trg_down = f.Get(wsname + '_trg_down')
@@ -297,7 +298,7 @@ for y in years:
                nSig_trgUp = NORMCONST*nSig_trgUp
                nSig_trgDown = NORMCONST*nSig_trgDown
            trgsyst = max([(nSig_trgUp/nSig - 1.0), (1.0 - nSig_trgDown/nSig)])
-           print(trgsyst, nSig_trgUp, nSig_trgDown, nSig)
+           #
            # Selection systematic:
            w_sel_up = f.Get(wsname + '_sel_up')
            w_sel_down = f.Get(wsname + '_sel_down')
@@ -307,7 +308,8 @@ for y in years:
                nSig_selUp = NORMCONST*nSig_selUp
                nSig_selDown = NORMCONST*nSig_selDown
            selsyst = max([(nSig_selUp/nSig - 1.0), (1.0 - nSig_selDown/nSig)])
-           # Close input file with workspace
+           #
+           ## Close input file with workspace
            f.Close()
            #muonselsyst = 0.05
            #
@@ -489,7 +491,7 @@ for y in years:
                #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
                combinedCards += "%s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt "%(outDir,cname,binidx,sigModel,M,T,y)
            os.system("combineCards.py -S %s > card%s_combined_%s_M%.1f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
-           os.system("text2workspace.py card%s_combined_%s_M%.1f_ctau%i_%s.txt"%(cname,sigModel,M,T,y))
+           os.system("text2workspace.py card%s_combined_%s_M%.1f_ctau%i_%s.txt --channel-masks"%(cname,sigModel,M,T,y))
            os.chdir(thisDir)
        
 

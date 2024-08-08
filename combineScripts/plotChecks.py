@@ -1,7 +1,9 @@
 import os,sys
+import ROOT
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import mplhep as hep
 
 useSignalMC = False
 
@@ -16,9 +18,54 @@ outdir = 'output_prueba'
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 
+fitDir = 'fitResults_2022'
+
 # We remove the 2
 masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-ctaus = [1, 10, 100]
+
+# Search regions - channels
+dNames = []
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy0p0to0p2_non-pointing")
+dNames.append("d_Dimuon_lxy0p2to1p0_non-pointing")
+dNames.append("d_Dimuon_lxy1p0to2p4_non-pointing")
+dNames.append("d_Dimuon_lxy2p4to3p1_non-pointing")
+dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
+dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
+dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
+dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
+
 
 ### Goodness of fit (Background-only)
 channel_dict = {}
@@ -62,16 +109,131 @@ channel_dict["32"] = [7,2]
 channel_dict["33"] = [7,3]
 channel_dict["34"] = [7,4]
 
-cat = [r'non-isolated, $p_{T}^{\mu\mu} < 25$ GeV', r'non-isolated, $p_{T}^{\mu\mu} > 25$ GeV', r'isolated, $p_{T}^{\mu\mu} < 25$ GeV', r'isolated, $p_{T}^{\mu\mu} > 25$ GeV']
+
+channel_dict["35"] = [0,5]
+channel_dict["36"] = [1,5]
+channel_dict["37"] = [2,5]
+channel_dict["38"] = [3,5]
+channel_dict["39"] = [4,5]
+channel_dict["40"] = [5,5]
+channel_dict["41"] = [6,5]
+channel_dict["42"] = [7,5]
+
+
+cat = [r'non-isolated, $p_{T}^{\mu\mu} < 25$ GeV', r'non-isolated, $p_{T}^{\mu\mu} > 25$ GeV', r'isolated, $p_{T}^{\mu\mu} < 25$ GeV', r'isolated, $p_{T}^{\mu\mu} > 25$ GeV', 'Non-pointing']
 lxycat = [r'$l_{xy}\in[0.0, 0.2]$ cm, ', r'$l_{xy}\in[0.2, 1.0]$ cm, ', r'$l_{xy}\in[1.0, 2.4]$ cm, ', r'$l_{xy}\in[2.4, 3.1]$ cm, ', r'$l_{xy}\in[3.1, 7]$ cm, ', r'$l_{xy}\in[7, 11]$ cm, ', r'$l_{xy}\in[11, 16]$ cm, ', r'$l_{xy}\in[16, 7.0]$ cm, ']
 
-fig, axes = plt.subplots(8, 4, figsize=(11, 14), sharex=True, sharey=True)
+fig, axes = plt.subplots(8, 5, figsize=(14, 14), sharex=True, sharey=True)
 
-for ch in range(3, 35):
+p_values_zero = []
+p_values_low = []
+p_values_med = []
+p_values_high = []
+
+for d in dNames:
+    ch=-1
+    if d=="d_FourMu_sep":
+        ch=1
+    elif d=="d_FourMu_osv":
+        ch=2
+    elif d=="d_Dimuon_lxy0p0to0p2_iso0_ptlow":
+        ch=3
+    elif d=="d_Dimuon_lxy0p0to0p2_iso0_pthigh":
+        ch=4
+    elif d=="d_Dimuon_lxy0p0to0p2_iso1_ptlow":
+        ch=5
+    elif d=="d_Dimuon_lxy0p0to0p2_iso1_pthigh":
+        ch=6
+    elif d=="d_Dimuon_lxy0p2to1p0_iso0_ptlow":
+        ch=7
+    elif d=="d_Dimuon_lxy0p2to1p0_iso0_pthigh":
+        ch=8
+    elif d=="d_Dimuon_lxy0p2to1p0_iso1_ptlow":
+        ch=9
+    elif d=="d_Dimuon_lxy0p2to1p0_iso1_pthigh":
+        ch=10
+    elif d=="d_Dimuon_lxy1p0to2p4_iso0_ptlow":
+        ch=11
+    elif d=="d_Dimuon_lxy1p0to2p4_iso0_pthigh":
+        ch=12
+    elif d=="d_Dimuon_lxy1p0to2p4_iso1_ptlow":
+        ch=13
+    elif d=="d_Dimuon_lxy1p0to2p4_iso1_pthigh":
+        ch=14
+    elif d=="d_Dimuon_lxy2p4to3p1_iso0_ptlow":
+        ch=15
+    elif d=="d_Dimuon_lxy2p4to3p1_iso0_pthigh":
+        ch=16
+    elif d=="d_Dimuon_lxy2p4to3p1_iso1_ptlow":
+        ch=17
+    elif d=="d_Dimuon_lxy2p4to3p1_iso1_pthigh":
+        ch=18
+    elif d=="d_Dimuon_lxy3p1to7p0_iso0_ptlow":
+        ch=19
+    elif d=="d_Dimuon_lxy3p1to7p0_iso0_pthigh":
+        ch=20
+    elif d=="d_Dimuon_lxy3p1to7p0_iso1_ptlow":
+        ch=21
+    elif d=="d_Dimuon_lxy3p1to7p0_iso1_pthigh":
+        ch=22
+    elif d=="d_Dimuon_lxy7p0to11p0_iso0_ptlow":
+        ch=23
+    elif d=="d_Dimuon_lxy7p0to11p0_iso0_pthigh":
+        ch=24
+    elif d=="d_Dimuon_lxy7p0to11p0_iso1_ptlow":
+        ch=25
+    elif d=="d_Dimuon_lxy7p0to11p0_iso1_pthigh":
+        ch=26
+    elif d=="d_Dimuon_lxy11p0to16p0_iso0_ptlow":
+        ch=27
+    elif d=="d_Dimuon_lxy11p0to16p0_iso0_pthigh":
+        ch=28
+    elif d=="d_Dimuon_lxy11p0to16p0_iso1_ptlow":
+        ch=29
+    elif d=="d_Dimuon_lxy11p0to16p0_iso1_pthigh":
+        ch=30
+    elif d=="d_Dimuon_lxy16p0to70p0_iso0_ptlow":
+        ch=31
+    elif d=="d_Dimuon_lxy16p0to70p0_iso0_pthigh":
+        ch=32
+    elif d=="d_Dimuon_lxy16p0to70p0_iso1_ptlow":
+        ch=33
+    elif d=="d_Dimuon_lxy16p0to70p0_iso1_pthigh":
+        ch=34
+    elif d=="d_Dimuon_lxy0p0to0p2_non-pointing":
+        ch=35
+    elif d=="d_Dimuon_lxy0p2to1p0_non-pointing":
+        ch=36
+    elif d=="d_Dimuon_lxy1p0to2p4_non-pointing":
+        ch=37
+    elif d=="d_Dimuon_lxy2p4to3p1_non-pointing":
+        ch=38
+    elif d=="d_Dimuon_lxy3p1to7p0_non-pointing":
+        ch=39
+    elif d=="d_Dimuon_lxy7p0to11p0_non-pointing":
+        ch=40
+    elif d=="d_Dimuon_lxy11p0to16p0_non-pointing":
+        ch=41
+    elif d=="d_Dimuon_lxy16p0to70p0_non-pointing":
+        ch=42    
+    catExtB = "_ch%d_%s"%(ch,'2022')
     channel = str(ch)
     p_values = []
     m_values = []
+    colors = []
     for m in masses:
+        # Get workspace
+        finame = "%s/%s_Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-1mm_2022_workspace.root"%(fitDir,d,str(m).replace('.','p'))
+        # Open input file with workspace
+        f = ROOT.TFile(finame)
+        print("> Opened file: %s"%(finame))
+        # Retrieve workspace from file
+        w = f.Get('wfit')
+        #print("> Workspace contents:")
+        #w.Print()
+        # Retrieve background normalization
+        nBG = w.var("roomultipdf%s_norm"%catExtB).getValV()
+        #
         m_values.append(m)
         mass = str(m)
         mass = mass.replace('.0', '')
@@ -84,11 +246,23 @@ for ch in range(3, 35):
         with open(output_json, 'r') as file:
             data = json.load(file)
             p_values.append(data[next(iter(data))]["p"])
+        if nBG < 2:
+            colors.append('tab:red')
+            p_values_zero.append(data[next(iter(data))]["p"])
+        elif nBG >= 2 and nBG < 10:
+            colors.append('tab:orange')
+            p_values_low.append(data[next(iter(data))]["p"])
+        elif nBG >= 10 and nBG < 100:
+            colors.append('tab:blue')
+            p_values_med.append(data[next(iter(data))]["p"])
+        else:
+            colors.append('tab:green')
+            p_values_high.append(data[next(iter(data))]["p"])
 
     i = channel_dict[str(channel)][0]
     j = channel_dict[str(channel)][1]-1
     ax = axes[i, j]
-    ax.scatter(np.array(m_values), np.array(p_values), color='red', s=4)
+    ax.scatter(np.array(m_values), np.array(p_values), c=colors, s=4)
     ax.set_xscale('log')
     ax.set_xlim(0.4, 60.)
     ax.set_ylim(0, 1.25)
@@ -103,7 +277,23 @@ fig.text(0.5, 0.04, r'Mass $m_{\mu\mu}$ (GeV)', ha='center', fontsize=14)
 fig.text(0.04, 0.5, 'p-value', va='center', rotation='vertical', fontsize=14)
 
 plt.subplots_adjust(hspace=0.0, wspace=0.0)
-fig.savefig('pruebita.png', dpi=160)
+fig.savefig('gof_summary.png', dpi=160)
+
+# histogram for p_value distribution:
+hep.style.use("CMS")
+fig_p, axes_p = plt.subplots(1, 1, figsize=(10, 8))
+bins_p = np.linspace(0., 1., 31)
+hist_zero, _ = np.histogram(p_values_zero, bins=bins_p)
+hist_low, _ = np.histogram(p_values_low, bins=bins_p)
+hist_med, _ = np.histogram(p_values_med, bins=bins_p)
+hist_high, _ = np.histogram(p_values_high, bins=bins_p)
+data = [hist_zero, hist_low, hist_med, hist_high]
+hep.histplot(data, bins=bins_p, ax=axes_p, stack=True, histtype='fill', edgecolor='k', color=['tab:red', 'tab:orange', 'tab:blue', 'tab:green'], label=['nBG < 2', r'1 $\leq$ nBG < 10',  r'10 $\leq$ nBG < 100',  r'nBG $\geq$ 100'])
+axes_p.set_ylabel('Counts')
+axes_p.set_xlabel('p-value')
+axes_p.legend(frameon=True)
+hep.cms.label("Internal", data=True, year='2022', com='13.6')
+fig_p.savefig('gof_pvalues.png', dpi=160)
 
 
 

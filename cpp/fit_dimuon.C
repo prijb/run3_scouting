@@ -64,7 +64,7 @@ bool drawResidual = false;
 //
 bool useOnlyExponential = false;
 bool useOnlyPowerLaw = false;
-bool useOnlyBernstein = true;
+bool useOnlyBernstein = false;
 bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernstein ) ? true : false;
 
 void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
@@ -543,15 +543,15 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       alpha_2.removeError();
       n_1.removeError();
       n_2.removeError();
-      RooRealVar mean_(Form("mean%s",catExt.Data()),Form("mean%s",catExt.Data()),mean.getValV()); mean_.setConstant(true);
-      RooRealVar sigma_(Form("sigma%s",catExt.Data()),Form("sigma%s",catExt.Data()),sigma.getValV()); sigma_.setConstant(true);
+      RooRealVar mean_(Form("mean%s",catExt.Data()),Form("mean%s",catExt.Data()),mean.getValV(),mean.getMin(),mean.getMax()); mean_.setConstant(true);
+      RooRealVar sigma_(Form("sigma%s",catExt.Data()),Form("sigma%s",catExt.Data()),sigma.getValV(),sigma.getMin(),sigma.getMax()); sigma_.setConstant(true);
       RooGaussian gaus_(Form("gauss%s",catExt.Data()),Form("gauss%s",catExt.Data()),x,mean_,sigma_);
-      RooRealVar alpha_1_(Form("alphaR%s",catExt.Data()),Form("alphaR%s",catExt.Data()),alpha_1.getValV()); alpha_1_.setConstant(true);
-      RooRealVar alpha_2_(Form("alphaL%s",catExt.Data()),Form("alphaL%s",catExt.Data()),alpha_2.getValV()); alpha_2_.setConstant(true);
-      RooRealVar n_1_(Form("nR%s",catExt.Data()),Form("nR%s",catExt.Data()), n_1.getValV()); n_1_.setConstant(true);
-      RooRealVar n_2_(Form("nL%s",catExt.Data()),Form("nL%s",catExt.Data()), n_2.getValV()); n_2_.setConstant(true);
+      RooRealVar alpha_1_(Form("alphaR%s",catExt.Data()),Form("alphaR%s",catExt.Data()),alpha_1.getValV(),alpha_1.getMin(),alpha_1.getMax()); alpha_1_.setConstant(true);
+      RooRealVar alpha_2_(Form("alphaL%s",catExt.Data()),Form("alphaL%s",catExt.Data()),alpha_2.getValV(),alpha_2.getMin(),alpha_2.getMax()); alpha_2_.setConstant(true);
+      RooRealVar n_1_(Form("nR%s",catExt.Data()),Form("nR%s",catExt.Data()), n_1.getValV(),n_1.getMin(),n_1.getMax()); n_1_.setConstant(true);
+      RooRealVar n_2_(Form("nL%s",catExt.Data()),Form("nL%s",catExt.Data()), n_2.getValV(),n_2.getMin(),n_2.getMax()); n_2_.setConstant(true);
       RooDoubleCBFast dcb_(Form("dcb%s",catExt.Data()),Form("dcb%s",catExt.Data()),x,mean_,sigma_,alpha_2_,n_2_,alpha_1_,n_1_);
-      RooRealVar mc_frac_(Form("mcfrac%s",catExt.Data()),Form("mcfrac%s",catExt.Data()), mc_frac.getValV()); mc_frac_.setConstant(true);
+      RooRealVar mc_frac_(Form("mcfrac%s",catExt.Data()),Form("mcfrac%s",catExt.Data()), mc_frac.getValV(),mc_frac.getMin(),mc_frac.getMax()); mc_frac_.setConstant(true);
       RooAddPdf signal(Form("signal%s",catExt.Data()),Form("signal%s",catExt.Data()), RooArgList(gaus_,dcb_), RooArgList(mc_frac_), true);
       signal.plotOn(frame,Name("signal"),Range("fitRange"),RooFit::NormRange("fitRange"));
       wfit.import(signal);

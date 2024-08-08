@@ -58,8 +58,8 @@
   }
 
   // Loop over signals 
-  vector<vector<RooDataSet>> mmumu_sigs {{}};
   for ( unsigned int d=0; d<dNames.size(); d++ ) {
+    vector<vector<RooDataSet>> mmumu_sigs {{}};
     TString outfile = Form("utils/signalFitParameters_%s.root", dNames[d].Data());
     std::cout << outfile << std::endl;
     TFile *finit = new TFile(outfile.Data(), "RECREATE");
@@ -142,12 +142,14 @@
        TGraph *gaL = new TGraph();
        TGraph *gaR = new TGraph();
        TGraph *gmean = new TGraph();
+       TGraph *gmcfrac = new TGraph();
        gsigma->SetName("gsigma_"+dNames[d]);
        gnL->SetName("gnL_"+dNames[d]);
        gnR->SetName("gnR_"+dNames[d]);
        gaL->SetName("gaL_"+dNames[d]);
        gaR->SetName("gaR_"+dNames[d]);
        gmean->SetName("gmean_"+dNames[d]);
+       gmean->SetName("gmcfrac_"+dNames[d]);
 
        for (unsigned int m=0; m<sigMass.size(); m++) {
 
@@ -188,6 +190,7 @@
          RooRealVar *aL;
          RooRealVar *aR;
          RooRealVar *mean;
+         RooRealVar *mcfrac;
          if (dNames[d].BeginsWith("d_FourMu_")) {
            sigma = wfit.var("sigma_ch1_allEras");
            nL = wfit.var("nL_ch1_allEras");
@@ -195,6 +198,7 @@
            aL = wfit.var("alphaL_ch1_allEras");
            aR = wfit.var("alphaR_ch1_allEras");
            mean = wfit.var("mean_ch1_allEras");
+           mcfrac = wfit.var("mcfrac_ch1_allEras");
          } else {
            sigma = wfit.var("sigma_ch-1_allEras");
            nL = wfit.var("nL_ch-1_allEras");
@@ -202,8 +206,9 @@
            aL = wfit.var("alphaL_ch-1_allEras");
            aR = wfit.var("alphaR_ch-1_allEras");
            mean = wfit.var("mean_ch-1_allEras");
+           mcfrac = wfit.var("mcfrac_ch-1_allEras");
          }
-
+	 
          // Fill graphs
          gsigma->AddPoint(sigMass[m], sigma->getVal());
          gnL->AddPoint(sigMass[m], nL->getVal());
@@ -211,6 +216,7 @@
          gaL->AddPoint(sigMass[m], aL->getVal());
          gaR->AddPoint(sigMass[m], aR->getVal());
          gmean->AddPoint(sigMass[m], mean->getVal());
+         gmcfrac->AddPoint(sigMass[m], mcfrac->getVal());
        }
 
        // Create the Tspline's for the parameters
@@ -227,6 +233,9 @@
        splineaR->SetName(Form("splineaR_%s", dNames[d].Data()));
        TSpline3 *splinem = new TSpline3("splinem", gmean->GetX(), gmean->GetY(), gmean->GetN(), "b2e2", 0, 0); 
        splinem->SetName(Form("splinem_%s", dNames[d].Data()));
+       TSpline3 *splinef = new TSpline3("splinef", gmcfrac->GetX(), gmcfrac->GetY(), gmcfrac->GetN(), "b2e2", 0, 0); 
+       splinef->SetName(Form("splinef_%s", dNames[d].Data()));
+       std::cout << "Finished building the splines" << std::endl;
 
        // Write splines
        TFile *fs = new TFile(outfile.Data(), "UPDATE");
@@ -237,13 +246,21 @@
        splinenR->Write();
        splineaL->Write();
        splineaR->Write();
+       splinef->Write();
        gsigma->Write();
        gmean->Write();
        gnL->Write();
        gnR->Write();
        gaL->Write();
        gaR->Write();
+       gmcfrac->Write();
        fs->Close();
+       std::cout << "Finished saving the splines" << std::endl;
+
+       //for ( int isample=0; isample<sigMass.size()+sigCtau.size(); isample++ ) {
+       //  mmumu_sigs[isample].clear();
+       //} 
+       //mmumu_sigs.clear();
 
      } else {
        for (unsigned int t=0; t<sigCtau.size(); t++) {
@@ -348,14 +365,14 @@
           fs->Close();
 
        }
+       for ( int isample=0; isample<sigMass.size()+sigCtau.size(); isample++ ) {
+         mmumu_sigs[isample].clear();
+       } 
+       mmumu_sigs.clear();
      } // end mergeLifetimes
    }
 
    
-   for ( int isample=0; isample<sigMass.size()+sigCtau.size(); isample++ ) {
-     mmumu_sigs[isample].clear();
-   } 
-   mmumu_sigs.clear();
  }
 
 }
