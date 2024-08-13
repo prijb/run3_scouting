@@ -174,9 +174,9 @@
          // Fit invariant mass
          std::cout << "Prepare to fit..." << std::endl;
          if (dNames[d].BeginsWith("d_FourMu_")) {
-           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample , 125., wfit, true, "allEras", "dcbfastg", outDir);
+           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample , sigMass[m], 125., wfit, true, "allEras", "dcbfastg", outDir);
          } else {
-           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample, sigMass[m], wfit, false, "allEras", "dcbfastg", outDir);
+           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample, sigMass[m], sigMass[m], wfit, false, "allEras", "dcbfastg", outDir);
          }
 
          // Print workspace contents

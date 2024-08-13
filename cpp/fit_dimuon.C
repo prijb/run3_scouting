@@ -53,9 +53,8 @@ using namespace RooFit;
 bool doBinnedFit = false;
 //bool refitSignal = false;
 bool categorizeSignal = true;
-bool categorizeBackground = true; // true?
-bool useFixedSigma = true;
-//bool useFixedSigma = false;
+bool categorizeBackground = true; 
+bool useFixedSigma = false;
 bool addBernsteinOrders = false;
 //bool saveFitResult = true;
 bool saveFitResult = false;
@@ -67,7 +66,7 @@ bool useOnlyPowerLaw = false;
 bool useOnlyBernstein = false;
 bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernstein ) ? true : false;
 
-void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float mass, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
+void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float samplemass, float mass, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
 {
 
   //TString outDir = outDirPrefix+"_"+year;
@@ -122,6 +121,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //  useSpline = false;
   //TFile *ffitParams = TFile::Open("utils/signalFitParameters_default.root", "READ");
   TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022_v3.root", "READ");
+  // Provisional: m = 0.5 doesn't have MC to have a defined peak, so we take initial fit parameters from 0.7:
+  if (samplemass < 0.7) samplemass = 0.7;
   
   //////Set starting standard deviation (sigma)
   double stddev = 0.018*mass; // Updated, before 2%
@@ -134,8 +135,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *fstddev = (TSpline5 *) ffitParams->Get(Form("splines_%s", lxyString.Data()));
-      //TSpline5 *fstddev = (TSpline5 *) ffitParams->Get("splines");
-      stddev = fstddev->Eval(mass);
+      stddev = fstddev->Eval(samplemass);
     }
     else {
       TF1 *fstddev = (TF1 *) ffitParams->Get("fsigma");
@@ -172,8 +172,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *falphaR = (TSpline5 *) ffitParams->Get(Form("splineaR_%s", lxyString.Data()));
-      //TSpline5 *falphaR = (TSpline5 *) ffitParams->Get("splineaR");
-      alphaR = falphaR->Eval(mass);
+      alphaR = falphaR->Eval(samplemass);
     }
     else {
       TF1 *falphaR = (TF1 *) ffitParams->Get("faR");
@@ -192,8 +191,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *falphaL = (TSpline5 *) ffitParams->Get(Form("splineaL_%s", lxyString.Data()));
-      //TSpline5 *falphaL = (TSpline5 *) ffitParams->Get("splineaL");
-      alphaL = falphaL->Eval(mass);
+      alphaL = falphaL->Eval(samplemass);
     }
     else {
       TF1 *falphaL = (TF1 *) ffitParams->Get("faL");
@@ -212,8 +210,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *fnR = (TSpline5 *) ffitParams->Get(Form("splinenR_%s", lxyString.Data()));
-      //TSpline5 *fnR = (TSpline5 *) ffitParams->Get("splinenR");
-      nR = fnR->Eval(mass);
+      nR = fnR->Eval(samplemass);
     }
     else {
       TF1 *fnR = (TF1 *) ffitParams->Get("fnR");
@@ -231,8 +228,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *fnL = (TSpline5 *) ffitParams->Get(Form("splinenL_%s", lxyString.Data()));
-      //TSpline5 *fnL = (TSpline5 *) ffitParams->Get("splinenL");
-      nL = fnL->Eval(mass);
+      nL = fnL->Eval(samplemass);
     }
     else {
       TF1 *fnL = (TF1 *) ffitParams->Get("fnL");
@@ -251,8 +247,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
       TSpline5 *ffrac = (TSpline5 *) ffitParams->Get(Form("splinef_%s", lxyString.Data()));
-      //TSpline5 *ffrac = (TSpline5 *) ffitParams->Get("splinef");
-      frac = ffrac->Eval(mass);
+      frac = ffrac->Eval(samplemass);
     }
     else {
       TF1 *ffrac = (TF1 *) ffitParams->Get("ff");
@@ -260,10 +255,19 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     }
     frac = std::max(1.0e-03, frac);
     minfrac = 0.75*frac;
-    maxfrac = 1.25*frac;
+    maxfrac = std::max(1.0, 1.25*frac);
   }
 
   ffitParams->Close();
+
+  std::cout  << " >>> Initial value of signal fit parameters: " << std::endl;
+  std::cout << "- mean: " << meanm << std::endl;
+  std::cout << "- sigma: " << stddev << std::endl;
+  std::cout << "- nL: " << nL << std::endl;
+  std::cout << "- nR: " << nR << std::endl;
+  std::cout << "- alphaL: " << alphaL << std::endl;
+  std::cout << "- alphaR: " << alphaR << std::endl;
+  std::cout << "- mcfrac: " << frac << std::endl;
 
   if ( isSignal ) {
 

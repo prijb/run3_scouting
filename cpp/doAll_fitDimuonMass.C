@@ -289,23 +289,23 @@
        // Fit invariant mass
        std::cout << "Prepare to fit..." << std::endl;
        if (dNames[d].BeginsWith("d_FourMu_")) {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "", outDir); 
+         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit, true, period, "dcbfastg", outDir);
+         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit, true, period, "", outDir); 
        } else {
          fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "dcbfastg", outDir);
          fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "", outDir); 
        }
        if (doUpAndDownVariations) { 
          if (dNames[d].BeginsWith("d_FourMu_")) {
-           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_trg_up, true, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_trg_down, true, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_sel_up, true, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_sel_down, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_trg_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_trg_down, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_sel_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_sel_down, true, period, "dcbfastg", outDir);
          } else {
-           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_trg_up, false, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_trg_down, false, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_sel_up, false, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_sel_down, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_trg_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_trg_down, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_sel_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_sel_down, false, period, "dcbfastg", outDir);
          }
        }
        
