@@ -46,8 +46,9 @@ if (len(sys.argv)>2):
     config.Data.publication = False # By defailt but set to true below
     config.Site.storageSite = "T2_US_UCSD"
     if "HTo2ZdTo2mu2x" in sys.argv[2]:
-        config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_HTo2ZdTo2mu2x_v'+ntuple_version # DB no
+        config.Data.outLFNDirBase = "/store/group/Run3Scouting/RAWScouting_HTo2ZdTo2mu2x_" + str(year) + "_v"+ntuple_version # DB no
         config.Data.inputDBS = 'global'
+        config.Data.publication = True
         # Set the points to produce
         mass_points.append(['0p5', '1'])
         mass_points.append(['0p5', '10'])
@@ -132,17 +133,16 @@ if (len(sys.argv)>2):
                 dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EEDRPremix-124X_mcRun3_2022_realistic_postEE_v1-v2/AODSIM'.format(m, t)
                 config_list[-1].Data.inputDataset = dataset_name
             elif era=="2023":
-                dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23DRPremix-130X_mcRun3_2023_realistic_v14-v1/AODSIM'.format(m, t)
+                dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23DRPremix-130X_mcRun3_2023_realistic_v14-v2/AODSIM'.format(m, t)
                 config_list[-1].Data.inputDataset = dataset_name
             elif era=="2023BPix":
-                dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixDRPremix-130X_mcRun3_2023_realistic_postBPix_v2-v1/AODSIM'.format(m, t)
+                dataset_name = '/HTo2ZdTo2mu2x_MZd-{}_ctau-{}mm_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixDRPremix-130X_mcRun3_2023_realistic_postBPix_v2-v2/AODSIM'.format(m, t)
                 config_list[-1].Data.inputDataset = dataset_name
             config_list[-1].General.requestName = 'centralSkim__{}_{}_m-{}_ctau-{}mm_{}'.format(signal, era, m, t, ntuple_version)
             print(config)
             #crabCommand('submit', config = config, dryrun = False) ## dryrun = True for local test
     elif "BToPhi" in sys.argv[2]:
-        config.Data.outLFNDirBase = "/store/group/Run3Scouting/RAWScouting_BToPhi_" + str(year) + "_v"+ntuple_version # DB no
-        #config.Data.outLFNDirBase = "/store/user/garciaja/RAWScouting_BToPhi_" + str(year) + "_v"+ntuple_version # Local
+        config.Data.outLFNDirBase = "/store/group/Run3Scouting/RAWScouting_BToPhi_" + str(year) + "_v"+ntuple_version 
         config.Data.inputDBS = 'global'
         config.Data.publication = True
         # Set the points to produce

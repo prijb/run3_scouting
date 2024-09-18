@@ -611,10 +611,18 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
     std::cout << "File number: " << iFile << "\t" << inputFile <<  "\n";
     TFile *file = TFile::Open(inputFile);
     auto nEventsFile = ((TTree*)file->Get("Events"))->GetEntries();
+    std::cout << "Input events: " << nEventsFile <<  "\n";
     Event ev(file);
 
     // Event loop
     unsigned int iEv = 0;
+    int nSaved = 0;
+    int nGoodRun = 0;
+    int nDuplicate = 0;
+    int nFraction = 0;
+    int nL1 = 0;
+    int nHLT = 0;
+    int nPreMu = 0;
     for (ev.toBegin(); ! ev.atEnd(); ++ev) {
       iEv++;
       //if (iEv > 10)
@@ -626,6 +634,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       run  = eID.run();
       lumi = eID.luminosityBlock();
       evtn = eID.event();
+
 
       //
       if (isMC){
@@ -639,11 +648,14 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       if ( !isMC ) {
         if ( !(goodrun(run, lumi)) )
           continue;
+        nGoodRun++;
         duplicate_removal::DorkyEventIdentifier id(run, evtn, lumi);
         if ( is_duplicate(id) )
           continue;
+        nDuplicate++;
         if ( doPartialUnblinding && rndm_partialUnblinding.Rndm() > partialUnblindingPercentage )
           continue;
+        nFraction++;
       }
 
       // L1 selection
@@ -658,6 +670,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       }
       if (!passL1)
 	continue;
+      nL1++;
 
       // HLT selection
       auto hlts = getObject<std::vector<bool>>(ev, "triggerMaker", "hltresult");
@@ -670,6 +683,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       }
       if (!passHLT)
 	continue;
+      nHLT++;
 
       // PV selection
       auto pvs = getObject<std::vector<Run3ScoutingVertex>>(ev, "hltScoutingPrimaryVertexPacker", "primaryVtx");
@@ -1073,13 +1087,23 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.mindphiJet.push_back(mindphiJet);
         Muons.mindetaJet.push_back(mindetaJet);
       }
+      nPreMu++;
       if (Muons.pt.size() < 2)
         continue;
       Muons.sort();
 
       tout->Fill();
+      nSaved++;
     }
     iFile++;
+    std::cout << "Evenst saved: " << nSaved <<  "\n";
+    std::cout << "Evenst good: " << nGoodRun <<  "\n";
+    std::cout << "Evenst no-duplicate: " << nDuplicate <<  "\n";
+    std::cout << "Evenst fraction: " << nFraction <<  "\n";
+    std::cout << "Evenst pass L1: " << nL1 <<  "\n";
+    std::cout << "Evenst pass HLT: " << nHLT <<  "\n";
+    std::cout << "Evenst pre-mu: " << nPreMu <<  "\n";
+    std::cout << "Evenst saved: " << nSaved <<  "\n";
     std::cout<<"\n\n";
   }
 

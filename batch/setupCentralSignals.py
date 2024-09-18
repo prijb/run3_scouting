@@ -28,7 +28,7 @@ f2out_.write("use_x509userproxy = True\n")
 f2out_.write("\n")
 f2out_.write("queue arguments from (\n")
 
-### File with condor launcher for looper
+### File with condor launcher for histos
 f3out_ = open("runScoutingHistos_onCondor_CentralSignal.sub", "w") 
 f3out_.write("executable      = $ENV(STARTDIR)/condor/condorHistos_executable.sh\n")
 f3out_.write("output          = $ENV(STARTDIR)/condor/plotting_logs/job.$(ClusterId).$(ProcId).out\n")

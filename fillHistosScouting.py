@@ -1,7 +1,7 @@
-import ROOT
 import os,sys,json
 import argparse
 from datetime import date    
+import ROOT
 import numpy as np
 from DataFormats.FWLite import Events, Handle
 sys.path.append('utils')
@@ -23,9 +23,9 @@ parser.add_argument("--outSuffix", default="", help="Choose output directory. De
 parser.add_argument("--condor", default=False, action="store_true", help="Run on condor")
 parser.add_argument("--data", default=False, action="store_true", help="Process data")
 parser.add_argument("--signal", default=False, action="store_true", help="Process signal")
-parser.add_argument("--year", default="2022", help="Year to be processes. Default: 2022")
-parser.add_argument("--rooWeight", default="1.00", help="Weight to be used for RooDatasets and Signal Regions (It doesn't weight other histograms)")
+parser.add_argument("--year", default="2022", help="Year to be processed. Default: 2022")
 parser.add_argument("--weightMC", default=True, help="Indicate if MC is weighted")
+parser.add_argument("--rooWeight", default="1.00", help="Weight to be used for RooDatasets and Signal Regions (It doesn't weight other histograms)")
 parser.add_argument("--partialUnblinding", default=False, action="store_true", help="Process x% (default: x=50) of available data")
 parser.add_argument("--partialUnblindingFraction", default="0.5", help="Fraction of available data to be processed")
 parser.add_argument("--removeDuplicates", default=False, action="store_true", help="Check for and remove duplicates")
@@ -47,8 +47,8 @@ parser.add_argument("--lxySel", default=[], nargs="+", help="Selection on lxy: f
 parser.add_argument("--lzSel", default=[], nargs="+", help="Selection on lz: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--lxySelForFourMuon", default=[], nargs="+", help="Selection on lxy: first (or only) value is lower cut, second (optional) value is upper cut")
 parser.add_argument("--noMaterialVeto", default=False, action="store_true", help="Do not apply material vertex veto")
-parser.add_argument("--noMuonIPSel", default=False, action="store_true", help="Do not apply selection on muon IP")
-parser.add_argument("--noMuonHitSel", default=False, action="store_true", help="Do not apply selection on muon hits")
+parser.add_argument("--noMuonIPSel", default=False, action="store_true", help="Do not apply selection on muon IP (Not applied at four-muon level)")
+parser.add_argument("--noMuonHitSel", default=False, action="store_true", help="Do not apply selection on muon hits (Not applied at four-muon level)")
 parser.add_argument("--noDiMuonAngularSel", default=False, action="store_true", help="Do not apply selection on dimuon angular variables")
 parser.add_argument("--noFourMuonAngularSel", default=False, action="store_true", help="Do not apply selection on fourmuon angular variables")
 parser.add_argument("--noFourMuonMassDiffSel", default=False, action="store_true", help="Do not apply selection on fourmuon invariant mass difference")
@@ -167,7 +167,7 @@ def dimuonIsoCategory(iso1, pt1, iso2, pt2):
     elif ((iso1<8.0 or iso1/pt1 < 0.2) and (iso2<8.0 or iso2/pt2 < 0.2) ):
         isocat = 2
     else:
-        isocat = 1
+        isocat = 1 
     return isocat
 
 # Evaluate L1 with the possibility of excluding one
@@ -242,7 +242,7 @@ if not args.condor:
             files.append("%s%s/%s"%(prependtodir,indir,thisfile))
     elif args.inSample!="*":
         for f in os.listdir("/ceph/cms%s"%indir):
-            if (args.inSample in f) and (args.year in f) and (".root" in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
+            if ("output_%s_%s_"%(args.inSample,args.year) in f) and os.path.isfile("/ceph/cms%s/%s"%(indir,f)):
                 files.append("%s%s/%s"%(prependtodir,indir,f))
     else:
         for f in os.listdir("/ceph/cms%s"%indir):
@@ -258,31 +258,33 @@ else:
             if thisfile in f:
                 files.append("%s/%s"%(prependtodir,thisfile))
         elif args.inSample!="*":
-            if (args.inSample in f) and (args.year in f) and (".root" in f):
+            if "output_%s_%s_"%(args.inSample,args.year) in f:
                 files.append("%s/%s"%(prependtodir,f))
         else:
             if (args.year in f) and (".root" in f):
                 files.append("%s/%s"%(prependtodir,f))
     fin.close()
     os.system('rm -f filein.txt')
+print("Found {} files matching criteria".format(len(files)))
+print(files)
 
 index = int(args.splitIndex)
 pace  = int(args.splitPace)
 
-#Inputs
+# Inputs:
 t = ROOT.TChain("tout")
 for f in files:
     t.Add(f)
 
 # MC normalization (Need to integrate everything for all signals that we may produce)
 ncounts = 1
-efilter = 1
-lumiweight = 1
+efilter = 1.0
+lumiweight = 1.0
 sampleTag = args.inSample.replace('Signal_', '').split('_202')[0]
 if not isData and args.weightMC:
     counts = ROOT.TH1F("totals", "", 1, 0, 1)
     print("Simulations: Getting counts")
-    if 'BToPhi' in sampleTag:
+    if "HTo2ZdTo2mu2x" in sampleTag:
         for _,f in enumerate(files):
             if not args.condor:
                 f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
@@ -292,12 +294,39 @@ if not isData and args.weightMC:
             counts.Add(h_)
             f_.Close()
         ncounts = counts.GetBinContent(1) 
+        with open('data/hahm-request.csv') as mcinfo:
+            reader = csv.reader(mcinfo, delimiter=',')
+            for row in reader:
+                if sampleTag in row[0]:
+                    efilter = float(row[-1])
+                    break
+    if 'BToPhi' in sampleTag:
+        for _,f in enumerate(files):
+            if not args.condor:
+                f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            else:
+                f_ = ROOT.TFile.Open(f)
+            h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+            counts.Add(h_)
+            f_.Close()
+        ncounts = counts.GetBinContent(1)
         with open('data/BToPhi-request.csv') as mcinfo:
             reader = csv.reader(mcinfo, delimiter=',')
             for row in reader:
                 if sampleTag in row[0]:
                     efilter = float(row[-1])
                     break
+    if "ScenB2" in sampleTag:
+        for _,f in enumerate(files):
+            if not args.condor:
+                f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            else:
+                f_ = ROOT.TFile.Open(f)
+            h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+            counts.Add(h_)
+            f_.Close()
+        ncounts = counts.GetBinContent(1)
+        efilter = 1.0
     if "2022postEE" in f:
         lumiweight = getweight("2022postEE", ncounts/efilter, 0.1)
     elif "2022" in f:

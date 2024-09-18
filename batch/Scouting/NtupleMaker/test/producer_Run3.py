@@ -11,6 +11,7 @@ opts.register('era',     "2022D",       mytype = vpstring)
 opts.register('output',  "output.root", mytype = vpstring)
 opts.register('inputs',  "",            mytype = vpstring) # comma separated list of input files
 opts.register('nevents', -1,            mytype = vpint)
+opts.register('testL1',    False,       mytype = vpbool)
 opts.parseArguments()
 
 def convert_fname(fname):
@@ -46,7 +47,8 @@ if opts.data:
         #gtag="124X_dataRun3_Prompt_v4"
         #gtag="124X_dataRun3_HLT_v7" # latest HLT GT
     else:
-        gtag="130X_dataRun3_Prompt_frozen_v3" # latest prompt RECO GT (CMSSW>=13_0_10)
+        #gtag="130X_dataRun3_Prompt_frozen_v3" # latest prompt RECO GT (CMSSW>=13_0_10)
+        gtag="130X_dataRun3_Prompt_v4"
         #gtag="130X_dataRun3_HLT_frozen_v3" # latest HLT GT (CMSSW>=13_0_10)
 else:
     if '2022' in opts.era:
@@ -131,8 +133,10 @@ process.countvtx = cms.EDFilter("ScoutingVertexCountFilter",
 # To recover trigger info: https://hlt-config-editor-confdbv3.app.cern.ch/ + https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVRun3Analysis + https://cmsoms.cern.ch/cms/triggers/report?cms_run=<run>
 L1Info  = []
 HLTInfo = []
-if '2022' in opts.era or '2023B' in opts.era or '2023C-triggerV10' in opts.era:
+if '2022' in opts.era or (opts.data and '2023B' in opts.era) or '2023C-triggerV10' in opts.era:
     L1Info = ["L1_DoubleMu_12_5","L1_DoubleMu_15_7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_Min7","L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18","L1_DoubleMu4_SQ_OS_dR_Max1p2","L1_DoubleMu4p5_SQ_OS_dR_Max1p2"]
+    if opts.testL1:
+        L1Info = L1Info + ["L1_DoubleMu0_Upt15_Upt7", "L1_DoubleMu0_Upt6_IP_Min1_Upt4"]
     HLTInfo=[ [ 'Run3_PFScouting', 'DST_Run3_PFScoutingPixelTracking_v*' ] ]
     if opts.monitor:
         HLTInfo = HLTInfo + [

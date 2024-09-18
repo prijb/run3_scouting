@@ -1,20 +1,27 @@
 #!/bin/bash
 
-SCRAMARCH=slc7_amd64_gcc10
-CMSSWVERSION=CMSSW_12_6_0
+export X509_USER_PROXY=$(voms-proxy-info -path)
 
-OUTDIR=$1
-YEAR=$2
-PROCESS=$3
-STARTFILE=$4
-NFILES=$5
-ISCONDOR=1
+DIR=$1
+OUT=$2
+SIG=$3 # HTo2ZdTo2mu2x
+LIM=$4 # asymptotic, toysObs, toysExp, toysEm2, toysEm1, toysEp1, toysEp2, sigExp, sigObs
+PERIOD=$5 # Year
 
-if [ $# -gt 5 ]
+MASS=2.0
+CTAU=1
+
+if [ $# -lt 6 ]
 then
-    FROMCRAB=$6
+    MASS=2.0
+    CTAU=1
+elif [ $# -lt 7 ]
+then
+    MASS=$6
+    CTAU=1
 else
-    FROMCRAB=0
+    MASS=$6
+    CTAU=$7
 fi
 
 function stageout {
@@ -49,20 +56,31 @@ function stageout {
     fi
 }
 
-ulimit -s unlimited
 source /cvmfs/cms.cern.ch/cmsset_default.sh
-cd /cvmfs/cms.cern.ch/$SCRAMARCH/cms/cmssw/$CMSSWVERSION/src ; eval `scramv1 runtime -sh` ; cd -
-
 tar xvf package.tar.gz
-cd ScoutingRun3/cpp
-echo $OUTDIR $YEAR $PROCESS $STARTFILE $NFILES $ISCONDOR $FROMCRAB
-./main.exe $OUTDIR $YEAR $PROCESS $STARTFILE $NFILES $ISCONDOR $FROMCRAB
+cd ScoutingRun3/
+cd HiggsAnalysis/CombinedLimit
+. env_standalone.sh
+cd ../../
 
-for FILE in $(ls $OUTDIR);
+#cd CMSSW_12_6_0/src
+#scram b -j 8
+#cmsenv
+#cd HiggsAnalysis/CombinedLimit
+#. env_standalone.sh
+#cd ../../../../
+
+ls -la
+
+rm -rf ${OUT}
+mkdir -p ${OUT}
+bash combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}
+
+for FILE in $(ls ${OUT})
 do
   echo "File $FILE to be copied..."
   echo ""
-  COPY_SRC="file://`pwd`/${OUTDIR}/$FILE"
-  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/Run3ScoutingOutput/${OUTDIR}/$FILE"
+  COPY_SRC="file://`pwd`/${OUT}/$FILE"
+  COPY_DEST="davs://redirector.t2.ucsd.edu:1095/store/user/$USER/Run3ScoutingOutput/${OUT}/${FILE}"
   stageout $COPY_SRC $COPY_DEST
-done;
+done
