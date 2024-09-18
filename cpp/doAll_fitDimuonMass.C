@@ -7,24 +7,23 @@
   //bool useSignalMC = true;
   bool mergeEras = true;
   bool writeWS = true;
-  TString period = "2023"; // Either 2022 or 2023
-  TString model = "HTo2ZdTo2mu2x";
+  bool doUpAndDownVariations = false;
+  TString period = "2022"; // Either 2022 or 2023
+  //TString model = "HTo2ZdTo2mu2x";
+  TString model = "BToPhi";
   float mF = 350.0;
   float mL = 2000.0;
   
 
   // Dir with the RooDataSets
-  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Mar-26-2024_allCuts";
-  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Apr-19-2024_allCut_v2/";
-  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-17-2024_allCuts/";
-  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-17-2024_allCuts/"; // Updated 2023
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-27-2024_2023_allCuts_w1/"; // Updated 2023
-  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_May-28-2024_2023_allCuts_w10/"; // Updated 2023
-
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-02-2024_2022_SRsOnly"; // last 2022
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2023"; // last 2023
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-10-2024_2022_allCuts_full"; // last 2022 (unblinded)
+  TString inDir = "/ceph/cms/store/user/garciaja/Run3ScoutingOutput/BToPhi_allCuts"; // BToPhi
   // Names of the search regions
   vector<TString> dNames = { };
-  dNames.push_back("d_FourMu_sep");
-  dNames.push_back("d_FourMu_osv");
+  //dNames.push_back("d_FourMu_sep");
+  //dNames.push_back("d_FourMu_osv");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso0_ptlow");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso0_pthigh");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso1_ptlow");
@@ -95,12 +94,8 @@
   // Signals (To be modified: Needs to be more general but this is provisional)
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
-  //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
- // vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-  vector<float> sigMass = {0.5, 0.7, 2.0, 2.5, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-  //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5};
+  vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   vector<float> sigCtau = {1, 10, 100, 1000};
-  //vector<float> sigCtau = {1};
   for ( unsigned int m=0; m<sigMass.size(); m++ ) {
     TString massString = Form("%.1f",sigMass[m]); 
     massString.ReplaceAll(".", "p");
@@ -115,7 +110,50 @@
     }
   }
   }
-
+  else if ( model == "BToPhi") {
+    //vector<float> sigMass = {0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.25, 1.5, 2.0, 2.85, 3.35, 4.0, 5.0};
+    vector<float> sigMass = {0.6, 0.7, 0.9, 1.25, 1.5, 2.0, 2.85, 3.35, 4.0, 5.0};
+    //vector<float> sigCtau = {0.0, 0.1, 1, 10, 100};
+    vector<float> sigCtau = {0.0, 0.1, 1, 10, 100};
+    for (unsigned int m = 0; m < sigMass.size(); m++) {
+      TString massString = Form("%.2f", sigMass[m]);
+      int length = massString.Length();
+      for (int i = length - 1; i >= 0; --i) {
+        if (massString[i] == '0' && massString[i - 1] == '.') {
+          massString = massString(0, i - 1);
+        } else if (massString[i] == '0') {
+          massString = massString(0, i);
+        } else if (massString[i] == '.') {
+          massString = massString(0, i);
+          break;
+        } else {
+          break;
+        }
+      }
+      if (massString == '2' || massString == '4' || massString == '5') {
+        massString += "p0";
+      }
+      massString.ReplaceAll(".", "p");
+      for (unsigned int t = 0; t < sigCtau.size(); t++) {
+        if ( (sigMass[m] == 0.5 && sigCtau[t] == 100) || (sigMass[m] == 4.0 && sigCtau[t] == 10))
+          continue;
+        TString ctauString;
+        if (sigCtau[t] == static_cast<int>(sigCtau[t])) {
+          ctauString = Form("%d", static_cast<int>(sigCtau[t]));
+        } else {
+          ctauString = Form("%.1f", sigCtau[t]);
+          ctauString.ReplaceAll(".", "p");
+        }
+        if (sigCtau[t] == 0.0f) {
+          ctauString = "0p0";
+        }
+        sigsamples.push_back(Form("Signal_BToPhi-%s_ctau-%smm_2022", massString.Data(), ctauString.Data()));
+        sigmasses_2mu.push_back(sigMass[m]);
+        sigmasses_4mu.push_back(125.); // Mass of the higgs
+        std::cout << Form("Reading signal sample: Signal_BToPhi-%s_ctau-%smm_2022", massString.Data(), ctauString.Data()) << std::endl;
+        }
+      }
+  }
   /*
   if ( !(useSignalMC) ) {
     sigMass = {mF};
@@ -134,8 +172,16 @@
  // Loop over datasets
  TSystemDirectory dir(inDir, inDir);
  TList* files = dir.GetListOfFiles(); 
+ if (!files) {
+   std::cerr << "Error: List of files can't be listed" << inDir << std::endl;
+   return;
+ }
  vector<RooDataSet> mmumu_bkgs = {};
  vector<vector<RooDataSet>> mmumu_sigs {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_trg_up {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_trg_down {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_sel_up {{}}; 
+ vector<vector<RooDataSet>> mmumu_sigs_sel_down {{}}; 
  cout << "Preparing to read datasets..." << endl;
  for ( unsigned int d=0; d<dNames.size(); d++ ) {
    // Loop over datasets
@@ -146,12 +192,10 @@
      TString year = "2022";
      if (era.Contains("2022"))
        year = "2022";
-     // else if (era.Contains("2023"))
      else
        year = "2023";
      if (era=="2022") {
        dataEras.push_back("DataC"); dataEras.push_back("DataD"); dataEras.push_back("DataE");
-     //} else if (year=="2022postEE") {
      } else if (era=="2022postEE") {
        dataEras.push_back("DataF"); dataEras.push_back("DataG");
      } else if (era=="2023") {
@@ -162,7 +206,6 @@
      // Loop over data files
      int idata = 0;
      for (const auto& file : *files) {
-       //std::cout << "File: " << file->GetName() << std::endl;
        TString filename = file->GetName();
        if (!filename.BeginsWith("histograms_Data") || filename.EndsWith("all.root"))
          continue;
@@ -196,18 +239,40 @@
        TString sample = sigsamples[isample];
        cout<<"Sample: "<< sample << endl;
        if ( useSignalMC ) {
-         TString inFile = Form("%s/histograms_%s_%s_%s_0.root",inDir.Data(),sample.Data(),era.Data(),year.Data());
+         //TString inFile = Form("%s/histograms_%s_%s_%s_0.root",inDir.Data(),sample.Data(),era.Data(),year.Data());
+	 TString inFile = Form("%s/histograms_%s_%s_0.root",inDir.Data(),sample.Data(),year.Data()); //changed by Javier, sample names had 2022 three times
          TFile fin(inFile);
          RooDataSet *tds = (RooDataSet*) fin.Get(dNames[d])->Clone();
          tds->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era);
          std::cout << "Reading signal file: " <<  inFile << ", with dataset with entries: " << tds->sumEntries() << std::endl;
          if (iera == 0) {
            vector<RooDataSet> tds_aux{};
-           //tds_aux.push_back( *tds );
            mmumu_sigs.push_back( tds_aux );
-           mmumu_sigs[isample].push_back( *tds );
-         } else {
-           mmumu_sigs[isample].push_back( *tds );
+         }
+         mmumu_sigs[isample].push_back( *tds );
+         if (doUpAndDownVariations) {
+           RooDataSet *tds_trg_up = (RooDataSet*) fin.Get(dNames[d]+"_trg_up")->Clone();
+           RooDataSet *tds_trg_down = (RooDataSet*) fin.Get(dNames[d]+"_trg_down")->Clone();
+           RooDataSet *tds_sel_up = (RooDataSet*) fin.Get(dNames[d]+"_sel_up")->Clone();
+           RooDataSet *tds_sel_down = (RooDataSet*) fin.Get(dNames[d]+"_sel_down")->Clone();
+           tds_trg_up->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_trg_up");
+           tds_trg_down->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_trg_down");
+           tds_sel_up->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_sel_up");
+           tds_sel_down->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_sel_down");
+           if (iera == 0) {
+             vector<RooDataSet> tds_aux_trg_up{};
+             vector<RooDataSet> tds_aux_trg_down{};
+             vector<RooDataSet> tds_aux_sel_up{};
+             vector<RooDataSet> tds_aux_sel_down{};
+             mmumu_sigs_trg_up.push_back( tds_aux_trg_up );
+             mmumu_sigs_trg_down.push_back( tds_aux_trg_down );
+             mmumu_sigs_sel_up.push_back( tds_aux_sel_up );
+             mmumu_sigs_sel_down.push_back( tds_aux_sel_down );
+           }
+           mmumu_sigs_trg_up[isample].push_back( *tds_trg_up );
+           mmumu_sigs_trg_down[isample].push_back( *tds_trg_down );
+           mmumu_sigs_sel_up[isample].push_back( *tds_sel_up );
+           mmumu_sigs_sel_down[isample].push_back( *tds_sel_down );
          }
          fin.Close();
        } //else {
@@ -220,20 +285,25 @@
    
    if (mergeEras) {
      TString outDir = "fitResults_"+period;
-     RooDataSet mmumu_bkg_merged;
-     for ( int iera=0; iera<eras.size(); iera++ ) {
-       if (iera==0) 
-         mmumu_bkg_merged = mmumu_bkgs[iera];
-       else 
+     RooDataSet mmumu_bkg_merged = mmumu_bkgs[0];
+     for ( int iera=1; iera<eras.size(); iera++ ) {
          mmumu_bkg_merged.append(mmumu_bkgs[iera]);
      }
      mmumu_bkg_merged.SetName(dNames[d]+"_Data_"+period);
      cout << "Merged dataset for background has entries: " << mmumu_bkg_merged.sumEntries() << endl;
      vector<RooDataSet> mmumu_sig_merged = {};
+     vector<RooDataSet> mmumu_sig_trg_up_merged = {};
+     vector<RooDataSet> mmumu_sig_trg_down_merged = {};
+     vector<RooDataSet> mmumu_sig_sel_up_merged = {};
+     vector<RooDataSet> mmumu_sig_sel_down_merged = {};
      for (unsigned int isample=0; isample<sigsamples.size(); isample++ ) {
        // Create worksapce, import data and model
        std::cout << "Creating merged workspace" << std::endl;
        RooWorkspace wfit("wfit","workspace"); 
+       RooWorkspace wfit_trg_up("wfit_trg_up","workspace_trg_up");
+       RooWorkspace wfit_trg_down("wfit_trg_down","workspace_trg_down");
+       RooWorkspace wfit_sel_up("wfit_sel_up","workspace_sel_up");
+       RooWorkspace wfit_sel_down("wfit_sel_down","workspace_sel_down");
        for (unsigned int iera=0; iera<eras.size(); iera++ ) {
          if (iera==0)
            mmumu_sig_merged.push_back(mmumu_sigs[isample][iera]);
@@ -241,10 +311,28 @@
            mmumu_sig_merged[isample].append(mmumu_sigs[isample][iera]);
        }  
        mmumu_sig_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period);
+       if (doUpAndDownVariations) {
+         for (unsigned int iera=0; iera<eras.size(); iera++ ) {
+           if (iera==0) {
+             mmumu_sig_trg_up_merged.push_back(mmumu_sigs_trg_up[isample][iera]);
+             mmumu_sig_trg_down_merged.push_back(mmumu_sigs_trg_down[isample][iera]);
+             mmumu_sig_sel_up_merged.push_back(mmumu_sigs_sel_up[isample][iera]);
+             mmumu_sig_sel_down_merged.push_back(mmumu_sigs_sel_down[isample][iera]);
+           } else {
+             mmumu_sig_trg_up_merged[isample].append(mmumu_sigs_trg_up[isample][iera]);
+             mmumu_sig_trg_down_merged[isample].append(mmumu_sigs_trg_down[isample][iera]);
+             mmumu_sig_sel_up_merged[isample].append(mmumu_sigs_sel_up[isample][iera]);
+             mmumu_sig_sel_down_merged[isample].append(mmumu_sigs_sel_down[isample][iera]);
+           }
+         }  
+         mmumu_sig_trg_up_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_trg_up");
+         mmumu_sig_trg_down_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_trg_down");
+         mmumu_sig_sel_up_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_sel_up");
+         mmumu_sig_sel_down_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period+"_sel_down");
+       }
        cout << "Merged dataset for signal " << sigsamples[isample] << " with entries " << mmumu_sig_merged[isample].sumEntries() << endl;
        // Fit invariant mass
        std::cout << "Prepare to fit..." << std::endl;
-       //if (dNames[d].BeginsWith("d_FourMu_osv")) {
        if (dNames[d].BeginsWith("d_FourMu_")) {
          fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "dcbfastg", outDir);
          fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_4mu[isample], wfit, true, period, "", outDir); 
@@ -252,6 +340,20 @@
          fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "dcbfastg", outDir);
          fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "", outDir); 
        }
+       if (doUpAndDownVariations) { 
+         if (dNames[d].BeginsWith("d_FourMu_")) {
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_trg_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_trg_down, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_sel_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_4mu[isample], wfit_sel_down, true, period, "dcbfastg", outDir);
+         } else {
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_trg_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_trg_down, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_sel_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit_sel_down, false, period, "dcbfastg", outDir);
+         }
+       }
+       
     
        // Print workspace contents
        std::cout << "Workspace contents: " << std::endl;
@@ -264,18 +366,34 @@
          fws->cd();
          cout << "Writing workspace..." << endl;
          wfit.Write();
+         if (doUpAndDownVariations) { 
+           wfit_trg_up.Write();
+           wfit_trg_down.Write();
+           wfit_sel_up.Write();
+           wfit_sel_down.Write();
+         }
          fws->Close();
        }
        cout<<endl;
      }
    }
+   /*
    for ( int isample=0; isample<sigsamples.size(); isample++ ) {
      mmumu_sigs[isample].clear();
+     mmumu_sigs_trg_up[isample].clear();
+     mmumu_sigs_trg_down[isample].clear();
+     mmumu_sigs_sel_up[isample].clear();
+     mmumu_sigs_sel_down[isample].clear();
    }
+   
    mmumu_sigs.clear();
+   mmumu_sigs_trg_up.clear();
+   mmumu_sigs_trg_down.clear();
+   mmumu_sigs_sel_up.clear();
+   mmumu_sigs_sel_down.clear();
    mmumu_bkgs.clear();
+   */
  }
-
   /*
   if ( !mergeYears ) {
     for ( int iyear=0; iyear<years.size(); iyear++ ) {

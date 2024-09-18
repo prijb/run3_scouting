@@ -1,6 +1,9 @@
-#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
-#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
-#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
+#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
+#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
+#include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
+//#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
+//#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
+//#include "../CMSSW_12_6_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
 #include "RooCategory.h"
 #include "RooWorkspace.h"
 #include "RooFitResult.h"
@@ -78,7 +81,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double minmass = 0.4;
   double maxmass = 140.;
   double minMforFit = minmass;
-
+  /* 
   // Veto of SM resonances: Compare minMforFit with upper edge of vetoed mass band
   // This is provisionally commented because it's giving problems with m = 0.5 GeV
   //if ( ( (mass - 0.49) < (mass - minMforFit) ) && (mass > 0.49) ) // Ks
@@ -99,8 +102,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     minMforFit = 10.39;
   if ( ( (mass - 10.77) < (mass - minMforFit) ) && (mass > 10.77) ) // Upsilon 3S
     minMforFit = 10.77;
-
-
+  */
+  
   bool useSpline = false;
   double minMforSpline =  200.0;
   double maxMforSpline = 2000.0;
@@ -112,6 +115,92 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double stddev = 0.012*mass; // Updated, before 2%
   double minstddev = 0.01*mass;
   double maxstddev = 0.25*mass;
+  double stddev_window = 5*stddev; // Updated, before 2%
+  double minstddev_window = 0.01*mass;
+  double maxstddev_window = 0.25*mass;
+
+   
+  // Veto of SM resonances: Compare minMforFit with upper edge of vetoed mass band
+  // Upper bounds
+  //
+  // This is provisionally commented because it's giving problems with m = 0.5 GeV
+  //if ( ( (mass - 0.49) < stddev_window ) && (mass > 0.49) ) { // Ks
+  //  std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+  //  return;
+//}
+  if ( ( (mass - 0.58) < stddev_window ) && (mass > 0.58) ) { // eta 
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (mass - 0.84) < stddev_window ) && (mass > 0.84) ) { // rho / w
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (mass - 1.08) < stddev_window ) && (mass > 1.08) ) { // phi 1020
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (mass - 3.27) < stddev_window ) && (mass > 3.27) ) { // Jpsi
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (mass - 3.89) < stddev_window ) && (mass > 3.89) ) { // Psi 2S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (mass - 9.87) < stddev_window ) && (mass > 9.87) ) { // Upsilon 1S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (mass - 10.39) < stddev_window)  && (mass > 10.39) ) { // Upsilon 2S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (mass - 10.77) < stddev_window ) && (mass > 10.77) ) { // Upsilon 3S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  //
+  //Lower bounds
+  //
+  // This is provisionally commented because it's giving problems with m = 0.5 GeV
+  //if ( ( (0.43 - mass) < stddev_window ) && (mass < 0.43) ) { // Ks
+  //  std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+  //  return;
+//}
+  if ( ( (0.52 - mass) < stddev_window ) && (mass < 0.52) ) { // eta
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (0.73 - mass) < stddev_window ) && (mass < 0.73) ) { // rho / w
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (0.96 - mass) < stddev_window ) && (mass < 0.96) ) { // phi 1020
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (2.91 - mass) < stddev_window ) && (mass < 2.91) ) { // Jpsi
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (3.47 - mass) < stddev_window ) && (mass < 3.47) ) { // Psi 2S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (8.99 - mass) < stddev_window ) && (mass < 8.99) ) { // Upsilon 1S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (9.61 - mass) < stddev_window)  && (mass < 9.61) ) { // Upsilon 2S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  if ( ( (9.87 - mass) < stddev_window ) && (mass < 9.87) ) { // Upsilon 3S
+    std::cout << "Skipping m = " << mass << ", too close to SM resonance" << std::endl;
+    return;
+  }
+  
   //
   if ( !useFixedSigma ) {
     if ( useSpline ) { 
