@@ -1,8 +1,8 @@
 
 executable      = $ENV(HOMEDIR)/condor/limits/condor_executable.sh
-output          = $ENV(HOMEDIR)/condor/limits/plotting_logs/job.$(ClusterId).$(ProcId).out
-error           = $ENV(HOMEDIR)/condor/limits/plotting_logs/job.$(ClusterId).$(ProcId).err
-log             = $ENV(HOMEDIR)/condor/limits/plotting_logs/job.$(ClusterId).$(ProcId).log
+output          = $ENV(HOMEDIR)/condor/limits/limits_logs/job.$(ClusterId).$(ProcId).out
+error           = $ENV(HOMEDIR)/condor/limits/limits_logs/job.$(ClusterId).$(ProcId).err
+log             = $ENV(HOMEDIR)/condor/limits/limits_logs/job.$(ClusterId).$(ProcId).log
 
 getenv = True
 +JobFlavour = "workday"
