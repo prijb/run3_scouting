@@ -418,6 +418,17 @@ if not isData and args.weightMC:
             f_.Close()
         ncounts = counts.GetBinContent(1)
         efilter = 1.0
+    if "ScenarioB1" in sampleTag:
+        for _,f in enumerate(files):
+            if not args.condor:
+                f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            else:
+                f_ = ROOT.TFile.Open(f)
+            h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+            counts.Add(h_)
+            f_.Close()
+        ncounts = counts.GetBinContent(1)
+        efilter = 1.0
     if "2022postEE" in f:
         lumiweight = getweight("2022postEE", ncounts/efilter, unblind_frac)
     elif "2022" in f:
@@ -1106,7 +1117,7 @@ for e in range(firste,laste):
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
         sf_trg, sf_trg_up, sf_trg_down  = 1., 1., 1.
-        sf_sel, sf_sel_up, sf_sel_down  = 1., 1.2, 1.2
+        sf_sel, sf_sel_up, sf_sel_down  = 1., 1.2, 0.8
         if not isData:
             sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, minlxy)
         if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
@@ -1297,7 +1308,7 @@ for e in range(firste,laste):
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
         sf_trg, sf_trg_up, sf_trg_down  = 1., 1., 1.
-        sf_sel, sf_sel_up, sf_sel_down  = 1., 1.2, 1.2
+        sf_sel, sf_sel_up, sf_sel_down  = 1., 1.2, 0.8
         if not isData:
             sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, lxy)
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
@@ -1879,7 +1890,7 @@ for cat in h2d.keys():
     for h in h2d[cat]:
         h.Write()
 for dbin in dbins:
-    print("RooDataSet {}  with {} entries".format(dbin, roods[dbin].sumEntries()))
+    print("RooDataSet {}  with {}({}) entries".format(dbin, roods[dbin].sumEntries(), roods[dbin].numEntries()))
     roods[dbin].Write()
     print("RooDataSet (up) {}  with {} entries".format(dbin, roods_trg_up[dbin].sumEntries()))
     roods_trg_up[dbin].Write()
