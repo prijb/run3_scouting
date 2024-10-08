@@ -45,72 +45,22 @@ def plotBiasDistribution(name, h, fg, xlabel, ylabel = 'Number of toys', outDir 
         hep.cms.label("Internal", data=True, year=2022, com='13.6')
         fig.savefig("%s/bias_%s.png"%(outDir,name), dpi=140)
 
-def plotSystematic(outDir, sigTag, y, nominal, up, down, ymin = -50, ymax = 50, stype = 'trigger'):
-    ## Plot        
-    plt.style.use(hep.style.CMS)
-    fig, ax = plt.subplots(figsize=(16, 5)) 
-    fig.subplots_adjust(bottom=0.2, right=0.80)
-    luminosity = 35 if y=='2022' else 27
-    hep.cms.label("Preliminary", data=True, lumi=luminosity, year=y, com='13.6')
-    fig.text(0.35, 0.9, r'$m_{4\mu} = $125 GeV, $m_{2\mu} =$ %s GeV'%(str(m)), color='black', fontsize = 13)
-    ax.set_ylabel(r'Signal yield / Search Region', fontsize=20)
-    ### Signal
-    nh, nbins = getValues(nominal)
-    uh, ubins = getValues(up)
-    dh, ubins = getValues(down)
-    hep.histplot([nh, uh, dh],
-                 stack=False,
-                 bins=nbins,
-                 color=['black', 'blue', 'red'],
-                 histtype="step",
-                 alpha=1,
-                 label=['Nominal', 'Up SF var', 'Down SF var'],
-                 ax=ax,
-                )
-    ax.set_xlim(0, 42)
-    ax.set_ylim(1e-3, 1e3)
-    ax.set_yscale('log')
-    ax.axvline(x=2, color='gray', linestyle='--', linewidth=1)
-    ax.axvline(x=10, color='gray', linestyle='--', linewidth=1)
-    ax.axvline(x=18, color='gray', linestyle='--', linewidth=1)
-    ax.axvline(x=26, color='gray', linestyle='--', linewidth=1)
-    ax.axvline(x=34, color='gray', linestyle='--', linewidth=1)
-    ax.text(0.6, 1e5, r'$4\mu$', color='gray', fontsize = 9)
-    ax.text(2.5, 1e5, r'Pointing, isolated, $p_{T}^{\mu\mu} > 25$ GeV', color='gray', fontsize = 8)
-    ax.text(10.5, 1e5, r'Pointing, isolated, $p_{T}^{\mu\mu} < 25$ GeV', color='gray', fontsize = 8)
-    ax.text(18.5, 1e5, r'Pointing, non-isolated, $p_{T}^{\mu\mu} > 25$ GeV', color='gray', fontsize = 8)
-    ax.text(26.5, 1e5, r'Pointing, non-isolated, $p_{T}^{\mu\mu} < 25$ GeV', color='gray', fontsize = 8)
-    ax.text(34.5, 1e5, r'Non-pointing', color='gray', fontsize = 8)
-    ## x axis:
-    x_ticks = [0.0, 1.0]
-    x_labels = ['Multivertex', 'Overlapping']
-    for x in range(0, 5):
-        x_ticks.append(x*8+0.+2)
-        x_ticks.append(x*8+0.+3)
-        x_ticks.append(x*8+0.+4)
-        x_ticks.append(x*8+0.+5)
-        x_ticks.append(x*8+0.+6)
-        x_ticks.append(x*8+0.+7)
-        x_ticks.append(x*8+0.+8)
-        x_ticks.append(x*8+0.+9)
-        x_labels.append(r'$l_{xy} \in [0.0, 0.2]$ cm')
-        x_labels.append(r'$l_{xy} \in [0.2, 1.0]$ cm')
-        x_labels.append(r'$l_{xy} \in [1.0, 2.4]$ cm')
-        x_labels.append(r'$l_{xy} \in [2.4, 3.1]$ cm')
-        x_labels.append(r'$l_{xy} \in [3.1, 7.0]$ cm')
-        x_labels.append(r'$l_{xy} \in [7.0, 11.0]$ cm')
-        x_labels.append(r'$l_{xy} \in [11.0, 16.0]$ cm')
-        x_labels.append(r'$l_{xy} \in [16.0, 70.0]$ cm')
-    ax.set_xticks(x_ticks)
-    ax.set_xticklabels(x_labels, ha = 'left', rotation=-45, fontsize = 10)
-    #ax.xaxis.set_minor_locator(MultipleLocator(0.0))
-    ax.minorticks_off()
-    ## Legend
-    #ax.legend(loc='best', fontsize = 10, frameon = True)
-    ax.legend(loc='upper left', fontsize = 10, frameon = True, bbox_to_anchor=(1.02, 1), borderaxespad=0.)
-    ## Save
-    fig.savefig('%s/Syst_%s_%s.png'%(outDir, sigTag, y), dpi=140)
-
+def plotDistribution(name, h, xlabel, ylabel = 'Number of toys', outDir = 'output_bias', line=None):
+        plt.style.use(hep.style.CMS)
+        fig, ax = plt.subplots(figsize=(10, 10))
+        bins = h.GetNbinsX()
+        vx = [h.GetBinLowEdge(i) for i in range(1, bins + 1)]
+        vx.append(h.GetBinLowEdge(bins) + h.GetBinWidth(bins))
+        vy = [h.GetBinContent(i) for i in range(1, bins + 1)]
+        vyerr = [h.GetBinError(i) for i in range(1, bins + 1)]
+        hep.histplot(vy, bins=vx, ax=ax,histtype='step')
+        if line:
+            ax.axvline(x=line, color='red', linestyle='--', label='Injected r = %.3f'%line)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.legend(loc='best', frameon = True)
+        hep.cms.label("Internal", data=True, year=2022, com='13.6')
+        fig.savefig("%s/bias_%s.png"%(outDir,name), dpi=140)
 
 ROOT.gROOT.SetBatch(1)
 
@@ -181,9 +131,10 @@ ROOT.gStyle.SetOptStat(0)
 # Load signals
 if sigModel=="HTo2ZdTo2mu2x":
     sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+    sigMasses = [5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
     sigCTaus = [1, 10, 100]
-    #sigMasses = [6.0, 7.0, 8.0, 14.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-    #sigCTaus = [1]
+    #sigMasses = [5.0]
+    #sigCTaus = [10]
 elif sigModel=="ScenarioB1":
     sigMasses = [1.33]
     sigCTaus = [0.1, 1, 10, 100]
@@ -211,7 +162,7 @@ for fit in fitTypes:
             for m in sigMasses:
                 ## Access the limit to know what was injected...
                 expLim = 1.0 # provisional
-                limFile = '/ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Aug-01-2024_2022/limits_HTo2ZdTo2mu2x_2022.txt'
+                limFile = '/ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Sep-30-2024_2022/limits_HTo2ZdTo2mu2x_2022.txt'
                 if os.path.exists(limFile):
                     print('> Limit file opened successfully')
                     flim = open(limFile,"r")
@@ -231,21 +182,43 @@ for fit in fitTypes:
                     print('Skipping point...')
                     continue
                 td = fd.Get("tree_fit_sb")
-                hs = ROOT.TH1D("hs","",41,-6.1,6.1)
-                hr = ROOT.TH1D("hr","",41,-1.0,1.0)
+                hs = ROOT.TH1D("hs","",41,-6.1,6.1) # Bias wrt sigma
+                hr = ROOT.TH1D("hr","",41,-3.0,3.0) # Bias wrt injected value
+                hrout = ROOT.TH1D("hrout","",50,0,float(r)*expLim+5)
+                hrLoErr = ROOT.TH1D("hrLoErr","",50,0,round(float(r)*expLim)+1)
+                hrHiErr = ROOT.TH1D("hrHiErr","",50,0,round(float(r)*expLim)+1)
+                # Draw
+                #condition = "fit_status>-1 && abs(r-%f)<20.0 && (r-rLoErr)>0.11 && rHiErr>0 && rLoErr>0"%(float(r)*expLim)
+                condition = "fit_status>-1 && rHiErr>0 && rLoErr>0"
                 todraw = "(r-%f)/((rLoErr/rHiErr>3.0 || rHiErr/rLoErr>3.0) ? rErr : (r>%f ? rLoErr : rHiErr))>>hs"%(float(r)*expLim,float(r)*expLim)
-                td.Draw(todraw,"fit_status==0 && abs(r-%f)<4.95 && (r-rLoErr)>0.0011"%(float(r)*expLim),"goff")
+                td.Draw(todraw,condition,"goff")
                 todraw = "(r-%f)/%f>>hr"%(float(r)*expLim,float(r)*expLim)
-                td.Draw(todraw,"fit_status==0 && abs(r-%f)<4.95 && (r-rLoErr)>0.0011"%(float(r)*expLim),"goff")
+                td.Draw(todraw,condition,"goff")
+                td.Draw("r>>hrout",condition,"goff")
+                td.Draw("rLoErr>>hrLoErr",condition,"goff")
+                td.Draw("rHiErr>>hrHiErr",condition,"goff")
+                # Fit
                 fs = ROOT.TF1("fg","gaus",-5.0,5.0)
                 fs.SetLineColor(2)
                 hs.Fit(fs,"0L","",-5.0,5.0)
+                fr = ROOT.TF1("fr","gaus",-2.5,2.5)
+                fr.SetLineColor(2)
+                hr.Fit(fs,"0L","",-2.5,2.5)
+                print('Valid %i toys'%(hs.GetEntries()))
                 squantiles = np.zeros(1)
                 hs.GetQuantiles(1, squantiles, np.array([0.5]))
+                rquantiles = np.zeros(1)
+                hr.GetQuantiles(1, rquantiles, np.array([0.5]))
                 mean_sig[_t].append(fs.GetParameter(1))
                 median_sig[_t].append(squantiles[0])
+                #mean_sig[_t].append(fr.GetParameter(1))
+                #median_sig[_t].append(rquantiles[0])
                 mass_xbins[_t].append(m)
                 plotBiasDistribution('%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hs, fs, xlabel=r'$(r_{out} - r_{in})/\sigma_{r}$', outDir = outDir)
+                #plotBiasDistribution('%s_M%.1f_ctau_%i_r%i_%s_combined_relative'%(sigModel,m,t,r,fit), hr, fr, xlabel=r'$(r_{out} - r_{in})/r_{in}$', outDir = outDir)
+                plotDistribution('rout_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrout, xlabel=r'$r_{out}$', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
+                plotDistribution('rLoErr_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrLoErr, xlabel='rLoErr', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
+                plotDistribution('rHiErr_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrHiErr, xlabel='rHiErr', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
         # Summary plot:
         plt.style.use(hep.style.CMS)
         colors = ['#3f90da', '#ffa90e', '#bd1f01', '#94a4a2', '#832db6', '#a96b59', '#e76300', '#b9ac70', '#717581', '#92dadd']

@@ -9,7 +9,8 @@
   bool writeWS = true;
   bool doUpAndDownVariations = true;
   TString period = "2022"; // Either 2022 or 2023
-  TString model = "HTo2ZdTo2mu2x";
+  //TString model = "HTo2ZdTo2mu2x";
+  TString model = "ScenarioB1";
   float mF = 350.0;
   float mL = 2000.0;
   
@@ -17,7 +18,7 @@
   // Dir with the RooDataSets
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-02-2024_2022_SRsOnly"; // last 2022
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2023"; // last 2023
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-10-2024_2022_allCuts_full"; // last 2022 (unblinded)
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind"; // last 2022 (unblinded)
 
   // Names of the search regions
   vector<TString> dNames = { };
@@ -90,24 +91,46 @@
     samples.push_back("Data");
   }
 
-  // Signals (To be modified: Needs to be more general but this is provisional)
+  // Signals (Should include sigMass, sigCtau and a proper definition for sigmasses_4mu)
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
-  vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-  vector<float> sigCtau = {1, 10, 100, 1000};
-  for ( unsigned int m=0; m<sigMass.size(); m++ ) {
-    TString massString = Form("%.1f",sigMass[m]); 
-    massString.ReplaceAll(".", "p");
-    for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
-      if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
-        continue;
-      TString ctauString = Form("%.0f",sigCtau[t]); 
-      sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
-      sigmasses_2mu.push_back(sigMass[m]);
-      sigmasses_4mu.push_back(125.); // Mass of the higgs
-      std::cout << Form("Reading signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+    vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
+    vector<float> sigCtau = {1, 10, 100, 1000};
+    for ( unsigned int m=0; m<sigMass.size(); m++ ) {
+      TString massString = Form("%.1f",sigMass[m]); 
+      massString.ReplaceAll(".", "p");
+      for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
+        if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
+          continue;
+        TString ctauString = Form("%.0f",sigCtau[t]); 
+        sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
+        sigmasses_2mu.push_back(sigMass[m]);
+        sigmasses_4mu.push_back(125.); // Mass of the higgs
+        std::cout << Form("Reading signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+      }
     }
-  }
+  } else if (model=="ScenarioB1") {
+    vector<float> sigMass = {1.33};
+    vector<float> sigCtau = {0.1, 1, 10, 100};
+    for ( unsigned int m=0; m<sigMass.size(); m++ ) {
+      TString massString = Form("%.2f",sigMass[m]); 
+      massString.ReplaceAll(".", "p");
+      for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
+        if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
+          continue;
+        TString ctauString;
+        if (sigCtau[t]<1.0) {
+          ctauString = Form("%.1f",sigCtau[t]);
+          ctauString.ReplaceAll(".", "p");
+        } else {
+          ctauString = Form("%.0f",sigCtau[t]);
+        }
+        sigsamples.push_back(Form("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm",massString.Data(),ctauString.Data()));
+        sigmasses_2mu.push_back(sigMass[m]);
+        sigmasses_4mu.push_back(4.); // Mass of the mother particle
+        std::cout << Form("Reading signal sample: Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+      }
+    }
   }
 
   /*
@@ -179,11 +202,11 @@
        if (idata == 0) {
          RooDataSet *tds = (RooDataSet*) fin.Get(dNames[d])->Clone();
          mmumu_bkgs.push_back( *tds );
-         std::cout << "Appended: " << filename.Data() << std::endl;
+         //std::cout << "Appended: " << filename.Data() << std::endl;
        } else {
          RooDataSet *tds_other = (RooDataSet*) fin.Get(dNames[d])->Clone();
          mmumu_bkgs[iera].append( *tds_other );
-         std::cout << "Appended: " << filename.Data() << std::endl;
+         //std::cout << "Appended: " << filename.Data() << std::endl;
        }
        fin.Close();
        idata++;
@@ -234,7 +257,7 @@
        //  RooDataSet *tds = (RooDataSet*) mmumu_bkgs[iera].emptyClone(dNames[d]+"_"+sample+"_"+year, "");
        //  mmumu_sigs.push_back( *tds );
        //}
-       cout << mmumu_sigs[isample][iera].numEntries() << endl;
+       cout << "Number of entries for the mmumu_sigs RooDataSet: " << mmumu_sigs[isample][iera].numEntries() << endl;
      }
    }
    
@@ -292,8 +315,8 @@
          fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit, true, period, "dcbfastg", outDir);
          fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit, true, period, "", outDir); 
        } else {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], wfit, false, period, "", outDir); 
+         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit, false, period, "dcbfastg", outDir);
+         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit, false, period, "", outDir); 
        }
        if (doUpAndDownVariations) { 
          if (dNames[d].BeginsWith("d_FourMu_")) {

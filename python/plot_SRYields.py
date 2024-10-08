@@ -229,6 +229,8 @@ if useSignalMC:
                     continue
                 sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t))
 
+sigCTaus = [1, 10, 100, 1000]
+
 ## Loop to make the plots
 for y in years:
     inDir  = "%s/fitResults_%s/"%(thisDir, y)
@@ -374,13 +376,16 @@ for y in years:
         colors = ['#3f90da', '#ffa90e', '#bd1f01', '#94a4a2', '#832db6', '#a96b59', '#e76300', '#b9ac70', '#717581', '#92dadd']
         fig, ax = plt.subplots(figsize=(16, 5)) 
         fig.subplots_adjust(bottom=0.2, right=0.80)
-        luminosity = 3.5 if y=='2022' else 2.7
+        luminosity = 35 if y=='2022' else 27
         hep.cms.label("Preliminary", data=True, lumi=luminosity, year=y, com='13.6')
         fig.text(0.35, 0.9, r'$m_{4\mu} = $125 GeV, $m_{2\mu} =$ %s GeV'%(str(m)), color='black', fontsize = 13)
         ax.set_ylabel(r'Events / Search Region', fontsize=20)
         ### Data
         hb, bins = getValues(hbkg)
-        width = (bins[0] - bins[1])
+        print(hb)
+        print(bins)
+        width = (bins[1] - bins[0])
+        print(width)
         bcenter = np.array([(bins[x] + 0.5*width) for x in range(0, len(bins)-1)])
         xerrs = [width * 0.5 for i in range(0, len(bins)-1)]
         yerrs = np.sqrt(hb)

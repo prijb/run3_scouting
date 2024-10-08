@@ -35,15 +35,34 @@ useOnlyExponential = False
 useOnlyPowerLaw = False
 useOnlyBernstein = False
 fullMeanFloat = False
-meanFloat = False
+meanFloat = True
 doMuonResolution = True
 noModel = False
 dirExt = ""
 
+# In line arguments
 if len(sys.argv)>1:
     fit = sys.argv[1]
-    inDir = sys.argv[2]
+    _inDir = sys.argv[2]
     year = sys.argv[3]
+
+# Channel selection flags
+doAll = True
+doIso0HighPt = False
+doIso1HighPt = False
+doIso0LowPt = False
+doIso1LowPt = False
+doNonPointing = False
+doFourMuon = False
+if len(sys.argv) > 4:
+    try:
+        exec("%s = True"%(sys.argv[4]))
+    except:
+        sys.exit("Search region selection not recognized, aborting...")
+
+if (doIso0HighPt or doIso1HighPt or doIso0LowPt or doIso1LowPt or doNonPointing or doFourMuon):
+    doAll = False
+
 
 if len(sys.argv)>1:
     if sys.argv[1]=="expo":
@@ -71,19 +90,15 @@ if len(sys.argv)>1:
         noModel=True
         dirExt = dirExt+"_nomodel"
 
-outDir = ("%s/datacards_all%s_"%(thisDir,dirExt))+today+"_"+year
-if not os.path.exists(outDir):
-    os.makedirs(outDir)
-inDir  = "%s/%s/"%(thisDir, inDir)
 
 useSinglePDF = False
 if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
     useSinglePDF = True
 
-dNames = []
 
-#d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
 #### Caution, here the names AND order should be consistent to the ones set in cpp/doAll_fitDimuonMass.C 
+# Example of workspace: d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
+dNames = []
 dNames.append("d_FourMu_sep")
 dNames.append("d_FourMu_osv")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
@@ -126,6 +141,19 @@ dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
 dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
 dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
 dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
+if doIso0HighPt:
+    dNames = [s for s in dNames if "iso0_pthigh" in s]
+elif doIso1HighPt:
+    dNames = [s for s in dNames if "iso1_pthigh" in s]
+elif doIso0LowPt:
+    dNames = [s for s in dNames if "iso0_ptlow" in s]
+elif doIso1LowPt:
+    dNames = [s for s in dNames if "iso1_ptlow" in s]
+elif doNonPointing:
+    dNames = [s for s in dNames if "non-pointing" in s]
+elif doFourMuon:
+    dNames = [s for s in dNames if "FourMu" in s]
+
 
 years = []
 years.append(year)
@@ -134,24 +162,46 @@ years.append(year)
 
 #years.append("2023")
 
+# Output directory
+outDir = ("%s/datacards_all%s_"%(thisDir,dirExt))+today+"_"+year
+if doIso0HighPt:
+    outDir = outDir + "_Iso0HighPt"
+if doIso1HighPt:
+    outDir = outDir + "_Iso1HighPt"
+if doIso0LowPt:
+    outDir = outDir + "_Iso0LowPt"
+if doIso1LowPt:
+    outDir = outDir + "_Iso1LowPt"
+if doNonPointing:
+    outDir = outDir + "_NonPointing"
+if doFourMuon:
+    outDir = outDir + "_FourMuon"
+if not os.path.exists(outDir):
+    os.makedirs(outDir)
+os.system('cp -r %s %s/'%(_inDir, outDir))
+inDir  = "%s/%s/"%(thisDir, _inDir)
+
 # Signals
-sigModels = []
-sigModels.append("HTo2ZdTo2mu2x")
 sigModel = "HTo2ZdTo2mu2x"
+sigModel = "ScenarioB1"
 
 
 sigTags = []
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
         sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-        #sigMasses = [2.0]
         for  m in sigMasses:
             sigCTaus = [1, 10, 100, 1000]
-            #sigCTaus = [10]
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
                 sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t))
+    elif sigModel=="ScenarioB1":
+        sigMasses = [1.33]
+        sigCTaus = [0.1, 1, 10, 100]
+        for m in sigMasses:
+            for t in sigCTaus:
+                sigTags.append("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(str(m).replace(".", "p"),str(t).replace('.','p')))
 
 f2l = [0.0]
 nSigTot = 1.0
@@ -163,12 +213,13 @@ sigma = 0.0
 for y in years:
    for m in sigTags:
        M = float(m.split('-')[1].split('_')[0].replace('p','.'))
-       T = int(m.split('-')[2].split('mm')[0])
+       T = float(m.split('ctau-')[1].split('mm')[0].replace('p','.'))
        listOfBins = []
        for d_,d in enumerate(dNames):
            print("Analyzing %s, in region %s"%(m, d))
            print("%s/%s_%s_%s_workspace.root"%(inDir,d,m,y))
            finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
+           _finame = "%s/%s_%s_%s_workspace.root"%(_inDir,d,m,y)
            binidx=-1
            if d=="d_FourMu_sep":
                binidx=1
@@ -345,6 +396,7 @@ for y in years:
            #else:
            #    fsigmavar =ffitParamsForShapeUnc.Get("fsigma")
            #    sigmavar = abs(fsigmavar.Eval(float(m))-sigma)
+           sigmavar = 0.5*sigma
            #
            #if float(m) > minMforSpline-0.001 and float(m) < maxMforSpline+0.001:
            #    accbb_nb1 = ffitParamsForAccUnc.Get("spline_avg_acceff_bb_Nb_eq_1_Run2")
@@ -416,18 +468,18 @@ for y in years:
                if doCounting:
                    card.write("shapes * * FAKE\n")
                else:
-                   card.write("shapes data_obs * %s %s:data_obs%s\n"%(finame,wsname,catExtB))
-                   card.write("shapes signal * %s %s:signal%s\n"%(finame,wsname,catExtS))
+                   card.write("shapes data_obs * %s %s:data_obs%s\n"%(_finame,wsname,catExtB))
+                   card.write("shapes signal * %s %s:signal%s\n"%(_finame,wsname,catExtS))
                    if not useSinglePDF:
-                       card.write("shapes background * %s %s:roomultipdf%s\n"%(finame,wsname,catExtB))
+                       card.write("shapes background * %s %s:roomultipdf%s\n"%(_finame,wsname,catExtB))
                    elif useOnlyUniform:
-                       card.write("shapes background * %s %s:background_uniform%s\n"%(finame,wsname,catExtB))
+                       card.write("shapes background * %s %s:background_uniform%s\n"%(_finame,wsname,catExtB))
                    elif useOnlyExponential:
-                       card.write("shapes background * %s %s:background_exponential%s\n"%(finame,wsname,catExtB))
+                       card.write("shapes background * %s %s:background_exponential%s\n"%(_finame,wsname,catExtB))
                    elif useOnlyPowerLaw:
-                       card.write("shapes background * %s %s:background_powerlaw%s\n"%(finame,wsname,catExtB))
+                       card.write("shapes background * %s %s:background_powerlaw%s\n"%(_finame,wsname,catExtB))
                    elif useOnlyBernstein:
-                       card.write("shapes background * %s %s:background_bernstein%s\n"%(finame,wsname,catExtB))
+                       card.write("shapes background * %s %s:background_bernstein%s\n"%(_finame,wsname,catExtB))
                card.write("------------\n")
                # Observation (taken directly from RooDataSet data_obs)
                card.write("bin ch%d\n"%(binidx))
@@ -451,14 +503,14 @@ for y in years:
                card.write("CMS_eff_sel_%s lnN %.3f -\n"%(year, 1.0+selsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
                card.write("mcstat_ch%d lnN %.3f -\n"%(binidx,1.0+mcstatunc)) # MC stat. uncertainty (uncorrelated)
                #card.write("accstat_ch%d lnN %.3f -\n"%(binidx,1.0+terrtot)) # Stat. uncertainty on average acceptance (uncorrelated)
-               #if meanFloat:
-               #    card.write("mean param %.3f -%.3f/+%.3f\n"%(mean,0.5*sigma,0.5*sigma)) # Shape systematic on dimuon mass mean value
-               #elif fullMeanFloat:
-               #    card.write("mean param %.3f %.3f\n"%(mean,sigma)) # Shape systematic on dimuon mass mean value
-               #elif meanvar/float(m)>1e-6:
-               #    card.write("mean param %.3f %.3f\n"%(mean,meanvar))
-               #if doMuonResolution:
-               #    card.write("sigma param %.3f %.3f\n"%(sigma,sigmavar))                        
+               if meanFloat:
+                   card.write("mean%s param %.3f -%.3f/+%.3f\n"%(catExtS,mean,0.5*sigma,0.5*sigma)) # Shape systematic on dimuon mass mean value
+               elif fullMeanFloat:
+                   card.write("mean param %.3f %.3f\n"%(mean,sigma)) # Shape systematic on dimuon mass mean value
+               elif meanvar/float(m)>1e-6:
+                   card.write("mean param %.3f %.3f\n"%(mean,meanvar))
+               if doMuonResolution:
+                   card.write("sigma%s param %.5f %.5f\n"%(catExtS,sigma,sigmavar))                        
                if doCounting:
                    card.write("bg_norm_ch%d gmN %d - 1.0\n"%(binidx,int(nBG)))
                else:
@@ -468,12 +520,12 @@ for y in years:
                card.close()
            
                ## text2workspace for individual cards:
-               os.chdir(outDir)
+               #os.chdir(outDir)
                if noModel:
-                   os.system("text2workspace.py card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(cname,binidx,m,y,m))
+                   os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
                else:
-                   os.system("text2workspace.py card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(cname,binidx,sigModel,M,T,y))                        
-               os.chdir(thisDir)
+                   os.system("text2workspace.py %s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
+               #os.chdir(thisDir)
 
        ## Combine cards:
        if len(dNames)>1:
@@ -491,8 +543,11 @@ for y in years:
                #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
                combinedCards += "%s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt "%(outDir,cname,binidx,sigModel,M,T,y)
            os.system("combineCards.py -S %s > card%s_combined_%s_M%.1f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
-           os.system("text2workspace.py card%s_combined_%s_M%.1f_ctau%i_%s.txt --channel-masks"%(cname,sigModel,M,T,y))
+           os.system("text2workspace.py %s/card%s_combined_%s_M%.1f_ctau%i_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
            os.chdir(thisDir)
-       
 
-      
+# fit dir within the datacard directory is not needed anymore (avoid using rm -rf)
+os.chdir(outDir)
+os.system('rm %s/*'%(_inDir))
+os.system('rmdir %s'%(_inDir))
+os.chdir(thisDir)

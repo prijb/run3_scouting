@@ -39,7 +39,7 @@ useData = not plotOnlySignal
 useCategorizedSignal = True
 useCategorizedBackground = True
 
-outDir = ("%s/fitPlots_%s_"%(thisDir, year))+today
+outDir = ("%s/fitPlots_%s_%s_"%(thisDir, sys.argv[3], year))+today
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 
@@ -86,21 +86,21 @@ dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
 dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
 dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
 dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
-#dNames.append("")
 
 years = []
 years.append(year)
 
 # Signals
-sigModels = []
-sigModels.append("Y3")
-#sigModels.append("DY3")
-#sigModels.append("DYp3")
-#sigModels.append("B3mL2")
+model = "HTo2ZdTo2mu2x"
 
 sigMasses = []
 if useSignalMC:
-    sigMasses = [0.5, 0.7, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+    if (model=="HTo2ZdTo2mu2x"):
+        sigMasses = [0.5, 0.7, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+        sigCtau = ["1", "10", "100"]
+    elif (model=="ScenarioB1"):
+        sigMasses = [1.33]
+        sigCtau = ["0p1", "1", "10", "100"]
 else:
     mF = 350.0
     mL = 2000.0
@@ -113,7 +113,6 @@ else:
       elif tm<1500.0: tm=tm+25.0
       else: tm=tm+50.0
       sigMasses.append("%.0f"%tm)
-sigCtau = ["1", "10", "100"]
 
 def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
     # Labels
@@ -201,7 +200,10 @@ for y in years:
                 continue
             m = str(mf)
             for d_,d in enumerate(dNames):
-                sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm"%(m.replace(".", "p"),t)
+                if (model=="HTo2ZdTo2mu2x"):
+                    sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm"%(m.replace(".", "p"),t)
+                else:
+                    sample = "Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(m.replace(".", "p"),t)
                 finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
                 print(finame)
                 if (d == "d_FourMu_sep" ): binidx=1

@@ -58,7 +58,7 @@ bool useFixedSigma = false;
 bool addBernsteinOrders = false;
 //bool saveFitResult = true;
 bool saveFitResult = false;
-bool drawFits = true;
+bool drawFits = false;
 bool drawResidual = false;
 //
 bool useOnlyExponential = false;
@@ -77,32 +77,34 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double maxmass = 140.;
   double minMforFit = minmass;
   bool refitSignal = true;
+  TString datasetname(mmumuAll.GetName());
 
   // Veto of SM resonances: Compare minMforFit with upper edge of vetoed mass band
   // This is provisionally commented because it's giving problems with m = 0.5 GeV
   //if ( ( (mass - 0.49) < (mass - minMforFit) ) && (mass > 0.49) ) // Ks
   //  minMforFit = 0.49;
-  if ( ( (mass - 0.58) < (mass - minMforFit) ) && (mass > 0.58) ) // eta
-    minMforFit = 0.58;
-  if ( ( (mass - 0.84) < (mass - minMforFit) ) && (mass > 0.84) ) // rho / w
-    minMforFit = 0.84;
-  if ( ( (mass - 1.08) < (mass - minMforFit) ) && (mass > 1.08) ) // phi 1020
-    minMforFit = 1.08;
-  if ( ( (mass - 3.27) < (mass - minMforFit) ) && (mass > 3.27) ) // Jpsi
-    minMforFit = 3.27;
-  if ( ( (mass - 3.89) < (mass - minMforFit) ) && (mass > 3.89) ) // Psi 2S
-    minMforFit = 3.89;
-  if ( ( (mass - 9.87) < (mass - minMforFit) ) && (mass > 9.87) ) // Upsilon 1S
-    minMforFit = 9.87;
-  if ( ( (mass - 10.39) < (mass - minMforFit) ) && (mass > 10.39) ) // Upsilon 2S
-    minMforFit = 10.39;
-  if ( ( (mass - 10.77) < (mass - minMforFit) ) && (mass > 10.77) ) // Upsilon 3S
-    minMforFit = 10.77;
+  if ( datasetname.Contains("d_Dimuon") ) {
+    if ( ( (mass - 0.58) < (mass - minMforFit) ) && (mass > 0.58) ) // eta
+      minMforFit = 0.58;
+    if ( ( (mass - 0.84) < (mass - minMforFit) ) && (mass > 0.84) ) // rho / w
+      minMforFit = 0.84;
+    if ( ( (mass - 1.08) < (mass - minMforFit) ) && (mass > 1.08) ) // phi 1020
+      minMforFit = 1.08;
+    if ( ( (mass - 3.27) < (mass - minMforFit) ) && (mass > 3.27) ) // Jpsi
+      minMforFit = 3.27;
+    if ( ( (mass - 3.89) < (mass - minMforFit) ) && (mass > 3.89) ) // Psi 2S
+      minMforFit = 3.89;
+    if ( ( (mass - 9.87) < (mass - minMforFit) ) && (mass > 9.87) ) // Upsilon 1S
+      minMforFit = 9.87;
+    if ( ( (mass - 10.39) < (mass - minMforFit) ) && (mass > 10.39) ) // Upsilon 2S
+      minMforFit = 10.39;
+    if ( ( (mass - 10.77) < (mass - minMforFit) ) && (mass > 10.77) ) // Upsilon 3S
+      minMforFit = 10.77;
+  }
 
   // Get the lxy range to obtain the initial fit parameters
   //
   TString lxyString;
-  TString datasetname(mmumuAll.GetName());
   if ( datasetname.Contains("d_FourMu_sep") ) lxyString = "d_FourMu_sep";
   else if ( datasetname.Contains("d_FourMu_osv") ) lxyString = "d_FourMu_sep";
   else if ( datasetname.Contains("lxy0p0to0p2") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
@@ -147,6 +149,13 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   }
   double binsize = 0.1*stddev_window;
   double binsizePlot = 1.0*stddev_window;
+
+  // For Four muon regions there is not a proper spline that works for sigma at every mass, so we take 1.8%
+  if ( datasetname.Contains("d_FourMu_")) {
+    stddev = stddev_window;
+    minstddev = 0.75*stddev;
+    maxstddev = 1.25*stddev;
+  }
 
   // Always use as starting point the hypothesis mass
   double meanm = mass;
@@ -216,7 +225,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       TF1 *fnR = (TF1 *) ffitParams->Get("fnR");
       nR = fnR->Eval(mass);
     }
-    nR = std::max(1.0, nR);
+    nR = std::max(1.25, nR); // Making 1.23 instead of 1.0 to give extra estability to the function
     minnR = 0.75*nR;
     maxnR = 1.25*nR;
   }
@@ -292,6 +301,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 
     //////Get RooRealVar from RooDataSet
     RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    std::cout << ">>> INITIAL SIGNAL NORMALIZATION: " << mmumuAll.numEntries() << " " << mmumuAll.sumEntries() << " " << mmumuAll.sumEntries(fitRange.Data()) << std::endl;
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     (*mmumu).Print();
     RooRealVar* xref = nullptr;
@@ -372,7 +382,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       catExt = Form("_ch%d_%s",binidx, period.Data());
     mmumu->SetName(Form("signalRooDataSet%s",catExt.Data()));    
     double sigNormalization =-1.0;
-    int sigRawEntries = -1;
+    double sigRawEntries = -1.0;
     if ( isSignalMC ) {
       sigNormalization = (*mmumu).sumEntries(fitRange.Data());
       sigRawEntries = (*mmumu).numEntries();
@@ -385,6 +395,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       if (sigRawEntries < 10) {
         refitSignal = false;
       }
+      std::cout << ">>> SIGNAL NORMALIZATION: " << (*mmumu).numEntries() << " " << (*mmumu).sumEntries() << " " << (*mmumu).sumEntries(fitRange.Data()) << std::endl;
     }
     else {
       TFile *fxsec = TFile::Open("../data/xsec_interpolation_ZPrimeToMuMuSB_bestfit_13TeV_Allanach.root");
