@@ -3,7 +3,7 @@ import numpy as np
 import ROOT
 
 ROOT.gROOT.SetBatch(1)
-drawObserved = True
+drawObserved = False
 drawPoints = True
 maskSMResonances = True
 NORMCONST = 0.01 # Needs to be consistent with what it was put on make_datacards.py e.g. if signal was scaled by NORMCONST xsec should be divided by it

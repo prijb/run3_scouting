@@ -4,6 +4,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import mplhep as hep
+from matplotlib.patches import Patch
 
 useSignalMC = False
 
@@ -246,10 +247,10 @@ for d in dNames:
         with open(output_json, 'r') as file:
             data = json.load(file)
             p_values.append(data[next(iter(data))]["p"])
-        if nBG < 2:
+        if nBG < 1:
             colors.append('tab:red')
             p_values_zero.append(data[next(iter(data))]["p"])
-        elif nBG >= 2 and nBG < 10:
+        elif nBG >= 1 and nBG < 10:
             colors.append('tab:orange')
             p_values_low.append(data[next(iter(data))]["p"])
         elif nBG >= 10 and nBG < 100:
@@ -265,30 +266,39 @@ for d in dNames:
     ax.scatter(np.array(m_values), np.array(p_values), c=colors, s=4)
     ax.set_xscale('log')
     ax.set_xlim(0.4, 60.)
-    ax.set_ylim(0, 1.25)
+    #ax.set_yscale('log')
+    #ax.set_ylim(0.001, 3.0)
+    ax.set_ylim(0.0, 1.25)
     y_ticks = [0, 0.25, 0.5, 0.75, 1.0]
+    #y_ticks = [0.001, 0.01, 0.1, 1.0]
     y_labels = ['0', '0.25', '0.5', '0.75', '1']
+    #y_labels = ['0.001', '0.01', '0.1', '1.0']
     ax.set_yticks(y_ticks)
     ax.set_yticklabels(y_labels)
+    #ax.text(0.5, 1.6, lxycat[i]+cat[j], fontsize=6)
     ax.text(0.5, 1.1, lxycat[i]+cat[j], fontsize=6)
     ax.grid(True)
+legend_labels = ['0 events', '0-10 events', '10-100 events', 'More than 100 events']  # Colores que desees
+legend_colors = ['tab:red', 'tab:orange', 'tab:blue', 'tab:green']
+legend_elements = [Patch(facecolor=color, label=label) for color, label in zip(legend_colors, legend_labels)]
+fig.legend(handles=legend_elements, loc='upper center', ncol=4, fontsize=14, bbox_to_anchor=(0.5, 0.968))
+#fig.suptitle('Goodness of fit', fontsize=20)
+fig.text(0.5, 0.04, r'Dimuon invariant mass $m_{\mu\mu}$ (GeV)', ha='center', fontsize=18)
+fig.text(0.04, 0.5, 'p-value', va='center', rotation='vertical', fontsize=18)
 
-fig.text(0.5, 0.04, r'Mass $m_{\mu\mu}$ (GeV)', ha='center', fontsize=14)
-fig.text(0.04, 0.5, 'p-value', va='center', rotation='vertical', fontsize=14)
-
-plt.subplots_adjust(hspace=0.0, wspace=0.0)
+plt.subplots_adjust(hspace=0.0, wspace=0.0, top=0.93)
 fig.savefig('gof_summary.png', dpi=160)
 
 # histogram for p_value distribution:
 hep.style.use("CMS")
 fig_p, axes_p = plt.subplots(1, 1, figsize=(10, 8))
-bins_p = np.linspace(0., 1., 31)
+bins_p = np.linspace(0., 1.04, 27)
 hist_zero, _ = np.histogram(p_values_zero, bins=bins_p)
 hist_low, _ = np.histogram(p_values_low, bins=bins_p)
 hist_med, _ = np.histogram(p_values_med, bins=bins_p)
 hist_high, _ = np.histogram(p_values_high, bins=bins_p)
 data = [hist_zero, hist_low, hist_med, hist_high]
-hep.histplot(data, bins=bins_p, ax=axes_p, stack=True, histtype='fill', edgecolor='k', color=['tab:red', 'tab:orange', 'tab:blue', 'tab:green'], label=['nBG < 2', r'1 $\leq$ nBG < 10',  r'10 $\leq$ nBG < 100',  r'nBG $\geq$ 100'])
+hep.histplot(data, bins=bins_p, ax=axes_p, stack=True, histtype='fill', edgecolor='k', color=['tab:red', 'tab:orange', 'tab:blue', 'tab:green'], label=['nBG = 0', r'1 $\leq$ nBG < 10',  r'10 $\leq$ nBG < 100',  r'nBG $\geq$ 100'])
 axes_p.set_ylabel('Counts')
 axes_p.set_xlabel('p-value')
 axes_p.legend(frameon=True)

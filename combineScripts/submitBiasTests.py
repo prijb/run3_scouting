@@ -11,26 +11,39 @@ today= date.today().strftime("%b-%d-%Y")
 ### if date ("MMM-DD-YYYY") is not specified, use today's date
 inDate = today
 outDate = today
+mass = -99
+ctau = -99
+model = ""
+outDir = "output"
+rinj = 5
+limFile = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Aug-01-2024_2022/limits_HTo2ZdTo2mu2x_2022.txt"
 if len(sys.argv)>1:
-    inDate=sys.argv[1]
-    outDate=inDate
+    inDir=sys.argv[1]
     if len(sys.argv)>2:
-        outDate=sys.argv[2]
-wsname = "wfit"
+        outDir=sys.argv[2]
+        if len(sys.argv)>3:
+            limFile=sys.argv[3]
+            if len(sys.argv)>4:
+                model=sys.argv[4]
+                if len(sys.argv)>5:
+                    rinj=int(sys.argv[5])
+                if len(sys.argv)>6:
+                    mass=float(sys.argv[6])
+                    if len(sys.argv)>7:
+                        ctau=int(sys.argv[7])
+
+wsname = "w"
 thisDir = os.environ.get("PWD")
-#inDir  = "%s/datacards_all_%s/"%(thisDir,inDate)
-inDir  = "%s/datacards_all_Aug-06-2024_2022"%(thisDir)
+#inDir  = "%s/datacards_all_%s/"%(thisDir,inDate) asdf
+inDir  = "%s/%s"%(thisDir,inDir)
 
-fitDir = "%s/fitResults_2022"%(thisDir)
-
-#limDir = "%s/limits_asymptotic_%s/"%(thisDir,inDate)
-limDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Aug-01-2024_2022"
+#fitDir = "%s/fitResults_2022"%(thisDir) asdf
 
 biasCombination = True
-biasPerChannel = True
+biasPerChannel = False
 biasPerPDF = False
-nToysPerChannel = 300
-nToysPerCombination = 300
+nToysPerChannel = 500
+nToysPerCombination = 500
 biasSummary = False
 checkIndividualPDFs = False
 plotEnvelope = False
@@ -39,14 +52,43 @@ useCategorizedSignal = True
 useCategorizedBackground = True
 
 rs = [0,1,2]
-rs = [2]
+rs = [rinj]
 #rs.append(3)
 
-outDir = "%s/limits_all_%s_checks/"%(thisDir,outDate)
+if outDir=="":
+    outDir = "%s/limits_all_%s_bias/"%(thisDir,outDate)
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 
 dNames = []
+"""
+dNames.append("d_FourMu_sep")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
+"""
+
 dNames.append("d_FourMu_sep")
 dNames.append("d_FourMu_osv")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
@@ -102,11 +144,16 @@ sigModels.append("HTo2ZdTo2mu2x")
 sigMasses = []
 #sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
 sigMasses = [5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-#sigMasses = [20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 50.0]
-sigMasses = [5.0, 7.0]
+sigMasses = [5.0]
+#sigMasses = [5.0, 7.0]
 #sigMasses = [5.0]
 #sigCTaus = [1, 10, 100]
-sigCTaus = [1]
+sigCTaus = [10]
+if mass > 0:
+    sigMasses = [mass]
+if ctau > 0:
+    sigCTaus = [ctau]
+
 
 mean = 0.0
 sigma = 0.0
@@ -118,30 +165,37 @@ for y in years:
         ### Excluded channels for combination
         if s=='HTo2ZdTo2mu2x':
             excl_chs = [2, 35, 36, 37, 38, 39, 40, 41, 42]
+        # Loop over masses
         for m in sigMasses:
             meanfit[m]  = dict()
             sigmafit[m] = dict()
             namefit[m]  = dict()
-            #
-            nBGAll = 0
-            nBG1b = 0
-            nBG2b = 0
-            nS1b = 0
-            nS2b = 0
-            limFile = "%s/limits_%s_%s.txt"%(limDir,s,y)
-            expLim = 1.0
-            if os.path.exists(limFile):
-                print('> Limit file opened successfully')
-                flim = open(limFile,"r")
-                for ll in flim.readlines():
-                    if ll.split(",")[1]!=str(m):
-                        continue
-                    expLim=float(ll.split(",")[8]) # Expected limit
-                    break
-                flim.close()
-            #expLim = 1.0
-            print('> Found expected limit %f'%(expLim))
+            # Loop over lifetimes
             for t in sigCTaus:
+                if (t == 1):
+                    nToysPerChannel = 200
+                    nToysPerCombination = 200
+                if (t == 10):
+                    nToysPerChannel = 350
+                    nToysPerCombination = 350
+                if (t == 100):
+                    nToysPerChannel = 500
+                    nToysPerCombination = 500
+                # Find limit for given (mass,ctau) point
+                expLim = 1.0
+                if os.path.exists(limFile):
+                    print('> Limit file opened successfully')
+                    flim = open(limFile,"r")
+                    for ll in flim.readlines():
+                        if ll.split(",")[1]!=str(m) or ll.split(",")[2]!=str(t):
+                            continue
+                        expLim=float(ll.split(",")[8]) # Expected limit
+                        break
+                    flim.close()
+                    print('> Found expected limit %f'%(expLim))
+                else:
+                    print('> Expected limit not found')
+                # Define model identifier
                 modelTag = ""
                 if s=="HTo2ZdTo2mu2x":
                     modelTag = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t)
@@ -152,7 +206,7 @@ for y in years:
                     meanfit[m][d]  = dict()
                     sigmafit[m][d] = dict()
                     namefit[m][d]  = dict()
-                    finame = "%s/%s_%s_%s_workspace.root"%(fitDir,d,modelTag,y)
+                    #finame = "%s/%s_%s_%s_workspace.root"%(fitDir,d,modelTag,y)
                     binidx=-1
                     if d=="d_FourMu_sep":
                         binidx=1
@@ -249,21 +303,25 @@ for y in years:
                     if useCategorizedBackground:
                         catExtB = "_ch%d_%s"%(binidx,y)
                     # Open input file with workspace
-                    f = ROOT.TFile(finame)
-                    print("> Opened file: %s"%(finame))
+                    card = "%s/card_ch%d_%s_M%s_ctau%i_%s.root"%(inDir,binidx,s,m,t,y)
+                    print("> Reading card: %s"%(card))
+                    f = ROOT.TFile(card)
+                    print("> Opened file: %s"%(card))
                     # Retrieve workspace from file
                     w = f.Get(wsname)
-                    print("> Workspace contents:")
-                    w.Print()
+                    #print("> Workspace contents:")
+                    #w.Print()
                     # Retrieve signal normalization
-                    nSig = w.var("signalNorm%s"%catExtS).getValV() # Signal should be already normalized in the RooDataSet
+                    #nSig = w.var("signalNorm%s"%catExtS).getValV() # Signal should be already normalized in the RooDataSet
+                    nSig = w.function("n_exp_binch%i_proc_signal"%(binidx)).getVal()
                     # Retrieve background normalization
-                    nBG = w.var("roomultipdf%s_norm"%catExtB).getValV()
+                    #nBG = w.var("roomultipdf%s_norm"%catExtB).getValV()
+                    nBG = w.function("n_exp_final_binch%i_proc_background"%(binidx)).getVal()
                     # Retrieve (number of) PDFs in envelope
                     nPDF = w.cat("pdf_index%s"%catExtB).numTypes()
                     pdfnames = []
                     numpars = []
-                    pdfs = w.pdf("roomultipdf%s"%catExtB)
+                    pdfs = w.pdf("shapeBkg_background_ch%i"%(binidx))
                     for p in range(nPDF):
                         numpars.append(w.pdf(pdfs.getPdf(p).GetName()).getVariables().getSize()-1)
                         if "exponential" in pdfs.getPdf(p).GetName():
@@ -285,13 +343,10 @@ for y in years:
                     mrange = abs(maxm-minm)
                     # Close input file with workspace
                     f.Close()
-                    # Get card and limit on r:
-                    card = "%s/card_ch%d_%s_M%s_ctau%i_%s.root"%(inDir,binidx,s,m,t,y)
-                    print("> Reading card: %s"%(card))
+                    # Get limit on r:
                     options="--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams --toysFrequentist --bypassFrequentist --robustFit 1"
                     #options=options+" --X-rtd TMCSO_PseudoAsimov=5000"
                     #options=options+"--X-rtd TMCSO_AdaptivePseudoAsimov=1"
-
                     # Get r expected for one bin: 
                     rLimOneBin = -1.0
                     rLimExpOneBin = -1.0
@@ -303,21 +358,25 @@ for y in years:
                         if "Expected 50" in ll:
                             rLimExpOneBin = float(ll.split()[len(ll.split())-1])
                     flob.close()
-                    #os.system("rm log_asym_ch%i.txt"%(binidx))
+                    os.system("rm log_asym_ch%i.txt"%(binidx))
                     os.system("rm higgsCombine_temp_ch%i.AsymptoticLimits.mH120.root"%(binidx))
                     print("Using an expected +2sigma limit per bin of %f"%(rLimOneBin))
+                    print("The expected limit for this bin is %f"%(rLimExpOneBin))
                     print("The expected signal in this bin is %e"%(nSig))
-                    print("The measured backrgound in this bin is %i"%(nBG))
-                    if (rLimExpOneBin > expLim + 5.0) or (nSig < 1e-4) or (rLimOneBin < 0): # asdf
+                    print("The measured background in this bin is %i"%(nBG))
+                    if (nSig < 1e-6) or (rLimOneBin < 0): # asdf
                         print("Excluding channel: %i"%(binidx))
                         continue
-
+                    else:
+                        print("Accepting channel: %i"%(binidx))
                     ### Evaluate -2dLL for envelope
                     extra = ""
                     #extra = extra+" --X-rtd TMCSO_PseudoAsimov=10000"
                     if plotEnvelope:
-                        print("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --setParameters myIndex=-1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
-                        os.system("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --setParameters myIndex=-1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
+                        #print("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --setParameters myIndex=-1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
+                        #os.system("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --setParameters myIndex=-1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
+                        print("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
+                        os.system("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
                     fnmultidim = []
                     if True: #asdf
                         combinedCards += (card.replace('.root','.txt') + " ")
@@ -332,7 +391,7 @@ for y in years:
                             if rn==0 and plotEnvelope:
                                 print("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL --freezeParameters pdf_index%s --setParameters pdf_index%s=%d -n _%s_index%d%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,catExtB,catExtB,p,s,p,catExtB,m,extra))
                                 os.system("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL --freezeParameters pdf_index%s --setParameters pdf_index%s=%d -n _%s_index%d%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,catExtB,catExtB,p,s,p,catExtB,m,extra))
-                                fnmultidim.append("_%s_index%d%s.MultiDimFit.mH%s"%(s,p,catExtB,m))
+                                fnmultidim.append("_%s_index%d%s.MultiDimFit.mH%i"%(s,p,catExtB,int(m)))
 
                             if not biasPerChannel or not biasPerPDF:
                                 continue
@@ -340,14 +399,14 @@ for y in years:
                             #if float(r)*expLim*nSig/nBG>3.0:
                             #    continue
                             ### If total yield is <=10.0 and yield/GeV<0.1, do not perform test
-                            #if float(r)*expLim*nSig+nBG<=10.0 and (float(r)*expLim*nSig+nBG)/mrange<0.1:
-                            #    continue
+                            if float(r)*expLim*nSig+nBG<=10.0 and (float(r)*expLim*nSig+nBG)/mrange<0.1:
+                                continue
                             ### Bias, per channel, per PDF
                             print("PDF index = ", p)
                             print("combine %s -M GenerateOnly --setParameters pdf_index%s=%d --toysFrequentist -t 100 --expectSignal %f --saveToys -m %s --freezeParameters pdf_index%s -n _%s_M%s_ctau%i_r%d_index%d%s"%(card,catExtB,p,float(r)*expLim,m,catExtB,s,m,t,r,p,catExtB))
                             os.system("combine %s -M GenerateOnly --setParameters pdf_index%s=%d --toysFrequentist -t 100 --expectSignal %f --saveToys -m %s --freezeParameters pdf_index%s -n _%s_M%s_ctau%i_r%d_index%d%s"%(card,catExtB,p,float(r)*expLim,m,catExtB,s,m,t,r,p,catExtB))
-                            print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_index%d%s.GenerateOnly.mH%s.123456.root -t 100 --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_genindex%d%s -m %s %s"%(card,s,m,t,r,p,catExtB,int(m),max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,p,catExtB,m,options))
-                            os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_index%d%s.GenerateOnly.mH%s.123456.root -t 100 --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_genindex%d%s -m %s %s"%(card,s,m,t,r,p,catExtB,int(m),max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,p,catExtB,m,options))
+                            print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_index%d%s.GenerateOnly.mH%s.123456.root -t 100 --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_genindex%d%s -m %s %s"%(card,s,m,t,r,p,catExtB,int(m),max(0,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,p,catExtB,m,options))
+                            os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_index%d%s.GenerateOnly.mH%s.123456.root -t 100 --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_genindex%d%s -m %s %s"%(card,s,m,t,r,p,catExtB,int(m),max(0,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,p,catExtB,m,options))
                             exit
                             fnfitdiag.append("_%s_M%s_ctau%i_r%d_envelope_genindex%d%s"%(s,m,t,r,p,catExtB))
                             for pp in range(nPDF):
@@ -361,16 +420,16 @@ for y in years:
                         if not biasPerChannel:
                             break
                         ### If injected signal is >3x the existing background, do not perform test
-                        #if float(r)*expLim*nSig/nBG>3.0:
-                        #    break
+                        if float(r)*expLim*nSig/nBG>3.0:
+                            break
                         #### If total yield is <=10.0 and yield/GeV<0.1, do not perform test
-                        #if float(r)*expLim*nSig+nBG<=10.0 and (float(r)*expLim*nSig+nBG)/mrange<0.1:
-                        #    break
+                        if (float(r)*expLim*nSig+nBG<=10.0 and (float(r)*expLim*nSig+nBG)/mrange<0.1) or (nBG < 10):
+                            break
                         ### Bias, per channel
-                        print("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_r%d%s"%(card,nToysPerChannel,float(r)*rLimOneBin,m,s,m,r,catExtB))
-                        os.system("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d%s"%(card,nToysPerChannel,float(r)*rLimOneBin,m,s,m,t,r,catExtB))
-                        print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_r%d%s.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope%s -m %s  %s"%(card,s,m,r,catExtB,int(m),nToysPerChannel,max(-5,float(r)*rLimOneBin-5),max(5,float(r)*rLimOneBin+10),s,m,t,r,catExtB,m,options))
-                        os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d%s.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope%s -m %s  %s"%(card,s,m,t,r,catExtB,int(m),nToysPerChannel,max(-5,float(r)*rLimOneBin-10),max(5,float(r)*rLimOneBin+10),s,m,t,r,catExtB,m,options))
+                        print("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_r%d%s"%(card,nToysPerChannel,float(r)*expLim,m,s,m,r,catExtB))
+                        os.system("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d%s"%(card,nToysPerChannel,float(r)*expLim,m,s,m,t,r,catExtB))
+                        print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_r%d%s.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope%s -m %s  %s"%(card,s,m,r,catExtB,int(m),nToysPerChannel,max(1e-3,float(r)*expLim-10),max(5,float(r)*expLim+10),s,m,t,r,catExtB,m,options))
+                        os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d%s.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope%s -m %s  %s"%(card,s,m,t,r,catExtB,int(m),nToysPerChannel,max(1e-3,float(r)*expLim-10),max(5,float(r)*expLim+10),s,m,t,r,catExtB,m,options))
                         fnfitdiag.append("_%s_M%s_ctau%i_r%d_envelope%s"%(s,m,t,r,catExtB))
                         for pp in range(nPDF):
                             if not checkIndividualPDFs:
@@ -382,8 +441,6 @@ for y in years:
 
                         ### Plot bias from fit diagnostics, per channel
                         for fdn in fnfitdiag:
-                            ROOT.gStyle.SetOptStat(0)
-                            ROOT.gStyle.SetOptFit(111)
                             fd = ROOT.TFile.Open("fitDiagnostics%s.root"%fdn)
                             td = fd.Get("tree_fit_sb")
                             h = ROOT.TH1D("h","",41,-6.1,6.1)
@@ -391,7 +448,8 @@ for y in years:
                             h.GetYaxis().SetTitle("Number of toys")
                             todraw = "(r-%f)/((rLoErr/rHiErr>3.0 || rHiErr/rLoErr>3.0) ? rErr : (r>%f ? rLoErr : rHiErr))>>h"%(float(r)*rLimOneBin,float(r)*rLimOneBin)
                             #todraw = "(r-%f)/((rLoErr/rHiErr>2.0 || rHiErr/rLoErr>2.0) ? rErr : 0.5*(rLoErr+rHiErr))>>h"%(float(r)*rLimOneBin)
-                            td.Draw(todraw,"fit_status==0 && abs(r-%f)<4.95"%(float(r)*rLimOneBin),"goff")
+                            td.Draw(todraw,"fit_status==0 && abs(r-%f)<4.95 && (r-rLoErr)>0.0011"%(float(r)*rLimOneBin),"goff")
+                            print("Histogram for ch%i has %i entries"%(binidx, h.GetEntries()))
                             fg = ROOT.TF1("fg","gaus",-5.0,5.0)
                             fg.SetLineColor(2)
                             h.Fit(fg,"0L","",-5.0,5.0)
@@ -453,7 +511,7 @@ for y in years:
                             #can.SaveAs("%s/bias%s.png"%(outDir,fdn))
 
                     if plotEnvelope:
-                        fnmultidim.append("_%s_envelope%s.MultiDimFit.mH%s"%(s,catExtB,m))
+                        fnmultidim.append("_%s_envelope%s.MultiDimFit.mH%i"%(s,catExtB,int(m)))
 
                         ### Plot -2dLL, per channel
                         gs = []
@@ -467,6 +525,7 @@ for y in years:
                         pdfcolors["Exponential"]=2
                         pdfcolors["Power-law"]=4
                         pdfcolors["Bernstein"]=6
+                        pdfcolors["Uniform"]=8
                         for nf,fdn in enumerate(fnmultidim):
                             fd = ROOT.TFile.Open("higgsCombine%s.root"%fdn)
                             td = fd.Get("limit")
@@ -531,7 +590,17 @@ for y in years:
                 card = "%s/card_combined_%s_M%s_ctau%i_%s_selectedChannels.root"%(inDir,s,m,t,y)
                 os.system("combineCards.py -S %s > %s"%(combinedCards, card.replace('.root','.txt')))
                 os.system("text2workspace.py %s"%(card.replace('.root','.txt')))
-                options="--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams --toysFrequentist --bypassFrequentist --robustFit 1" 
+                #options="--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams --toysFrequentist --bypassFrequentist --robustFit 1"
+                options="--cminDefaultMinimizerStrategy 0 --ignoreCovWarning --cminDefaultMinimizerTolerance 0.01 --X-rtd MINIMIZER_freezeDisassociatedParams --X-rtd MINIMIZER_multiMin_hideConstants --X-rtd MINIMIZER_multiMin_maskConstraints --X-rtd MINIMIZER_multiMin_maskChannels=1 --toysFrequentist --robustFit 1"
+                os.system("combine -M AsymptoticLimits -d %s --cminDefaultMinimizerStrategy 0 -v 0 -n _temp_combined > log_asym_combined.txt"%(card))
+                flobc = open("log_asym_combined.txt","r")
+                for ll in flobc.readlines():
+                    if "Expected 97" in ll:
+                        rLimOneBin = float(ll.split()[len(ll.split())-1])
+                    if "Expected 50" in ll:
+                        rLimExpOneBin = float(ll.split()[len(ll.split())-1])
+                flobc.close()
+                print('Now we inject %f'%rLimOneBin)
                 #options=options+" --X-rtd TMCSO_PseudoAsimov=5000"
                 #options=options+"--X-rtd TMCSO_AdaptivePseudoAsimov=1"
                 exclusion=''
@@ -554,10 +623,10 @@ for y in years:
                     ### If total yield is <=10.0 and yield/GeV<0.1, do not perform test
                     #if (float(r)*expLim*(nS1b+nS2b)+nBGAll)/mrange<0.1 and float(r)*expLim*(nS1b+nS2b)+nBGAll<=10.0:
                     #    break
-                    print("combine %s -M GenerateOnly --toysFrequentist -t 300 --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d_envelope_combined %s"%(card,float(r)*expLim,m,s,m,t,r,exclusion))
-                    os.system("combine %s -M GenerateOnly --toysFrequentist -t 300 --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d_envelope_combined %s"%(card,float(r)*expLim,m,s,m,t,r,exclusion))
-                    print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t 200 --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
-                    os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t 200 --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
+                    print("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d_envelope_combined %s"%(card,nToysPerCombination,float(r)*expLim,m,s,m,t,r,exclusion))
+                    os.system("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d_envelope_combined %s"%(card,nToysPerCombination,float(r)*expLim,m,s,m,t,r,exclusion))
+                    print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),nToysPerCombination,max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
+                    os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),nToysPerCombination,max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
                     fnfitdiag = ["_%s_M%s_ctau%i_r%d_envelope_combined"%(s,m,t,r)]
 
                     ### Plot bias from fit diagnostics for combination
@@ -571,9 +640,10 @@ for y in years:
                         h.GetXaxis().SetTitle("(r_{out} - r_{in})/#sigma_{r}")
                         h.GetYaxis().SetTitle("Number of toys")
                         todraw = "(r-%f)/((rLoErr/rHiErr>3.0 || rHiErr/rLoErr>3.0) ? rErr : (r>%f ? rLoErr : rHiErr))>>h"%(float(r)*expLim,float(r)*expLim)
+                        #todraw = "(r-%f)/(r>%f ? rLoErr : rHiErr)>>h"%(float(r)*expLim,float(r)*expLim)
                         #todraw = "(r-%f)/((rLoErr/rHiErr>2.0 || rHiErr/rLoErr>2.0) ? rErr : 0.5*(rLoErr+rHiErr))>>h"%(float(r)*expLim)
                         #todraw = "(r-%f)>>h"%(float(r)*expLim)
-                        td.Draw(todraw,"fit_status==0 && abs(r-%f)<4.95"%(float(r)*expLim),"goff")
+                        td.Draw(todraw,"fit_status==0 && abs(r-%f)<4.95 && (r-rLoErr)>0.0011"%(float(r)*expLim),"goff")
                         fg = ROOT.TF1("fg","gaus",-5.0,5.0)
                         #fg = ROOT.TF1("fg","gaus",-1.0,1.0)
                         fg.SetLineColor(2)
@@ -608,22 +678,10 @@ for y in years:
                         ax.text(0.03, 0.97, r'$r_{in} = %.0f x r_{+2\sigma}$  $(r_{+2\sigma} = %.2f)$'%(float(r),expLim), fontsize=18, color='k', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
                         hep.cms.label("Internal", data=True, year=y, com='13.6')
                         fig.savefig("%s/bias%s.png"%(outDir,fdn), dpi=140)
-                        #can = ROOT.TCanvas("can","",600,600)
-                        #h.Draw()
-                        #can.Update()
-                        #can.Clear()
-                        #h.Draw()
-                        #fg.Draw("same")
-                        #text = ROOT.TLatex()
-                        #text.SetTextSize(0.03);
-                        #text.SetTextFont(42);
-                        #text.DrawLatexNDC(0.15,0.85,"%s, M=%s GeV"%(s,m))
-                        ##text.DrawLatexNDC(0.15,0.8,"N_{b-tag}=1+#geq2 (%.0f+%.0f events)"%(nBG1b,nBG2b))
-                        #text.DrawLatexNDC(0.15,0.75,"r_{in}=%d, (r_{+2#sigma} = %.1f)"%(r,expLim))
-                        #text.DrawLatexNDC(0.15,0.7,"Gen. PDF: envelope")
-                        #can.Update()
-                        #can.SaveAs("%s/bias%s.png"%(outDir,fdn))
-
+        # Move everything to output
+        os.system('mv fitDiagnostics*.root %s'%(outDir))
+        #os.system('mv higgsCombine*.root %s'%(outDir))
+        break # asdf
         ### Plot bias summary
         ROOT.gStyle.SetOptStat(0)
         ROOT.gStyle.SetOptFit(0)
