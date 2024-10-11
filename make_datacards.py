@@ -68,7 +68,8 @@ if len(sys.argv)>1:
 outDir = ("%s/datacards_all%s_"%(thisDir,dirExt))+today+"_"+year
 if not os.path.exists(outDir):
     os.makedirs(outDir)
-inDir  = "%s/fitResults_%s/"%(thisDir, year)
+#inDir  = "%s/fitResults_%s/"%(thisDir, year)
+inDir  = "%s/fitResults_%s"%(thisDir, year)
 
 useSinglePDF = False
 if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
@@ -78,8 +79,8 @@ dNames = []
 
 #d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
 #### Caution, here the names AND order should be consistent to the ones set in cpp/doAll_fitDimuonMass.C 
-dNames.append("d_FourMu_sep")
-dNames.append("d_FourMu_osv")
+#dNames.append("d_FourMu_sep")
+#dNames.append("d_FourMu_osv")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
@@ -131,7 +132,8 @@ years.append(year)
 # Signals
 sigModels = []
 sigModels.append("HTo2ZdTo2mu2x")
-sigModel = "HTo2ZdTo2mu2x"
+#sigModel = "HTo2ZdTo2mu2x"
+sigModel = "BToPhi"
 
 
 sigTags = []
@@ -145,6 +147,17 @@ if useSignalMC:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
                 sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t))
+    if sigModel=="BToPhi":
+        #sigMasses = [0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.25, 1.5, 2.0, 2.85, 3.35, 4.0, 5.0]
+        sigMasses = [0.9, 1.25, 1.5, 2.0, 5.0] #Other masses are either too small or too close to SM resonance
+        for m in sigMasses:
+            sigCTaus = [0.0, 0.1, 1, 10, 100]
+            #sigCTaus = [0.1, 1, 10, 100]
+            for t in sigCTaus:
+                if t < 1:
+                    sigTags.append("Signal_BToPhi-%s_ctau-%smm_2022"%(str(m).replace('.','p'), str(t).replace('.','p')))
+                else:
+                    sigTags.append("Signal_BToPhi-%s_ctau-%smm_2022"%(str(m).replace('.','p'), str(t)))              
 
 f2l = [0.0]
 nSigTot = 1.0
@@ -156,7 +169,7 @@ sigma = 0.0
 for y in years:
    for m in sigTags:
        M = float(m.split('-')[1].split('_')[0].replace('p','.'))
-       T = int(m.split('-')[2].split('mm')[0])
+       T = float(m.split('-')[2].split('mm')[0].replace('p','.'))
        listOfBins = []
        for d_,d in enumerate(dNames):
            print("Analyzing %s, in region %s"%(m, d))
@@ -259,6 +272,7 @@ for y in years:
            # Retrieve workspace from file
            w = f.Get(wsname)
            # Retrieve signal normalization
+           print(catExtS)
            nSig = w.var("signalNorm%s"%catExtS).getValV()
            #nSig = nSig*intLumi*1000.0/200000.0
            if doPartiaUnblinding:

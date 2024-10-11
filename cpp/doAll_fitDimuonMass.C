@@ -22,8 +22,8 @@
   TString inDir = "/ceph/cms/store/user/garciaja/Run3ScoutingOutput/BToPhi_allCuts"; // BToPhi
   // Names of the search regions
   vector<TString> dNames = { };
-  //dNames.push_back("d_FourMu_sep");
-  //dNames.push_back("d_FourMu_osv");
+  dNames.push_back("d_FourMu_sep");
+  dNames.push_back("d_FourMu_osv");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso0_ptlow");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso0_pthigh");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso1_ptlow");
@@ -112,7 +112,7 @@
   }
   else if ( model == "BToPhi") {
     //vector<float> sigMass = {0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.25, 1.5, 2.0, 2.85, 3.35, 4.0, 5.0};
-    vector<float> sigMass = {0.6, 0.7, 0.9, 1.25, 1.5, 2.0, 2.85, 3.35, 4.0, 5.0};
+    vector<float> sigMass = {0.9, 1.25, 1.5, 2.0, 5.0};
     //vector<float> sigCtau = {0.0, 0.1, 1, 10, 100};
     vector<float> sigCtau = {0.0, 0.1, 1, 10, 100};
     for (unsigned int m = 0; m < sigMass.size(); m++) {
@@ -377,14 +377,16 @@
        cout<<endl;
      }
    }
-   /*
+ 
+
    for ( int isample=0; isample<sigsamples.size(); isample++ ) {
      mmumu_sigs[isample].clear();
      mmumu_sigs_trg_up[isample].clear();
      mmumu_sigs_trg_down[isample].clear();
      mmumu_sigs_sel_up[isample].clear();
      mmumu_sigs_sel_down[isample].clear();
-   }
+   
+  }
    
    mmumu_sigs.clear();
    mmumu_sigs_trg_up.clear();
@@ -392,7 +394,7 @@
    mmumu_sigs_sel_up.clear();
    mmumu_sigs_sel_down.clear();
    mmumu_bkgs.clear();
-   */
+   
  }
   /*
   if ( !mergeYears ) {

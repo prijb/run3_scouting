@@ -44,8 +44,8 @@ if not os.path.exists(outDir):
     os.makedirs(outDir)
 
 dNames = []
-dNames.append("d_FourMu_sep")
-dNames.append("d_FourMu_osv")
+#dNames.append("d_FourMu_sep")
+#dNames.append("d_FourMu_osv")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
@@ -97,23 +97,30 @@ sigModels.append("Y3")
 #sigModels.append("DY3")
 #sigModels.append("DYp3")
 #sigModels.append("B3mL2")
+#sigModel = "HTo2ZdTo2mu2x"
+sigModel = "BToPhi"
 
-sigMasses = []
-if useSignalMC:
-    sigMasses = [0.5, 0.7, 2.0, 2.5, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-else:
-    mF = 350.0
-    mL = 2000.0
-    sigMasses.append("%.0f"%mF)
-    tm = mF
-    while tm < mL:
-      if tm<400.0: tm=tm+5.0
-      elif tm<700.0: tm=tm+10.0
-      elif tm<1000.0: tm=tm+15.0
-      elif tm<1500.0: tm=tm+25.0
-      else: tm=tm+50.0
-      sigMasses.append("%.0f"%tm)
-sigCtau = ["1", "10", "100"]
+if sigModel == "HTo2ZdTo2mu2x":
+    sigMasses = []
+    if useSignalMC:
+        sigMasses = [0.5, 0.7, 2.0, 2.5, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+    else:
+        mF = 350.0
+        mL = 2000.0
+        sigMasses.append("%.0f"%mF)
+        tm = mF
+        while tm < mL:
+          if tm<400.0: tm=tm+5.0
+          elif tm<700.0: tm=tm+10.0
+          elif tm<1000.0: tm=tm+15.0
+          elif tm<1500.0: tm=tm+25.0
+          else: tm=tm+50.0
+          sigMasses.append("%.0f"%tm)
+    sigCtau = ["1", "10", "100"]
+elif sigModel == "BToPhi":
+    if useSignalMC:
+        sigMasses = [0.9, 1.25, 1.5, 1.5, 2.0, 5.0]
+        sigCtau = ["0p0", "0p1", "1", "10", "100"]
 
 def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
     # Labels
@@ -201,8 +208,12 @@ for y in years:
                 continue
             m = str(mf)
             for d_,d in enumerate(dNames):
-                sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm"%(m.replace(".", "p"),t)
-                finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
+                if sigModel == "HTo2ZdTo2mu2x":
+                    sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm"%(m.replace(".", "p"),t)
+                    finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
+                elif sigModel == "BToPhi":
+                    sample = ("Signal_BToPhi-%s_ctau-%smm_2022"%(m.replace('.','p'), t))
+                    finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
                 print(finame)
                 if (d == "d_FourMu_sep" ): binidx=1
                 elif (d == "d_FourMu_osv" ): binidx=2
