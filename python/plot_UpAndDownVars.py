@@ -1,6 +1,7 @@
 import ROOT
 import numpy
 import copy
+import math
 import os,sys
 from datetime import date
 import mplhep as hep
@@ -84,7 +85,7 @@ def plotSystematic(outDir, sigTag, y, nominal, up, down, ymin = -50, ymax = 50, 
     ## Save
     fig.savefig('%s/Syst_%s_%s.png'%(outDir, sigTag, y), dpi=140)
 
-def plotSystematicVar(outDir, sigTag, y, nominal, up, down, ylabel, ymin = -50., ymax = 50., stype = 'trigger'):
+def plotSystematicVar(outDir, sigTag, y, nominal, up, down, ylabel, ymin = -50., ymax = 50., stype = 'trigger', raw = False):
     ## Plot        
     plt.style.use(hep.style.CMS)
     fig, ax = plt.subplots(figsize=(16, 5)) 
@@ -93,17 +94,30 @@ def plotSystematicVar(outDir, sigTag, y, nominal, up, down, ylabel, ymin = -50.,
     hep.cms.label("Preliminary", data=True, lumi=luminosity, year=y, com='13.6')
     fig.text(0.35, 0.9, r'$m_{4\mu} = $125 GeV, $m_{2\mu} =$ %s GeV'%(str(m)), color='black', fontsize = 13)
     ax.set_ylabel(ylabel, fontsize=20)
-    ### Signal
+    ### Variations from nominal
     nh, nbins = getValues(nominal)
     uh, ubins = getValues(up)
     dh, ubins = getValues(down)
-    uv = (uh/nh - 1.0)*100.0
-    dv = (dh/nh - 1.0)*100.0
-    print(uv)
-    print(dv)
-    maxdev = max(np.concatenate((np.absolute(uv), np.absolute(dv))))
-    maxdev_2mu = max(np.concatenate((np.absolute(uv[2:]), np.absolute(dv[2:]))))
-    maxdev_4mu = max(np.concatenate((np.absolute(uv[:2]), np.absolute(dv[:2]))))
+    uv = (uh/nh - 1.0)*100.0 # upper in %
+    dv = (dh/nh - 1.0)*100.0 # lower in %
+    #print(uv)
+    #print(dv)
+    if raw: # filter for 2mu
+        rawv, rbins = getValues(raw)
+        print(rawv)
+        fuv = uv[2:][rawv[2:] > 200.0]
+        fdv = dv[2:][rawv[2:] > 200.0]
+        print(fuv)
+        print(fdv)
+    maxdev = max(np.concatenate((np.absolute(uv), np.absolute(dv)))) # from max to mean
+    if raw:
+        try:
+            maxdev_2mu = max(np.concatenate((np.absolute(fuv), np.absolute(fdv)))) # from max to mean
+        except ValueError:
+            maxdev_2mu = max(np.concatenate((np.absolute(uv), np.absolute(dv))))
+    else:
+        maxdev_2mu = max(np.concatenate((np.absolute(uv[2:]), np.absolute(dv[2:])))) # from max to mean
+    maxdev_4mu = max(np.concatenate((np.absolute(uv[:2]), np.absolute(dv[:2])))) # from max to mean
     print(maxdev)
     if maxdev < 0.1:
         ymax = 0.2
@@ -183,13 +197,16 @@ thisDir = os.environ.get("PWD")
 useCategorizedSignal = True
 useCategorizedBackground = True
 useSignalMC = True
-doSystVariations = False
-sigModel = "ScenarioB1"
+doSystVariations = True
+sigModel = "HTo2ZdTo2mu2x" # HTo2ZdTo2mu2x  ScenarioB1
 
 outDir = ("%s/plotsSRs_"%(thisDir))+today
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outDir)
+outFileName = "%s/systematicSplines_2022.root"%(outDir) # Year is hardcoded
+outFile = ROOT.TFile(outFileName, "RECREATE")
+outFile.Close()
 
 dNames = []
 dNames.append("d_FourMu_sep")
@@ -254,13 +271,19 @@ if useSignalMC:
 ## Loop to make the plots
 for y in years:
     inDir  = "%s/fitResults_%s/"%(thisDir, y)
+    # Normalization:
+    values_norm_trg = {} # mass, ctau, dname
+    values_norm_sel = {} # mass, ctau, dname
+    # Shape variations:
     values_maxdev_mean_2mu = [] # Depth: mass, ctau, dname
     values_maxdev_mean_4mu = []
     values_maxdev_sigma_2mu = []
     values_maxdev_sigma_4mu = []
+    #
     for m in sigMasses:
         hbkg = ROOT.TH1F("bkg_%s"%(str(m)), "", len(dNames), 0, len(dNames))
         hsigs = []
+        hsigs_raw = []
         hsigs_trgUp = []
         hsigs_trgDown = []
         hsigs_selUp = []
@@ -280,6 +303,10 @@ for y in years:
         values_maxdev_sigma_2mu.append([])
         values_maxdev_mean_4mu.append([])
         values_maxdev_sigma_4mu.append([])
+        #
+        values_norm_trg[m] = {}
+        values_norm_sel[m] = {}
+        #
         for t in sigCTaus:
             if (sigModel=="HTo2ZdTo2mu2x" and ((m < 1.0 and t > 10) or (m < 30.0 and t > 100))):
                  continue
@@ -291,6 +318,7 @@ for y in years:
                 sigTag = "Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(str(m).replace(".", "p"),str(t).replace('.','p'))
                 legLabels.append(r"$m_{\pi} = 4$ GeV, $m_{A} = $%s GeV, $c\tau =$ %s mm"%(str(m), str(t))) 
             hsigs.append(ROOT.TH1F(sigTag, "", len(dNames), 0, len(dNames)))
+            hsigs_raw.append(ROOT.TH1F(sigTag+"_raw", "", len(dNames), 0, len(dNames)))
             hsigs_trgUp.append(ROOT.TH1F(sigTag+"_trg_up", "", len(dNames), 0, len(dNames)))
             hsigs_trgDown.append(ROOT.TH1F(sigTag+"_trg_down", "", len(dNames), 0, len(dNames)))
             hsigs_selUp.append(ROOT.TH1F(sigTag+"_sel_up", "", len(dNames), 0, len(dNames)))
@@ -305,6 +333,10 @@ for y in years:
             hmean_trgDown.append(ROOT.TH1F(sigTag+"_mean_trg_down", "", len(dNames), 0, len(dNames)))
             hmean_selUp.append(ROOT.TH1F(sigTag+"_mean_sel_up", "", len(dNames), 0, len(dNames)))
             hmean_selDown.append(ROOT.TH1F(sigTag+"_mean_sel_down", "", len(dNames), 0, len(dNames)))
+            #
+            values_norm_trg[m][t] = {}
+            values_norm_sel[m][t] = {}
+            #
             for d_,d in enumerate(dNames):
                 print("Analyzing %s, in region %s"%(sigTag, d))
                 print("%s/%s_%s_%s_workspace.root"%(inDir,d,sigTag,y))
@@ -406,6 +438,7 @@ for y in years:
                 w = f.Get(wsname)
                 # Retrieve signal normalization
                 nSig = w.var("signalNorm%s"%catExtS).getValV()
+                nSigRaw = w.var("signalRawNorm%s"%catExtS).getValV()
                 # Retrieve BG normalization:
                 nBG = w.data("data_obs%s"%catExtB).sumEntries()
                 # Retrieve signal width and mean
@@ -415,6 +448,7 @@ for y in years:
                 hbkg.SetBinContent(d_+1, nBG)
                 hbkg.SetBinError(d_+1, nBG**0.5)
                 hsigs[-1].SetBinContent(d_+1, nSig)
+                hsigs_raw[-1].SetBinContent(d_+1, nSigRaw)
                 hsigma[-1].SetBinContent(d_+1, sigma)
                 hmean[-1].SetBinContent(d_+1, mean)
                 if doSystVariations:
@@ -446,6 +480,10 @@ for y in years:
                     hmean_trgDown[-1].SetBinContent(d_+1, mean_trgDown)
                     hmean_selUp[-1].SetBinContent(d_+1, mean_selUp)
                     hmean_selDown[-1].SetBinContent(d_+1, mean_selDown)
+                    #
+                    values_norm_trg[m][t][d] = max([(nSig_trgUp/nSig - 1.0), (1.0 - nSig_trgDown/nSig)])
+                    values_norm_sel[m][t][d] = max([(nSig_selUp/nSig - 1.0), (1.0 - nSig_selDown/nSig)])
+                    #
                 # Close input file with workspace
                 f.Close()
 
@@ -454,15 +492,15 @@ for y in years:
                 #plotSystematic(outDir, sigTag+'_trg', y, hsigs[-1], hsigs_trgUp[-1], hsigs_trgDown[-1])
                 plotSystematicVar(outDir, sigTag+'_trg', y, hsigs[-1], hsigs_trgUp[-1], hsigs_trgDown[-1], r'$N_{Signal}^{Up/Down}$/$N_{Signal}^{Nominal}$ (%)', stype='trigger')
                 #plotSystematic(outDir, sigTag+'_sigma_trg', y, hsigma[-1], hsigma_trgUp[-1], hsigma_trgDown[-1])
-                vtrg_sigma_2mu,vtrg_sigma_4mu = plotSystematicVar(outDir, sigTag+'_sigma_trg', y, hsigma[-1], hsigma_trgUp[-1], hsigma_trgDown[-1], r'$\sigma^{Up/Down}$/$\sigma$ (%)', -20., 20., stype='trigger')
+                vtrg_sigma_2mu,vtrg_sigma_4mu = plotSystematicVar(outDir, sigTag+'_sigma_trg', y, hsigma[-1], hsigma_trgUp[-1], hsigma_trgDown[-1], r'$\sigma^{Up/Down}$/$\sigma$ (%)', -20., 20., stype='trigger', raw=hsigs_raw[-1])
                 #plotSystematic(outDir, sigTag+'_mean_trg', y, hmean[-1], hmean_trgUp[-1], hmean_trgDown[-1])
-                vtrg_mean_2mu,vtrg_mean_4mu =plotSystematicVar(outDir, sigTag+'_mean_trg', y, hmean[-1], hmean_trgUp[-1], hmean_trgDown[-1], r'$\mu^{Up/Down}$/$\mu$ (%)', -1., 1., 'trigger')
+                vtrg_mean_2mu,vtrg_mean_4mu = plotSystematicVar(outDir, sigTag+'_mean_trg', y, hmean[-1], hmean_trgUp[-1], hmean_trgDown[-1], r'$\mu^{Up/Down}$/$\mu$ (%)', -1., 1., 'trigger', raw=hsigs_raw[-1])
                 #plotSystematic(outDir, sigTag+'_sel', y, hsigs[-1], hsigs_selUp[-1], hsigs_selDown[-1])
-                plotSystematicVar(outDir, sigTag+'_sel', y, hsigs[-1], hsigs_selUp[-1], hsigs_selDown[-1], r'$N_{Signal}^{Up/Down}$/$N_{Signal}^{Nominal}$ (%)', stype='selection')
+                plotSystematicVar(outDir, sigTag+'_sel', y, hsigs[-1], hsigs_selUp[-1], hsigs_selDown[-1], r'$N_{Signal}^{Up/Down}$/$N_{Signal}^{Nominal}$ (%)', stype='selection',)
                 #plotSystematic(outDir, sigTag+'_sigma_sel', y, hsigma[-1], hsigma_selUp[-1], hsigma_selDown[-1])
-                vsel_sigma_2mu,vsel_sigma_4mu =plotSystematicVar(outDir, sigTag+'_sigma_sel', y, hsigma[-1], hsigma_selUp[-1], hsigma_selDown[-1], r'$\sigma^{Up/Down}$/$\sigma$ (%)', -20., 20., stype='selection')
+                vsel_sigma_2mu,vsel_sigma_4mu = plotSystematicVar(outDir, sigTag+'_sigma_sel', y, hsigma[-1], hsigma_selUp[-1], hsigma_selDown[-1], r'$\sigma^{Up/Down}$/$\sigma$ (%)', -20., 20., stype='selection', raw=hsigs_raw[-1])
                 #plotSystematic(outDir, sigTag+'_mean_sel', y, hmean[-1], hmean_selUp[-1], hmean_selDown[-1])
-                vsel_mean_2mu,vsel_mean_4mu =plotSystematicVar(outDir, sigTag+'_mean_sel', y, hmean[-1], hmean_selUp[-1], hmean_selDown[-1], r'$\mu^{Up/Down}$/$\mu$ (%)', -1., 1., stype='selection')
+                vsel_mean_2mu,vsel_mean_4mu = plotSystematicVar(outDir, sigTag+'_mean_sel', y, hmean[-1], hmean_selUp[-1], hmean_selDown[-1], r'$\mu^{Up/Down}$/$\mu$ (%)', -1., 1., stype='selection', raw=hsigs_raw[-1])
                 values_maxdev_mean_2mu[-1].append(max([vtrg_mean_2mu, vsel_mean_2mu]))
                 values_maxdev_sigma_2mu[-1].append(max([vtrg_sigma_2mu, vsel_sigma_2mu]))
                 values_maxdev_mean_4mu[-1].append(max([vtrg_mean_4mu, vsel_mean_4mu]))
@@ -555,18 +593,63 @@ for y in years:
         ## Save
         fig.savefig('%s/SRs_%s_%s.png'%(outDir, sigTag, y), dpi=140)
 
-    # Plot symmary of shape uncertainties
+    ### Summary plots and splines
+    colors = {}
+    colors['0.1']   = '#832db6'
+    colors['1.0']     = '#3f90da'
+    colors['10.0']    = '#ffa90e'
+    colors['100.0']   = '#bd1f01'
+    colors['1000.0']  = '#94a4a2'
     if doSystVariations:
+        #
+        # Normalization variations
+        for d_,d in enumerate(dNames):
+            for t in sigCTaus:
+                fig, ax = plt.subplots(figsize=(16, 5))
+                fig.subplots_adjust(bottom=0.2, right=0.80)
+                ax.set_ylabel(r'Normalization variation (%)', fontsize=20)
+                ax.set_xlabel(r'Mass (GeV)', fontsize=20)
+                ax.set_xscale('log')
+                hep.cms.label("Preliminary", data=False, lumi=luminosity, year=y, com='13.6')
+                #
+                vmasses = []
+                vtrg = []
+                vsel = []
+                for m in sigMasses:
+                    if t not in values_norm_trg[m].keys():
+                        continue
+                    vmasses.append(m)
+                    vtrg.append(values_norm_trg[m][t][d])
+                    vsel.append(values_norm_sel[m][t][d])
+                ax.plot(np.array(vmasses), 100*np.array(vtrg), label='Trigger variation (%)', marker='o', linestyle='', color='tab:blue')
+                ax.plot(np.array(vmasses), 100*np.array(vsel), label='Selection variation (%)', marker='o', linestyle='', color='tab:green')
+                ax.legend(loc='upper right', fontsize = 10)
+                fig.text(0.45, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
+                fig.text(0.15, 0.8, d, color='black', fontsize = 13)
+                fig.savefig('%s/NormUnc_%s_%s_%.1f_%s.png'%(outDir, sigModel, d, t, y), dpi=140)
+                graph_trg = ROOT.TGraph(len(vmasses), np.array(vmasses), np.array(vtrg))
+                spline_trg = ROOT.TSpline3("spline_trgsys_%s_%s_%.1f_%s"%(sigModel, d, t, y), graph_trg)
+                spline_trg.SetName("spline_trgsys_%s_%s_%.1f_%s"%(sigModel, d, t, y))
+                graph_sel = ROOT.TGraph(len(vmasses), np.array(vmasses), np.array(vsel))
+                spline_sel = ROOT.TSpline3("spline_selsys_%s_%s_%.1f_%s"%(sigModel, d, t, y), graph_sel)
+                spline_sel.SetName("spline_selsys_%s_%s_%.1f_%s"%(sigModel, d, t, y))
+                # Save spline
+                outFile = ROOT.TFile.Open(outFileName, "UPDATE")
+                spline_trg.Write()
+                spline_sel.Write()
+                outFile.Close()
+        #
+        # Shape variations
         vmean_2mu = {}
         vmean_4mu = {}
         vsigma_2mu = {}
         vsigma_4mu = {}
-        print(values_maxdev_mean_2mu)
-        print(values_maxdev_mean_4mu)
-        print(values_maxdev_sigma_2mu)
-        print(values_maxdev_sigma_4mu)
+        #print(values_maxdev_mean_2mu)
+        #print(values_maxdev_mean_4mu)
+        #print(values_maxdev_sigma_2mu)
+        #print(values_maxdev_sigma_4mu)
         for t in range(0, len(sigCTaus)):
-            ctauLabel = '%imm'%(sigCTaus[t])
+            ctauLabel = '%.1f'%(sigCTaus[t])
             vmean_2mu[ctauLabel] = []
             vmean_4mu[ctauLabel] = []
             vsigma_2mu[ctauLabel] = []
@@ -589,52 +672,71 @@ for y in years:
         ### Mean variation (2mu)
         fig, ax = plt.subplots(figsize=(16, 5))
         fig.subplots_adjust(bottom=0.2, right=0.80)
-        ax.set_ylabel(r'Max shape \mu variation (%)', fontsize=20)
+        ax.set_ylabel(r'Max shape $\mu$ variation (%)', fontsize=20)
         ax.set_xlabel(r'Mass (GeV)', fontsize=20)
         ax.set_xscale('log')
         hep.cms.label("Preliminary", data=False, lumi=luminosity, year=y, com='13.6')
         for ctauLabel in vmean_2mu.keys():
-            ax.plot(sigMasses[-len(vmean_2mu[ctauLabel]):], vmean_2mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel)
+            graph_vmean_2mu = ROOT.TGraph(len(vmean_2mu[ctauLabel]), np.array(sigMasses[-len(vmean_2mu[ctauLabel]):]), np.array(vmean_2mu[ctauLabel]))
+            spline_vmean_2mu = ROOT.TSpline3("spline_meanvar_2mu_%s_%s"%(sigModel,ctauLabel), graph_vmean_2mu)
+            m_interp = np.linspace(sigMasses[-len(vmean_2mu[ctauLabel])], 50.0, 500)
+            v_interp = [spline_vmean_2mu.Eval(x) for x in m_interp]
+            ax.plot(sigMasses[-len(vmean_2mu[ctauLabel]):], vmean_2mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel, marker='o', linestyle='', color=colors[ctauLabel])
+            ax.plot(m_interp, v_interp, color=colors[ctauLabel])
         ax.legend(loc='upper right', fontsize = 10)
-        fig.text(0.5, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
+        fig.text(0.45, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
         fig.savefig('%s/ShapeUnc_%s_%s_mean_2mu.png'%(outDir, sigTag, y), dpi=140)
         ### Sigma variation (2mu)
         fig, ax = plt.subplots(figsize=(16, 5))
         fig.subplots_adjust(bottom=0.2, right=0.80)
-        ax.set_ylabel(r'Max shape \sigma variation (%)', fontsize=20)
+        ax.set_ylabel(r'Max shape $\sigma$ variation (%)', fontsize=20)
         ax.set_xlabel(r'Mass (GeV)', fontsize=20)
         ax.set_xscale('log')
         hep.cms.label("Preliminary", data=False, lumi=luminosity, year=y, com='13.6')
         for ctauLabel in vsigma_2mu.keys():
-            ax.plot(sigMasses[-len(vsigma_2mu[ctauLabel]):], vsigma_2mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel)
+            graph_vsigma_2mu = ROOT.TGraph(len(vsigma_2mu[ctauLabel]), np.array(sigMasses[-len(vsigma_2mu[ctauLabel]):]), np.array(vsigma_2mu[ctauLabel]))
+            spline_vsigma_2mu = ROOT.TSpline3("spline_sigmavar_2mu_%s_%s"%(sigModel,ctauLabel), graph_vsigma_2mu)
+            m_interp = np.linspace(sigMasses[-len(vsigma_2mu[ctauLabel])], 50.0, 500)
+            v_interp = [spline_vsigma_2mu.Eval(x) for x in m_interp]
+            ax.plot(sigMasses[-len(vsigma_2mu[ctauLabel]):], vsigma_2mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel, marker='o', linestyle='', color=colors[ctauLabel])
+            ax.plot(m_interp, v_interp, color=colors[ctauLabel])
         ax.legend(loc='upper right', fontsize = 10)
-        fig.text(0.5, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
+        fig.text(0.45, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
         fig.savefig('%s/ShapeUnc_%s_%s_sigma_2mu.png'%(outDir, sigTag, y), dpi=140)
         ### Mean variation (4mu)
         fig, ax = plt.subplots(figsize=(16, 5))
         fig.subplots_adjust(bottom=0.2, right=0.80)
-        ax.set_ylabel(r'Max shape \mu variation (%)', fontsize=20)
+        ax.set_ylabel(r'Max shape $\mu$ variation (%)', fontsize=20)
         ax.set_xlabel(r'Mass (GeV)', fontsize=20)
         ax.set_xscale('log')
         hep.cms.label("Preliminary", data=False, lumi=luminosity, year=y, com='13.6')
         for ctauLabel in vmean_4mu.keys():
-            ax.plot(sigMasses[-len(vmean_4mu[ctauLabel]):], vmean_4mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel)
+            graph_vmean_4mu = ROOT.TGraph(len(vmean_4mu[ctauLabel]), np.array(sigMasses[-len(vmean_4mu[ctauLabel]):]), np.array(vmean_4mu[ctauLabel]))
+            spline_vmean_4mu = ROOT.TSpline3("spline_meanvar_4mu_%s_%s"%(sigModel,ctauLabel), graph_vmean_4mu)
+            m_interp = np.linspace(sigMasses[-len(vmean_4mu[ctauLabel])], 50.0, 500)
+            v_interp = [spline_vmean_4mu.Eval(x) for x in m_interp]
+            ax.plot(sigMasses[-len(vmean_4mu[ctauLabel]):], vmean_4mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel, marker='o', linestyle='', color=colors[ctauLabel])
+            ax.plot(m_interp, v_interp, color=colors[ctauLabel])
         ax.legend(loc='upper right', fontsize = 10)
-        fig.text(0.5, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
+        fig.text(0.45, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
         fig.savefig('%s/ShapeUnc_%s_%s_mean_4mu.png'%(outDir, sigTag, y), dpi=140)
         ### Sigma variation (4mu)
         fig, ax = plt.subplots(figsize=(16, 5))
         fig.subplots_adjust(bottom=0.2, right=0.80)
-        ax.set_ylabel(r'Max shape \sigma variation (%)', fontsize=20)
+        ax.set_ylabel(r'Max shape $\sigma$ variation (%)', fontsize=20)
         ax.set_xlabel(r'Mass (GeV)', fontsize=20)
         ax.set_xscale('log')
         hep.cms.label("Preliminary", data=False, lumi=luminosity, year=y, com='13.6')
         for ctauLabel in vsigma_4mu.keys():
-            ax.plot(sigMasses[-len(vsigma_4mu[ctauLabel]):], vsigma_4mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel)
+            graph_vsigma_4mu = ROOT.TGraph(len(vsigma_4mu[ctauLabel]), np.array(sigMasses[-len(vsigma_4mu[ctauLabel]):]), np.array(vsigma_4mu[ctauLabel]))
+            spline_vsigma_4mu = ROOT.TSpline3("spline_sigmavar_4mu_%s_%s"%(sigModel,ctauLabel), graph_vsigma_4mu)
+            m_interp = np.linspace(sigMasses[-len(vsigma_4mu[ctauLabel])], 50.0, 500)
+            v_interp = [spline_vsigma_4mu.Eval(x) for x in m_interp]
+            ax.plot(sigMasses[-len(vsigma_4mu[ctauLabel]):], vsigma_4mu[ctauLabel], label=r'c$\tau$ = %s'%ctauLabel, marker='o', linestyle='', color=colors[ctauLabel])
+            ax.plot(m_interp, v_interp, color=colors[ctauLabel])
         ax.legend(loc='upper right', fontsize = 10)
-        fig.text(0.5, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
+        fig.text(0.45, 0.9, r'$H\rightarrow Z_DZ_D, Z_D\rightarrow\mu\mu$', color='black', fontsize = 13)
         fig.savefig('%s/ShapeUnc_%s_%s_sigma_4mu.png'%(outDir, sigTag, y), dpi=140)
-         
 
 
 

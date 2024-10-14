@@ -66,9 +66,9 @@ bool useOnlyPowerLaw = false;
 bool useOnlyBernstein = false;
 bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernstein ) ? true : false;
 
-void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float samplemass, float mass, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
+void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float samplemass, float mass, float ctau, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
 {
-
+  cout << "WE ARE FITTING: " << isSignal << endl;
   //TString outDir = outDirPrefix+"_"+year;
   //TString outDir = Form("%s_%s",outDirPrefix.Data(), year.Data());
   int mdir = mkdir(outDir,0755);
@@ -78,29 +78,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double minMforFit = minmass;
   bool refitSignal = true;
   TString datasetname(mmumuAll.GetName());
-
-  // Veto of SM resonances: Compare minMforFit with upper edge of vetoed mass band
-  // This is provisionally commented because it's giving problems with m = 0.5 GeV
-  //if ( ( (mass - 0.49) < (mass - minMforFit) ) && (mass > 0.49) ) // Ks
-  //  minMforFit = 0.49;
-  if ( datasetname.Contains("d_Dimuon") ) {
-    if ( ( (mass - 0.58) < (mass - minMforFit) ) && (mass > 0.58) ) // eta
-      minMforFit = 0.58;
-    if ( ( (mass - 0.84) < (mass - minMforFit) ) && (mass > 0.84) ) // rho / w
-      minMforFit = 0.84;
-    if ( ( (mass - 1.08) < (mass - minMforFit) ) && (mass > 1.08) ) // phi 1020
-      minMforFit = 1.08;
-    if ( ( (mass - 3.27) < (mass - minMforFit) ) && (mass > 3.27) ) // Jpsi
-      minMforFit = 3.27;
-    if ( ( (mass - 3.89) < (mass - minMforFit) ) && (mass > 3.89) ) // Psi 2S
-      minMforFit = 3.89;
-    if ( ( (mass - 9.87) < (mass - minMforFit) ) && (mass > 9.87) ) // Upsilon 1S
-      minMforFit = 9.87;
-    if ( ( (mass - 10.39) < (mass - minMforFit) ) && (mass > 10.39) ) // Upsilon 2S
-      minMforFit = 10.39;
-    if ( ( (mass - 10.77) < (mass - minMforFit) ) && (mass > 10.77) ) // Upsilon 3S
-      minMforFit = 10.77;
-  }
 
   // Get the lxy range to obtain the initial fit parameters
   //
@@ -278,6 +255,34 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   std::cout << "- alphaR: " << alphaR << std::endl;
   std::cout << "- mcfrac: " << frac << std::endl;
 
+  // Veto of SM resonances: leave the workspace empty if hitting SM resonance boundaries for the background
+  // Signal is kept for interpolation purposes
+  // We use the sample mass: If dimuons fall within the window, we are out...
+  double lowBound = samplemass-5.0*0.018*samplemass;
+  double upBound = samplemass+5.0*0.018*samplemass;
+  cout << isSignal << "Before veto: " << lowBound << "  " << upBound << endl;
+  if ( !isSignal ) {
+    if ( (( lowBound < 0.49 ) && (samplemass > 0.49)) || (( upBound > 0.43 ) && (samplemass < 0.43)) || ((samplemass > 0.43) && (samplemass < 0.49)) ) // Ks
+      return;
+    if ( (( lowBound < 0.58 ) && (samplemass > 0.58)) || (( upBound > 0.52 ) && (samplemass < 0.52)) || ((samplemass > 0.52) && (samplemass < 0.58)) ) // eta
+      return;
+    if ( (( lowBound < 0.84) && (samplemass > 0.84)) || (( upBound > 0.73 ) && (samplemass < 0.73)) || ((samplemass > 0.73) && (samplemass < 0.84)) ) // rho / w
+      return;
+    if ( (( lowBound < 1.08 ) && (samplemass > 1.08)) || (( upBound > 0.96 ) && (samplemass < 0.96)) || ((samplemass > 0.96) && (samplemass < 1.08)) ) // phi 1020
+      return;
+    if ( (( lowBound < 3.27 ) && (samplemass > 3.27)) || (( upBound > 2.91 ) && (samplemass < 2.91)) || ((samplemass > 2.91) && (samplemass < 3.27)) ) // Jpsi
+      return;
+    if ( (( lowBound < 3.89 ) && (samplemass > 3.89)) || (( upBound > 3.47 ) && (samplemass < 3.47)) || ((samplemass > 3.47) && (samplemass < 3.89)) ) // Psi 2S
+      return;
+    if ( (( lowBound < 9.87 ) && (samplemass > 9.87)) || (( upBound > 8.99 ) && (samplemass < 8.99)) || ((samplemass > 8.99) && (samplemass < 9.87)) ) // Upsilon 1S
+      return;
+    if ( (( lowBound < 10.39 ) && (samplemass > 10.39)) || (( upBound > 9.61 ) && (samplemass < 9.61)) || ((samplemass > 9.61) && (samplemass < 10.39)) ) // Upsilon 2S
+      return;
+    if ( (( lowBound < 10.77 ) && (samplemass > 10.77)) || (( upBound > 9.87 ) && (samplemass < 9.87)) || ((samplemass > 9.87) && (samplemass < 10.77)) ) // Upsilon 3S
+      return;
+  }
+
+
   if ( isSignal ) {
 
     if ( !(isSignalMC) ) {
@@ -398,40 +403,16 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       std::cout << ">>> SIGNAL NORMALIZATION: " << (*mmumu).numEntries() << " " << (*mmumu).sumEntries() << " " << (*mmumu).sumEntries(fitRange.Data()) << std::endl;
     }
     else {
-      TFile *fxsec = TFile::Open("../data/xsec_interpolation_ZPrimeToMuMuSB_bestfit_13TeV_Allanach.root");
-      TSpline3 *xsecbb = (TSpline3 *) fxsec->Get(Form("spline_%s_xsec_bb",sigmodel.Data()));
-      TSpline3 *xsecsb = (TSpline3 *) fxsec->Get(Form("spline_%s_xsec_sb",sigmodel.Data()));
-      double txsecbb = TMath::Exp(xsecbb->Eval(mass));
-      double txsecsb = TMath::Exp(xsecsb->Eval(mass));
-      fxsec->Close();
-      TFile *facc = TFile::Open("../data/acceff_interpolation_Run2.root");
-      TSpline3 *accbb_nb1 = (TSpline3 *) facc->Get("spline_avg_acceff_bb_Nb_eq_1_Run2");
-      TSpline3 *accbb_nb2 = (TSpline3 *) facc->Get("spline_avg_acceff_bb_Nb_geq_2_Run2");
-      TSpline3 *accsb_nb1 = (TSpline3 *) facc->Get("spline_avg_acceff_sb_Nb_eq_1_Run2");
-      TSpline3 *accsb_nb2 = (TSpline3 *) facc->Get("spline_avg_acceff_sb_Nb_geq_2_Run2");
-      double tacctot = 0.0;
-      double taccbb  = 0.0;
-      double taccsb  = 0.0;
-      if (binidx == 0){
-	taccbb  = accbb_nb1->Eval(mass)+accbb_nb2->Eval(mass);
-	taccsb  = accsb_nb1->Eval(mass)+accsb_nb2->Eval(mass);
-	tacctot = taccbb+taccsb;
-      }
-      else if (binidx == 1){
-	tacctot = accbb_nb1->Eval(mass)+accsb_nb1->Eval(mass);
-	taccbb  = accbb_nb1->Eval(mass);
-	taccsb  = accsb_nb1->Eval(mass);
-	tacctot = taccbb+taccsb;
-      }
-      else if (binidx == 2){
-	taccbb  = accbb_nb2->Eval(mass);
-	taccsb  = accsb_nb2->Eval(mass);
-	tacctot = taccbb+taccsb;
-      }
+      TFile *facc = TFile::Open("../data/acceptanceSplines_2022.root");
+      TSpline3 *acceff = (TSpline3 *) facc->Get(Form("spline_acceptance_%s_%.0f_%s",sigmodel.Data(),ctau,datasetname.Data()));
+      double tacceff  = acceff->Eval(samplemass);
       facc->Close();
-      int sigRawAll = 1e6;
-      sigNormalization = taccbb*txsecbb + taccsb*txsecsb;
-      sigRawEntries = (int) ((sigNormalization/(txsecbb+txsecsb))*sigRawAll);
+      int sigRawAll = 1e6; // Random for now... But will have to include it for the systematics...
+      if (period.Contains("2022"))
+        sigNormalization = tacceff*1000*35;
+      else
+        sigNormalization = tacceff*1000*27;
+      sigRawEntries = (int) (sigNormalization/(tacceff*1000*35)*sigRawAll);
     }
     std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Import of the signal " << std::endl;
     std::cout << "Refitting signal? " << refitSignal << std::endl;

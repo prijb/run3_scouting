@@ -34,11 +34,17 @@ useSignalMC = True
 doSystVariations = False
 sigModel = "HTo2ZdTo2mu2x"
 
-outDir = ("%s/plotsSRs_"%(thisDir))+today
+# Output definition
+outDir = ("%s/plotsAcceptance_"%(thisDir))+today
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 os.system('cp '+os.environ.get("PWD")+'/utils/index.php '+outDir)
+#
+outFileName = ("%s/plotsAcceptance_"%(thisDir))+today + "/acceptanceSplines_2022.root" # Year is hardcoded
+outFile = ROOT.TFile(outFileName, "RECREATE")
+outFile.Close()
 
+# Signal Regions
 dNames = []
 dNames.append("d_FourMu_sep")
 dNames.append("d_FourMu_osv")
@@ -83,12 +89,14 @@ dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
 dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
 dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
 
+# Years
 years = []
 years.append("2022")
 #years.append("2023")
 
+# Style settings
 ROOT.gStyle.SetOptStat(0)
-#colors = ['#3f90da', '#ffa90e', '#bd1f01', '#94a4a2', '#832db6', '#a96b59', '#e76300', '#b9ac70', '#717581', '#92dadd']
+# Colors : ['#3f90da', '#ffa90e', '#bd1f01', '#94a4a2', '#832db6', '#a96b59', '#e76300', '#b9ac70', '#717581', '#92dadd']
 colors = {}
 colors['0.1']   = '#832db6'
 colors['1']     = '#3f90da'
@@ -96,7 +104,9 @@ colors['10']    = '#ffa90e'
 colors['100']   = '#bd1f01'
 colors['1000']  = '#94a4a2'
 
-# Load signals
+# Signals
+sigMasses = []
+sigCTaus = []
 if sigModel=="HTo2ZdTo2mu2x":
     sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
     for  m in sigMasses:
@@ -104,10 +114,12 @@ if sigModel=="HTo2ZdTo2mu2x":
         for t in sigCTaus:
             if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                 continue
+    sigCTaus = [1, 10, 100, 1000]
 
-sigCTaus = [1, 10, 100, 1000]
-
+#
+#
 ## Loop to make the plots
+splines = []
 for d_,d in enumerate(dNames):
     #
     y = 2022 # hardcoded
@@ -266,9 +278,13 @@ for d_,d in enumerate(dNames):
             masses.append(m)
             # Close input file with workspace
             f.Close()
+        # Graph and acceptance for spline
+        graph = ROOT.TGraph(len(acceptance), np.array(masses), np.array(acceptance))
+        splines.append(ROOT.TSpline3("spline_acceptance_%s_%i_%s"%(sigModel,t,d), graph))
+        splines[-1].SetName("spline_acceptance_%s_%i_%s"%(sigModel,t,d))
         acceptance_100 = [100*x for x in acceptance]
         graph_100 = ROOT.TGraph(len(acceptance_100), np.array(masses), np.array(acceptance_100))
-        spline_100 = ROOT.TSpline3("spline_%.1f_%i"%(m,t), graph_100)
+        spline_100 = ROOT.TSpline3("spline_acceptance_%s_%i_%s_100"%(sigModel,t,d), graph_100)
         if masses[0] < 1.5:
             m_interp0 = np.linspace(0.5, 1.5, 100)
             m_interp1 = np.linspace(1.51, 9.95, 100)
@@ -284,27 +300,30 @@ for d_,d in enumerate(dNames):
         # Plot in the canvas
         ax.plot(masses, acceptance_100, label=r'$h\rightarrow Z_{D}Z_{D}$, $c\tau = $%i mm'%(t), color=colors[str(t)], marker='o', linestyle='')
         ax.plot(m_interp, a_interp, color=colors[str(t)])
-    # Harcoded and to be removed, only for the Scenario B1
-    for _t,t in enumerate([0.1, 1, 10, 100]):
-        acceptance = []
-        sigTag = "Signal_ScenarioB1_mpi-4_mA-1p33_ctau-%smm"%(str(t).replace('.','p'))
-        print("Analyzing %s, in region %s"%(sigTag, d))
-        print("%s/%s_%s_%i_workspace.root"%(inDir,d,sigTag,y))
-        finame = "%s/%s_%s_%i_workspace.root"%(inDir,d,sigTag,y)
-        # Open input file with workspace
-        f = ROOT.TFile(finame)
-        # Retrieve workspace from file
-        w = f.Get(wsname)
-        # Retrieve signal normalization
-        nSig = w.var("signalNorm%s"%catExtS).getValV()
-        acceptance.append(nSig/(1000*35)) # Nexp / (sigma*L) = A * eff
-        masses.append(m)
-        # Close input file with workspace
-        f.Close()
-        acceptance_100 = [100*x for x in acceptance]
-        ax.plot([1.33], acceptance_100, label=r'Scenario B1 $c\tau = $%s mm'%(str(t)), color=colors[str(t)], marker='x', linestyle='', ms=20)
+        # Save spline
+        outFile = ROOT.TFile.Open(outFileName, "UPDATE")
+        splines[-1].Write()
+        outFile.Close()
+    # Hardcoded and to be removed, only for the Scenario B1
+    if False:
+        for _t,t in enumerate([0.1, 1, 10, 100]):
+            acceptance = []
+            sigTag = "Signal_ScenarioB1_mpi-4_mA-1p33_ctau-%smm"%(str(t).replace('.','p'))
+            print("Analyzing %s, in region %s"%(sigTag, d))
+            print("%s/%s_%s_%i_workspace.root"%(inDir,d,sigTag,y))
+            finame = "%s/%s_%s_%i_workspace.root"%(inDir,d,sigTag,y)
+            # Open input file with workspace
+            f = ROOT.TFile(finame)
+            # Retrieve workspace from file
+            w = f.Get(wsname)
+            # Retrieve signal normalization
+            nSig = w.var("signalNorm%s"%catExtS).getValV()
+            acceptance.append(nSig/(1000*35)) # Nexp / (sigma*L) = A * eff
+            masses.append(m)
+            # Close input file with workspace
+            f.Close()
+            acceptance_100 = [100*x for x in acceptance]
+            ax.plot([1.33], acceptance_100, label=r'Scenario B1 $c\tau = $%s mm'%(str(t)), color=colors[str(t)], marker='x', linestyle='', ms=20)
     ax.legend(loc='upper left', fontsize = 16, frameon = True, ncol=2)
     fig.savefig('%s/acceptance_%s_%s.png'%(outDir, d, y), dpi=140)
-
-         
 

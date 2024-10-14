@@ -1,18 +1,17 @@
 {
-  gROOT->ProcessLine(".L ./cpp/fit_dimuon.C+");  // Macro that performs the selection
+  gROOT->ProcessLine(".L ./cpp/fit_dimuon.C+");  // Macro that performs the fitting
+  gROOT->ProcessLine(".L ./cpp/helper.C+");  // Helper with handles 
 
   bool useData = true;
-  //bool useData = false;
-  bool useSignalMC = true;
-  //bool useSignalMC = true;
+  bool useSignalMC = false;
   bool mergeEras = true;
   bool writeWS = true;
   bool doUpAndDownVariations = true;
+  if (!useSignalMC)
+    doUpAndDownVariations = false;
   TString period = "2022"; // Either 2022 or 2023
-  //TString model = "HTo2ZdTo2mu2x";
-  TString model = "ScenarioB1";
-  float mF = 350.0;
-  float mL = 2000.0;
+  TString model = "HTo2ZdTo2mu2x";
+  //TString model = "ScenarioB1";
   
 
   // Dir with the RooDataSets
@@ -86,6 +85,7 @@
   vector<TString> sigsamples = { };
   vector<float> sigmasses_2mu = { };
   vector<float> sigmasses_4mu = { };
+  vector<float> sigmasses_ctau = { };
 
   if ( useData ) {
     samples.push_back("Data");
@@ -94,19 +94,43 @@
   // Signals (Should include sigMass, sigCtau and a proper definition for sigmasses_4mu)
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
-    vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-    vector<float> sigCtau = {1, 10, 100, 1000};
-    for ( unsigned int m=0; m<sigMass.size(); m++ ) {
-      TString massString = Form("%.1f",sigMass[m]); 
-      massString.ReplaceAll(".", "p");
-      for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
-        if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
+    if ( useSignalMC ) {
+      vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
+      vector<float> sigCtau = {1, 10, 100, 1000};
+      for ( unsigned int m=0; m<sigMass.size(); m++ ) {
+        TString massString = Form("%.1f",sigMass[m]); 
+        massString.ReplaceAll(".", "p");
+        for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
+          if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
+            continue;
+          TString ctauString = Form("%.0f",sigCtau[t]); 
+          sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
+          sigmasses_2mu.push_back(sigMass[m]);
+          sigmasses_4mu.push_back(125.); // Mass of the higgs
+          sigmasses_ctau.push_back(sigCtau[t]); // Lifetime
+          std::cout << Form("Reading signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+        }
+      }
+    } else {
+      vector<float> sigCtau = {1, 10, 100, 1000};
+      float lastmass = 0.5;
+      while (lastmass < 50.0)
+      {
+        lastmass = 1.04*lastmass;
+        if (!passMassVeto(lastmass))
           continue;
-        TString ctauString = Form("%.0f",sigCtau[t]); 
-        sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
-        sigmasses_2mu.push_back(sigMass[m]);
-        sigmasses_4mu.push_back(125.); // Mass of the higgs
-        std::cout << Form("Reading signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+        float intpmass = lastmass;
+        for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
+          if ( (intpmass < 1.0 && sigCtau[t] > 10) || (intpmass < 30.0 && sigCtau[t] > 100) )
+            continue;
+          TString ctauString = Form("%.1f",sigCtau[t]);
+          TString massString = Form("%.3f",intpmass); 
+          sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
+          sigmasses_2mu.push_back(intpmass);
+          sigmasses_4mu.push_back(125.);
+          sigmasses_ctau.push_back(sigCtau[t]);
+          std::cout << Form("Interpolating signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+        }
       }
     }
   } else if (model=="ScenarioB1") {
@@ -165,7 +189,7 @@
  for ( unsigned int d=0; d<dNames.size(); d++ ) {
    // Loop over datasets
    for ( unsigned int iera=0; iera<eras.size(); iera++ ) {
-     std::cout << "Loading dataset: " << dNames[d] << std::endl;
+     //std::cout << "Loading dataset: " << dNames[d] << std::endl;
      vector<TString> dataEras = {};
      TString era = eras[iera];
      TString year = "2022";
@@ -253,11 +277,11 @@
            mmumu_sigs_sel_down[isample].push_back( *tds_sel_down );
          }
          fin.Close();
+         cout << "Number of entries for the mmumu_sigs RooDataSet: " << mmumu_sigs[isample][iera].numEntries() << endl;
        } //else {
        //  RooDataSet *tds = (RooDataSet*) mmumu_bkgs[iera].emptyClone(dNames[d]+"_"+sample+"_"+year, "");
        //  mmumu_sigs.push_back( *tds );
        //}
-       cout << "Number of entries for the mmumu_sigs RooDataSet: " << mmumu_sigs[isample][iera].numEntries() << endl;
      }
    }
    
@@ -282,12 +306,17 @@
        RooWorkspace wfit_trg_down("wfit_trg_down","workspace_trg_down");
        RooWorkspace wfit_sel_up("wfit_sel_up","workspace_sel_up");
        RooWorkspace wfit_sel_down("wfit_sel_down","workspace_sel_down");
-       for (unsigned int iera=0; iera<eras.size(); iera++ ) {
-         if (iera==0)
-           mmumu_sig_merged.push_back(mmumu_sigs[isample][iera]);
-         else
-           mmumu_sig_merged[isample].append(mmumu_sigs[isample][iera]);
-       }  
+       if (useSignalMC) {
+         for (unsigned int iera=0; iera<eras.size(); iera++ ) {
+           if (iera==0)
+             mmumu_sig_merged.push_back(mmumu_sigs[isample][iera]);
+           else
+             mmumu_sig_merged[isample].append(mmumu_sigs[isample][iera]);
+         }
+       } else {
+         RooDataSet *tds = (RooDataSet*) mmumu_bkg_merged.emptyClone(dNames[d]+"_"+sigsamples[isample]+"_"+period, "");
+         mmumu_sig_merged.push_back( *tds );
+       }
        mmumu_sig_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period);
        if (doUpAndDownVariations) {
          for (unsigned int iera=0; iera<eras.size(); iera++ ) {
@@ -312,23 +341,23 @@
        // Fit invariant mass
        std::cout << "Prepare to fit..." << std::endl;
        if (dNames[d].BeginsWith("d_FourMu_")) {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit, true, period, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit, true, period, "", outDir); 
+         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit, true, period, "dcbfastg", outDir);
+         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit, true, period, "", outDir); 
        } else {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit, false, period, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit, false, period, "", outDir); 
+         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit, false, period, "dcbfastg", outDir);
+         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit, false, period, "", outDir); 
        }
        if (doUpAndDownVariations) { 
          if (dNames[d].BeginsWith("d_FourMu_")) {
-           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_trg_up, true, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_trg_down, true, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_sel_up, true, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], wfit_sel_down, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit_trg_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit_trg_down, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit_sel_up, true, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit_sel_down, true, period, "dcbfastg", outDir);
          } else {
-           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_trg_up, false, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_trg_down, false, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_sel_up, false, period, "dcbfastg", outDir);
-           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], wfit_sel_down, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit_trg_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_trg_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit_trg_down, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_up_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit_sel_up, false, period, "dcbfastg", outDir);
+           fitmass(mmumu_sig_sel_down_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit_sel_down, false, period, "dcbfastg", outDir);
          }
        }
        
@@ -355,18 +384,25 @@
        cout<<endl;
      }
    }
+   std::cout << "Cleaning the workspace containers..." << std::endl;
    for ( int isample=0; isample<sigsamples.size(); isample++ ) {
-     mmumu_sigs[isample].clear();
-     mmumu_sigs_trg_up[isample].clear();
-     mmumu_sigs_trg_down[isample].clear();
-     mmumu_sigs_sel_up[isample].clear();
-     mmumu_sigs_sel_down[isample].clear();
+     if (useSignalMC)
+       mmumu_sigs[isample].clear();
+     if (doUpAndDownVariations) { 
+       mmumu_sigs_trg_up[isample].clear();
+       mmumu_sigs_trg_down[isample].clear();
+       mmumu_sigs_sel_up[isample].clear();
+       mmumu_sigs_sel_down[isample].clear();
+     }
    }
-   mmumu_sigs.clear();
-   mmumu_sigs_trg_up.clear();
-   mmumu_sigs_trg_down.clear();
-   mmumu_sigs_sel_up.clear();
-   mmumu_sigs_sel_down.clear();
+   if (useSignalMC)
+     mmumu_sigs.clear();
+   if (doUpAndDownVariations) { 
+     mmumu_sigs_trg_up.clear();
+     mmumu_sigs_trg_down.clear();
+     mmumu_sigs_sel_up.clear();
+     mmumu_sigs_sel_down.clear();
+   }
    mmumu_bkgs.clear();
  }
 
