@@ -215,9 +215,9 @@ elif sigModel=="BToPhi":
         #sigCTaus = [0.1, 1, 10, 100]
         for t in sigCTaus:
             if t < 1:
-                sigTags.append("Signal_BToPhi-%s_ctau-%smm_2022"%(str(m).replace('.','p'), str(t).replace('.','p')))
+                sigTags.append("Signal_BToPhi-%s_ctau-%smm"%(str(m).replace('.','p'), str(t).replace('.','p')))
             else:
-                sigTags.append("Signal_BToPhi-%s_ctau-%smm_2022"%(str(m).replace('.','p'), str(t)))              
+                sigTags.append("Signal_BToPhi-%s_ctau-%smm"%(str(m).replace('.','p'), str(t)))              
 elif sigModel=="ScenarioB1":
     sigMasses = [1.33]
     sigCTaus = [0.1, 1, 10, 100]
