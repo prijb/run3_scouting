@@ -207,7 +207,7 @@ for y in years:
                     else:
                         sample = "Signal_HTo2ZdTo2mu2x_MZd-%.2f_ctau-%imm"%(mf,t)
                 elif (model=="BToPhi"):
-                    sample = ("Signal_BToPhi-%s_ctau-%smm_2022"%(m.replace('.','p'), t))
+                    sample = ("Signal_BToPhi-%s_ctau-%smm"%(m.replace('.','p'), t))
                     finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
                 else:
                     sample = "Signal_ScenarioB1_mpi-4_mA-%s_ctau-%imm"%(m.replace(".", "p"),t)
