@@ -197,7 +197,7 @@
         sigmasses_2mu.push_back(sigMass[m]);
         sigmasses_4mu.push_back(125.); // For B-hadron model this doesn't make much sense
         sigmasses_ctau.push_back(sigCtau[t]);
-        std::cout << Form("Reading signal sample: Signal_BToPhi-%s_ctau-%smm_2022", massString.Data(), ctauString.Data()) << std::endl;
+        std::cout << Form("Reading signal sample: Signal_BToPhi-%s_ctau-%smm", massString.Data(), ctauString.Data()) << std::endl;
         }
       }
   }
@@ -286,8 +286,7 @@
        TString sample = sigsamples[isample];
        cout<<"Sample: "<< sample << endl;
        if ( useSignalMC ) {
-         //TString inFile = Form("%s/histograms_%s_%s_%s_0.root",inDir.Data(),sample.Data(),era.Data(),year.Data());
-	 TString inFile = Form("%s/histograms_%s_%s_0.root",inDir.Data(),sample.Data(),year.Data()); //changed by Javier, sample names had 2022 three times
+         TString inFile = Form("%s/histograms_%s_%s_%s_0.root",inDir.Data(),sample.Data(),era.Data(),year.Data());
          TFile fin(inFile);
          RooDataSet *tds = (RooDataSet*) fin.Get(dNames[d])->Clone();
          tds->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era);
