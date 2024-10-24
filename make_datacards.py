@@ -100,8 +100,8 @@ if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
 #### Caution, here the names AND order should be consistent to the ones set in cpp/doAll_fitDimuonMass.C 
 # Example of workspace: d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
 dNames = []
-dNames.append("d_FourMu_sep")
-dNames.append("d_FourMu_osv")
+#dNames.append("d_FourMu_sep")
+#dNames.append("d_FourMu_osv")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
@@ -180,7 +180,8 @@ if doFourMuon:
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 os.system('cp -r %s %s/'%(_inDir, outDir))
-inDir  = "%s/%s/"%(thisDir, _inDir)
+#inDir  = "%s/%s/"%(thisDir, _inDir)
+inDir  = "%s/%s"%(thisDir, _inDir)
 
 # Signals
 sigModel = "HTo2ZdTo2mu2x" # HTo2ZdTo2mu2x : ScenarioB1 : BToPhi
@@ -194,7 +195,8 @@ if sigModel=="HTo2ZdTo2mu2x":
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
-                sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t))
+                #sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t))
+                sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.1fmm" % (m, t))
     else:
         sigCTaus = [1, 10, 100, 1000]
         lastmass = 0.5
@@ -208,22 +210,21 @@ if sigModel=="HTo2ZdTo2mu2x":
                     continue
                 sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.1fmm"%(m, t))
 elif sigModel=="BToPhi":
-    #sigMasses = [0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.25, 1.5, 2.0, 2.85, 3.35, 4.0, 5.0]
-    sigMasses = [0.9, 1.25, 1.5, 2.0, 5.0] #Other masses are either too small or too close to SM resonance
+    #sigMasses = [0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.90, 1.25, 1.50, 2.0, 2.85, 3.35, 4.00, 5.00]
+    sigMasses = [0.90, 1.25, 1.50, 2.0, 5.0] #Other masses are either too small or too close to SM resonance
     for m in sigMasses:
-        sigCTaus = [0.0, 0.1, 1, 10, 100]
-        #sigCTaus = [0.1, 1, 10, 100]
+        #sigCTaus = [0.0, 0.1, 1, 10, 100]
+        sigCTaus = [1, 10, 100]
         for t in sigCTaus:
-            if t < 1:
-                sigTags.append("Signal_BToPhi-%s_ctau-%smm"%(str(m).replace('.','p'), str(t).replace('.','p')))
-            else:
-                sigTags.append("Signal_BToPhi-%s_ctau-%smm"%(str(m).replace('.','p'), str(t)))              
+            sigTags.append(f"Signal_BToPhi-{m:.3f}_ctau-{t:.1f}mm")              
 elif sigModel=="ScenarioB1":
     sigMasses = [1.33]
     sigCTaus = [0.1, 1, 10, 100]
     for m in sigMasses:
         for t in sigCTaus:
-            sigTags.append("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(str(m).replace(".", "p"),str(t).replace('.','p')))
+            #sigTags.append("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(str(m).replace(".", "p"),str(t).replace('.','p')))
+            #sigTags.append("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(m, t))
+            sigTags.append("Signal_ScenarioB1_mpi-4_mA-%.3f_ctau-%.1fmm" % (float(m), float(t)))
 
 f2l = [0.0]
 nSigTot = 1.0
@@ -242,7 +243,9 @@ for y in years:
             print("Analyzing %s, in region %s"%(m, d))
             print("%s/%s_%s_%s_workspace.root"%(inDir,d,m,y))
             finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
+            #finame = "%s/%s_%s_%s_2022_workspace.root"%(inDir,d,m,y)
             _finame = "%s/%s_%s_%s_workspace.root"%(_inDir,d,m,y)
+            #_finame = "%s/%s_%s_%s_2022_workspace.root"%(_inDir,d,m,y)
             binidx=-1
             if d=="d_FourMu_sep":
                 binidx=1
@@ -380,7 +383,7 @@ for y in years:
                 trgsyst = max([(nSig_trgUp/nSig - 1.0), (1.0 - nSig_trgDown/nSig)])
             except AttributeError: # No up and down variations in this tree, probably interpolated point
                 filesyst = ROOT.TFile.Open("data/systematicSplines_2022.root", "READ")
-                spline_trg = filesyst.Get("spline_trgsys_%s_%s_%.1f_%s"%(sigModel, d, T, y))
+                spline_trg = filesyst.Get("spline_trgsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, y))
                 trgsyst = spline_trg.Eval(M)
                 filesyst.Close()
             #
@@ -396,7 +399,7 @@ for y in years:
                 selsyst = max([(nSig_selUp/nSig - 1.0), (1.0 - nSig_selDown/nSig)])
             except AttributeError: # No up and down variations in this tree, probably interpolated point
                 filesyst = ROOT.TFile.Open("data/systematicSplines_2022.root", "READ")
-                spline_trg = filesyst.Get("spline_selsys_%s_%s_%.1f_%s"%(sigModel, d, T, y))
+                spline_trg = filesyst.Get("spline_selsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, y))
                 selsyst = spline_trg.Eval(M)
                 filesyst.Close()
             #
@@ -496,7 +499,8 @@ for y in years:
                     nSig = nSigTot*f
                 if binidx > 0:
                     cname = "_f2b%d"%(f*100)
-            cardn = "%s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y)
+            #cardn = "%s/card%s_ch%d_%s_M%.2f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y)
+            cardn = "%s/card%s_ch%d_%s_M%.3f_ctau-%.1f_%s.txt" % (outDir, cname, binidx, sigModel, float(M), float(T), y)
             if noModel:
                 cardn = "%s/card%s_ch%d_nomodel_M%s_%s.txt"%(outDir,cname,binidx,m,y)
             card = open("%s"%cardn,"w")
@@ -563,7 +567,8 @@ for y in years:
             if noModel:
                 os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
             else:
-                os.system("text2workspace.py %s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
+                #os.system("text2workspace.py %s/card%s_ch%d_%s_M%.2f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))
+                os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau-%.1f_%s.txt" % (outDir, cname, binidx, sigModel, float(M), float(T), y))
             #os.chdir(thisDir)
         if not isValidPoint:
             continue
@@ -582,9 +587,12 @@ for y in years:
                 #else:
                 #    os.system("combineCards.py -S card%s_ch1_%s_M%s_%s.txt card%s_ch2_%s_M%s_%s.txt > card%s_combined_%s_M%s_%s.txt"%(cname,s,m,y,cname,s,m,y,cname,s,m,y))
                 #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
-                combinedCards += "%s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt "%(outDir,cname,binidx,sigModel,M,T,y)
-            os.system("combineCards.py -S %s > card%s_combined_%s_M%.1f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
-            os.system("text2workspace.py %s/card%s_combined_%s_M%.1f_ctau%i_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
+                #combinedCards += "%s/card%s_ch%d_%s_M%.2f_ctau%i_%s.txt "%(outDir,cname,binidx,sigModel,M,T,y)
+                combinedCards += "%s/card%s_ch%d_%s_M%.3f_ctau-%.1f_%s.txt " % (outDir, cname, binidx, sigModel, float(M), float(T), y)
+            #os.system("combineCards.py -S %s > card%s_combined_%s_M%.2f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
+            #os.system("text2workspace.py %s/card%s_combined_%s_M%.2f_ctau%i_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
+            os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau-%.1f_%s.txt" % (combinedCards, cname, sigModel, float(M), float(T), y))
+            os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau-%.1f_%s.txt --channel-masks" % (outDir, cname, sigModel, float(M), float(T), y))
             os.chdir(thisDir)
 
 # f it dir within the datacard directory is not needed anymore (avoid using rm -rf)
