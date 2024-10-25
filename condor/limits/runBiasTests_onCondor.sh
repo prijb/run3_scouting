@@ -21,6 +21,7 @@ export SCOUTINGSNTOUTPUTDIRLIM=$2
 export PERIOD=$3
 export EXPECTEDLIM=$4
 export SCOUTINGEXPECTEDLIM=$(basename "$EXPECTEDLIM")
+export RINJ=$5
 export HOMEDIR=$PWD
 
 echo "Creating dirs..."

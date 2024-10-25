@@ -34,10 +34,7 @@ if len(sys.argv)>1:
 
 wsname = "w"
 thisDir = os.environ.get("PWD")
-#inDir  = "%s/datacards_all_%s/"%(thisDir,inDate) asdf
 inDir  = "%s/%s"%(thisDir,inDir)
-
-#fitDir = "%s/fitResults_2022"%(thisDir) asdf
 
 biasCombination = True
 biasPerChannel = False
@@ -47,6 +44,7 @@ nToysPerCombination = 500
 biasSummary = False
 checkIndividualPDFs = False
 plotEnvelope = False
+redoCombinedCard = True
 
 useCategorizedSignal = True
 useCategorizedBackground = True
@@ -173,14 +171,14 @@ for y in years:
             # Loop over lifetimes
             for t in sigCTaus:
                 if (t == 1):
+                    nToysPerChannel = 100
+                    nToysPerCombination = 100
+                if (t == 10):
                     nToysPerChannel = 200
                     nToysPerCombination = 200
-                if (t == 10):
-                    nToysPerChannel = 350
-                    nToysPerCombination = 350
                 if (t == 100):
-                    nToysPerChannel = 500
-                    nToysPerCombination = 500
+                    nToysPerChannel = 300
+                    nToysPerCombination = 300
                 # Find limit for given (mass,ctau) point
                 expLim = 1.0
                 if os.path.exists(limFile):
@@ -198,7 +196,7 @@ for y in years:
                 # Define model identifier
                 modelTag = ""
                 if s=="HTo2ZdTo2mu2x":
-                    modelTag = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t)
+                    modelTag = "Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%imm"%(m, t)
                 ### Add more models when ready
                 combinedCards = ""
                 # Loop over card channels:
@@ -303,7 +301,7 @@ for y in years:
                     if useCategorizedBackground:
                         catExtB = "_ch%d_%s"%(binidx,y)
                     # Open input file with workspace
-                    card = "%s/card_ch%d_%s_M%s_ctau%i_%s.root"%(inDir,binidx,s,m,t,y)
+                    card = "%s/card_ch%d_%s_M%.3f_ctau%i_%s.root"%(inDir,binidx,s,m,t,y)
                     print("> Reading card: %s"%(card))
                     f = ROOT.TFile(card)
                     print("> Opened file: %s"%(card))
@@ -364,7 +362,7 @@ for y in years:
                     print("The expected limit for this bin is %f"%(rLimExpOneBin))
                     print("The expected signal in this bin is %e"%(nSig))
                     print("The measured background in this bin is %i"%(nBG))
-                    if (nSig < 1e-6) or (rLimOneBin < 0): # asdf
+                    if (nSig < 1e-6) or (rLimOneBin < 0) or ((nBG**0.5)/nSig > 10): # Selects significant regions: 10 for 0p1 (100 fb) and 100 for 0p01 (10 fb)
                         print("Excluding channel: %i"%(binidx))
                         continue
                     else:
@@ -378,8 +376,7 @@ for y in years:
                         print("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
                         os.system("combine -M MultiDimFit -d %s -P r --algo grid --saveNLL --forceRecreateNLL -n _%s_envelope%s -m %s --rMin -1 --rMax 3 --setParameterRanges r=-0.3,3 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --expectSignal 0 -t -1 --points 90 --cminDefaultMinimizerStrategy 0 --toysFrequentist --bypassFrequentist --robustFit 1 --X-rtd MINIMIZER_freezeDisassociatedParams %s"%(card,s,catExtB,m,extra))
                     fnmultidim = []
-                    if True: #asdf
-                        combinedCards += (card.replace('.root','.txt') + " ")
+                    combinedCards += (card.replace('.root','.txt') + " ")
                     for rn,r in enumerate(rs):
                         meanfit[m][d][r]  = []
                         sigmafit[m][d][r] = []
@@ -585,15 +582,18 @@ for y in years:
                 if not biasCombination:
                     continue
                 ### Bias, combination
-                # asdf: compute the datacard
-                #card = "%s/card_combined_%s_M%s_ctau%i_%s.root"%(inDir,s,m,t,y)
-                card = "%s/card_combined_%s_M%s_ctau%i_%s_selectedChannels.root"%(inDir,s,m,t,y)
-                os.system("combineCards.py -S %s > %s"%(combinedCards, card.replace('.root','.txt')))
-                os.system("text2workspace.py %s"%(card.replace('.root','.txt')))
+                print("Proceed to channel combination")
+                if redoCombinedCard:
+                    card = "%s/card_combined_%s_M%s_ctau%i_%s_selectedChannels.root"%(inDir,s,m,t,y)
+                    os.system("combineCards.py -S %s > %s"%(combinedCards, card.replace('.root','.txt')))
+                    os.system("text2workspace.py %s"%(card.replace('.root','.txt')))
+                else:
+                    card = "%s/card_combined_%s_M%.3f_ctau%i_%s.root"%(inDir,s,m,t,y)
                 #options="--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams --toysFrequentist --bypassFrequentist --robustFit 1"
-                options="--cminDefaultMinimizerStrategy 0 --ignoreCovWarning --cminDefaultMinimizerTolerance 0.01 --X-rtd MINIMIZER_freezeDisassociatedParams --X-rtd MINIMIZER_multiMin_hideConstants --X-rtd MINIMIZER_multiMin_maskConstraints --X-rtd MINIMIZER_multiMin_maskChannels=1 --toysFrequentist --robustFit 1"
-                os.system("combine -M AsymptoticLimits -d %s --cminDefaultMinimizerStrategy 0 -v 0 -n _temp_combined > log_asym_combined.txt"%(card))
-                flobc = open("log_asym_combined.txt","r")
+                options="--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams --toysFrequentist --robustFit 1"
+                #options="--cminDefaultMinimizerStrategy 0 --ignoreCovWarning --cminDefaultMinimizerTolerance 0.01 --X-rtd MINIMIZER_freezeDisassociatedParams --X-rtd MINIMIZER_multiMin_hideConstants --X-rtd MINIMIZER_multiMin_maskConstraints --X-rtd MINIMIZER_multiMin_maskChannels=1 --toysFrequentist"
+                os.system("combine -M AsymptoticLimits -d %s --cminDefaultMinimizerStrategy 0 -v 0 -n _temp_combined > log_asym_combined_%s_M%s_ctau%i_%s.txt"%(card,s,m,t,y))
+                flobc = open("log_asym_combined_%s_M%s_ctau%i_%s.txt"%(s,m,t,y),"r")
                 for ll in flobc.readlines():
                     if "Expected 97" in ll:
                         rLimOneBin = float(ll.split()[len(ll.split())-1])
@@ -601,15 +601,12 @@ for y in years:
                         rLimExpOneBin = float(ll.split()[len(ll.split())-1])
                 flobc.close()
                 print('Now we inject %f'%rLimOneBin)
+                expLim = rLimOneBin
                 #options=options+" --X-rtd TMCSO_PseudoAsimov=5000"
                 #options=options+"--X-rtd TMCSO_AdaptivePseudoAsimov=1"
-                exclusion=''
-                #if len(excl_chs) > 0:
-                #    exclusion='--setParameters '
-                #    for ich in excl_chs:
-                #        exclusion+='mask_ch%i=1,'%(ich)
-                #    exclusion=exclusion[:-1]
-
+                #
+                exclusion = '' # Not used here anymore
+                #
                 meanfit[m]["combined"] = dict()
                 sigmafit[m]["combined"] = dict()
                 namefit[m]["combined"] = dict()
@@ -625,8 +622,11 @@ for y in years:
                     #    break
                     print("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d_envelope_combined %s"%(card,nToysPerCombination,float(r)*expLim,m,s,m,t,r,exclusion))
                     os.system("combine %s -M GenerateOnly --toysFrequentist -t %i --expectSignal %f --saveToys -m %s -n _%s_M%s_ctau%i_r%d_envelope_combined %s"%(card,nToysPerCombination,float(r)*expLim,m,s,m,t,r,exclusion))
-                    print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),nToysPerCombination,max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
-                    os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),nToysPerCombination,max(-5,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
+                    print("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),nToysPerCombination,max(0.01,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
+                    if m < 1.0 or m==1.5 or m==2.5:
+                        os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,m,nToysPerCombination,max(0.01,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
+                    else:
+                        os.system("combine %s -M FitDiagnostics --toysFile higgsCombine_%s_M%s_ctau%i_r%d_envelope_combined.GenerateOnly.mH%s.123456.root -t %i --rMin %f --rMax %f -n _%s_M%s_ctau%i_r%d_envelope_combined -m %s %s %s"%(card,s,m,t,r,int(m),nToysPerCombination,max(0.01,float(r)*expLim-5),max(5,float(r)*expLim+5),s,m,t,r,m,options,exclusion))
                     fnfitdiag = ["_%s_M%s_ctau%i_r%d_envelope_combined"%(s,m,t,r)]
 
                     ### Plot bias from fit diagnostics for combination
@@ -643,7 +643,7 @@ for y in years:
                         #todraw = "(r-%f)/(r>%f ? rLoErr : rHiErr)>>h"%(float(r)*expLim,float(r)*expLim)
                         #todraw = "(r-%f)/((rLoErr/rHiErr>2.0 || rHiErr/rLoErr>2.0) ? rErr : 0.5*(rLoErr+rHiErr))>>h"%(float(r)*expLim)
                         #todraw = "(r-%f)>>h"%(float(r)*expLim)
-                        td.Draw(todraw,"fit_status==0 && abs(r-%f)<4.95 && (r-rLoErr)>0.0011"%(float(r)*expLim),"goff")
+                        td.Draw(todraw,"fit_status>1 && abs(r-%f)<4.95"%(float(r)*expLim),"goff")
                         fg = ROOT.TF1("fg","gaus",-5.0,5.0)
                         #fg = ROOT.TF1("fg","gaus",-1.0,1.0)
                         fg.SetLineColor(2)
@@ -680,106 +680,5 @@ for y in years:
                         fig.savefig("%s/bias%s.png"%(outDir,fdn), dpi=140)
         # Move everything to output
         os.system('mv fitDiagnostics*.root %s'%(outDir))
+        os.system('mv log_asym_combined_%s_M%s_ctau%i_%s.txt %s'%(s,m,t,y, outDir))
         #os.system('mv higgsCombine*.root %s'%(outDir))
-        break # asdf
-        ### Plot bias summary
-        ROOT.gStyle.SetOptStat(0)
-        ROOT.gStyle.SetOptFit(0)
-        offset = dict()
-        offset["envelope"]=0.0
-        offset["bernstein"]=5.0
-        offset["power-law"]=10.0
-        offset["exponential"]=15.0
-        plotMasses = [5.0,7.0,8.0]
-        dNames.append("combined")
-        colors = dict()
-        colors["envelope"]=6
-        colors["bernstein"]=4
-        colors["power-law"]=3
-        colors["exponential"]=2
-        for r in rs:
-            for d in dNames:
-                g   = dict()
-                npg = dict()
-                doPlot = False
-                leg = ROOT.TLegend(0.55,0.65,0.89,0.89)
-                leg.SetLineColor(0)
-                leg.SetLineStyle(0)
-                leg.SetLineWidth(0)
-                leg.SetFillColor(0)
-                leg.SetFillStyle(0)
-                for m in plotMasses:
-                    if m not in sigMasses:
-                        continue
-                    if m not in meanfit:
-                        continue
-                    if d not in meanfit[m]:
-                        continue
-                    if r not in meanfit[m][d]:
-                        continue
-                    for t in range(len(meanfit[m][d][r])):
-                        print(t)
-                        if namefit[m][d][r][t] not in g:
-                            g[namefit[m][d][r][t]] = ROOT.TGraphErrors()
-                            npg[namefit[m][d][r][t]] = 0
-                            g[namefit[m][d][r][t]].SetLineColor(colors[namefit[m][d][r][t].split("<")[0]])
-                            g[namefit[m][d][r][t]].SetMarkerColor(colors[namefit[m][d][r][t].split("<")[0]])
-                            g[namefit[m][d][r][t]].SetMarkerStyle(3)
-                            leg.AddEntry(g[namefit[m][d][r][t]],"Gen. PDF: %s"%namefit[m][d][r][t],"PL")
-                            doPlot = True
-                        #g[namefit[m][d][r][t]].SetPoint(npg[namefit[m][d][r][t]],float(m)+offset[namefit[m][d][r][t].split("<")[0]],meanfit[m][d][r][t])
-                        g[namefit[m][d][r][t]].SetPoint(npg[namefit[m][d][r][t]],float(m),meanfit[m][d][r][t])
-                        g[namefit[m][d][r][t]].SetPointError(npg[namefit[m][d][r][t]],0.0,sigmafit[m][d][r][t])
-                        npg[namefit[m][d][r][t]] = npg[namefit[m][d][r][t]] + 1
-                if not doPlot:
-                    continue
-                can = ROOT.TCanvas("can","",600,600)
-                xmin=200.0
-                xmax=1150.0
-                haxis = ROOT.TH2D("haxis","",100,xmin,xmax,100,-2.5,2.5)
-                haxis.GetXaxis().SetTitle("Dimuon mass [GeV]")
-                haxis.GetYaxis().SetTitle("<(r_{out} - r_{in})/#sigma_{r}>")
-                haxis.GetYaxis().SetLabelSize(0.025)
-                haxis.Draw()
-                l = ROOT.TLine(xmin,0.0,xmax,0.0)
-                l.SetLineColor(1)
-                l.SetLineStyle(2)
-                l.Draw("same")
-                lu = ROOT.TLine(xmin,1.0,xmax,1.0)
-                lu.SetLineColor(1)
-                lu.SetLineStyle(2)
-                lu.Draw("same")
-                ld = ROOT.TLine(xmin,-1.0,xmax,-1.0)
-                ld.SetLineColor(1)
-                ld.SetLineStyle(2)
-                ld.Draw("same")
-                lup5 = ROOT.TLine(xmin,0.5,xmax,0.5)
-                lup5.SetLineColor(1)
-                lup5.SetLineStyle(2)
-                lup5.Draw("same")
-                ldp5 = ROOT.TLine(xmin,-0.5,xmax,-0.5)
-                ldp5.SetLineColor(1)
-                ldp5.SetLineStyle(2)
-                ldp5.Draw("same")
-                for gg in g:
-                    g[gg].Draw("PE,same")
-                leg.Draw("same")
-
-                text = ROOT.TLatex()
-                text.SetTextSize(0.03);
-                text.SetTextFont(42);
-                binidx="ch0"
-                if "nBTag1p" in d:
-                    text.DrawLatexNDC(0.15,0.85,"N_{b-tag}#geq1")
-                elif "nBTag1" in d:
-                    text.DrawLatexNDC(0.15,0.85,"N_{b-tag}=1")
-                    binidx="ch1"
-                elif "nBTag2p" in d:
-                    text.DrawLatexNDC(0.15,0.85,"N_{b-tag}#geq2")
-                    binidx="ch2"
-                else:
-                    text.DrawLatexNDC(0.15,0.85,"N_{b-tag}=1 + N_{b-tag}#geq2")
-                    binidx="combined"
-                text.DrawLatexNDC(0.15,0.80,"r_{in}=%d"%(r))
-                can.Update()
-                can.SaveAs("%s/bias_vs_mass_%s_r%d_%s.png"%(outDir,s,r,binidx))
