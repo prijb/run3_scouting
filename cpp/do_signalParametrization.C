@@ -13,7 +13,8 @@
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Apr-03-2024_onlySignal";
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Mar-26-2024_allCuts";
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2022";
-  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-10-2024_2022_allCuts_full";
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-10-2024_2022_allCuts_full";
+  TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind";
 
   // Names of the search regions we want to parametrize
   vector<TString> dNames = { };
@@ -45,7 +46,7 @@
   vector<float> selectedPoint;
   if ( model=="HTo2ZdTo2mu2x" ) {
     sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-    sigCtau = {1, 10, 100, 1000};
+    sigCtau = {1., 10., 100., 1000.};
     sigTemplate = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm";
     for (unsigned int t=0; t<sigCtau.size(); t++) {
       for (unsigned int m=0; m<sigMass.size(); m++) {
@@ -174,9 +175,9 @@
          // Fit invariant mass
          std::cout << "Prepare to fit..." << std::endl;
          if (dNames[d].BeginsWith("d_FourMu_")) {
-           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample , sigMass[m], 125., wfit, true, "allEras", "dcbfastg", outDir);
+           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample , sigMass[m], 125., 1, wfit, true, "allEras", "dcbfastg", outDir);
          } else {
-           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample, sigMass[m], sigMass[m], wfit, false, "allEras", "dcbfastg", outDir);
+           fitmass(mmumu_sig_merged[idx], "Signal", false, true, true, sample, sigMass[m], sigMass[m], 1, wfit, false, "allEras", "dcbfastg", outDir);
          }
 
          // Print workspace contents

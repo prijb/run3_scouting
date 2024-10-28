@@ -3,7 +3,7 @@
   gROOT->ProcessLine(".L ./cpp/helper.C+");  // Helper with handles 
 
   bool useData = true;
-  bool useSignalMC = false;
+  bool useSignalMC = true;
   bool mergeEras = true;
   bool writeWS = true;
   bool doUpAndDownVariations = true;
