@@ -21,7 +21,7 @@ useCategorizedSignal = True
 useCategorizedBackground = True
 
 useData = True
-useSignalMC = False
+useSignalMC = True
 
 # Constant to control the yields of the signal in the datacard (to be used consistently when limits are made)
 useNorm = True
@@ -193,7 +193,7 @@ if sigModel=="HTo2ZdTo2mu2x":
     if useSignalMC:
         sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
         for  m in sigMasses:
-            sigCTaus = [1, 10, 100]
+            sigCTaus = [1,10,100,1000]
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
@@ -488,7 +488,7 @@ for y in years:
                     nSig = nSigTot*f
                 if binidx > 0:
                     cname = "_f2b%d"%(f*100)
-            cardn = "%s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y)
+            cardn = "%s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y)
             if noModel:
                 cardn = "%s/card%s_ch%d_nomodel_M%s_%s.txt"%(outDir,cname,binidx,m,y)
             card = open("%s"%cardn,"w")
@@ -555,7 +555,7 @@ for y in years:
             if noModel:
                 os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
             else:
-                os.system("text2workspace.py %s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
+                os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
             #os.chdir(thisDir)
         if not isValidPoint:
             continue
@@ -574,9 +574,12 @@ for y in years:
                 #else:
                 #    os.system("combineCards.py -S card%s_ch1_%s_M%s_%s.txt card%s_ch2_%s_M%s_%s.txt > card%s_combined_%s_M%s_%s.txt"%(cname,s,m,y,cname,s,m,y,cname,s,m,y))
                 #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
-                combinedCards += "%s/card%s_ch%d_%s_M%.1f_ctau%i_%s.txt "%(outDir,cname,binidx,sigModel,M,T,y)
-            os.system("combineCards.py -S %s > card%s_combined_%s_M%.1f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
-            os.system("text2workspace.py %s/card%s_combined_%s_M%.1f_ctau%i_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
+                combinedCards += "%s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt "%(outDir,cname,binidx,sigModel,M,T,y)
+            os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
+            os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau%i_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
+            if not useSignalMC:
+                for binidx in listOfBins:
+                    os.system("rm %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))
             os.chdir(thisDir)
 
 # f it dir within the datacard directory is not needed anymore (avoid using rm -rf)

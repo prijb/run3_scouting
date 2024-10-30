@@ -65,6 +65,7 @@ bool useOnlyExponential = false;
 bool useOnlyPowerLaw = false;
 bool useOnlyBernstein = false;
 bool doNotUseMultiPDF = ( useOnlyExponential || useOnlyPowerLaw || useOnlyBernstein ) ? true : false;
+float windWidth = 5.0; // width of the window e.g. windWidth = 5 -> \pm 5 around the mass resonance
 
 void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bool isSignalMC, TString sigmodel, float samplemass, float mass, float ctau, RooWorkspace &wfit, bool fourmu, TString period, TString sigshape="dcbfastg", const char* outDir = "fitResults")
 {
@@ -99,8 +100,9 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //if ( mass < (minMforSpline - 0.001) || mass > (maxMforSpline + 0.001) )
   //  useSpline = false;
   //TFile *ffitParams = TFile::Open("utils/signalFitParameters_default.root", "READ");
-  TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022_v3.root", "READ");
-  // Provisional: m = 0.5 doesn't have MC to have a defined peak, so we take initial fit parameters from 0.7:
+  //TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022_v3.root", "READ");
+  TFile *ffitParams = TFile::Open("utils/signalFitParameters_HTo2ZdTo2mu2x_lxybins_2022.root", "READ");
+  //Provisional: m = 0.5 doesn't have MC to have a defined peak, so we take initial fit parameters from 0.7:
   if (samplemass < 0.7) samplemass = 0.7;
   
   //////Set starting standard deviation (sigma)
@@ -128,11 +130,13 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double binsizePlot = 1.0*stddev_window;
 
   // For Four muon regions there is not a proper spline that works for sigma at every mass, so we take 1.8%
-  if ( datasetname.Contains("d_FourMu_")) {
-    stddev = stddev_window;
-    minstddev = 0.75*stddev;
-    maxstddev = 1.25*stddev;
-  }
+  // This was true for some time but not anymore... kept in case we have to go back to that
+  //if ( datasetname.Contains("d_FourMu_")) {
+  //    stddev = stddev_window;
+  //    minstddev = 0.75*stddev;
+  //    maxstddev = 1.25*stddev;
+  //  }
+  //}
 
   // Always use as starting point the hypothesis mass
   double meanm = mass;
@@ -260,7 +264,6 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   // We use the sample mass: If dimuons fall within the window, we are out...
   double lowBound = samplemass-5.0*0.018*samplemass;
   double upBound = samplemass+5.0*0.018*samplemass;
-  cout << isSignal << "Before veto: " << lowBound << "  " << upBound << endl;
   if ( !isSignal ) {
     if ( (( lowBound < 0.49 ) && (samplemass > 0.49)) || (( upBound > 0.43 ) && (samplemass < 0.43)) || ((samplemass > 0.43) && (samplemass < 0.49)) ) // Ks
       return;
@@ -297,15 +300,15 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     TString fitRange;
     TString varname;
     if (fourmu) {
-      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
       varname = "m4fit";
     } else { 
-      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
       varname = "mfit";
     }
 
     //////Get RooRealVar from RooDataSet
-    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
     std::cout << ">>> INITIAL SIGNAL NORMALIZATION: " << mmumuAll.numEntries() << " " << mmumuAll.sumEntries() << " " << mmumuAll.sumEntries(fitRange.Data()) << std::endl;
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     (*mmumu).Print();
@@ -316,14 +319,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       xref = (RooRealVar*) (*mmumu).get()->find("mfit");
     RooRealVar &x = *xref;
     x.Print();
-    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
-    int nBins = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsize;
-    int nBinsPlot = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/(0.5*binsizePlot);
+    x.setRange("fitRange",std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
+    int nBins = (mass+windWidth*stddev_window - std::max(minMforFit,mass-windWidth*stddev_window))/binsize;
+    int nBinsPlot = (mass+windWidth*stddev_window - std::max(minMforFit,mass-windWidth*stddev_window))/(0.5*binsizePlot);
     if ( doBinnedFit )
       x.setBins(nBins);
-    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
 
-    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    RooPlot *frame = x.frame(std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
     frame->SetTitle("");//Signal dimuon mass fit");
     frame->SetMinimum(0.0);
     //////Plot RooDataSet onto frame
@@ -654,14 +657,14 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     TString fitRange;
     TString varname;
     if (fourmu) {
-      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+      fitRange = Form("%f < m4fit && m4fit < %f",std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
       varname = "m4fit";
     } else { 
-      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+      fitRange = Form("%f < mfit && mfit < %f",std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
       varname = "mfit";
     }
     //////Get RooRealVar from RooDataSet
-    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    RooRealVar mfit(varname, varname, std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
     std::unique_ptr<RooDataSet> mmumu{static_cast<RooDataSet*>(mmumuAll.reduce(RooArgSet(mfit),fitRange))};
     //if ((*mmumu).numEntries() < 1)
     //  return;
@@ -671,12 +674,12 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     else
       xref = (RooRealVar*) (*mmumu).get()->find("mfit");
     RooRealVar &x = *xref;
-    x.setRange("fitRange",std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
-    int nBins = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsize;
-    int nBinsPlot = (mass+5.0*stddev_window - std::max(minMforFit,mass-5.0*stddev_window))/binsizePlot;
+    x.setRange("fitRange",std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
+    int nBins = (mass+windWidth*stddev_window - std::max(minMforFit,mass-windWidth*stddev_window))/binsize;
+    int nBinsPlot = (mass+windWidth*stddev_window - std::max(minMforFit,mass-windWidth*stddev_window))/binsizePlot;
     if ( doBinnedFit )
       x.setBins(nBins);
-    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    RooBinning binningPlot(nBinsPlot,std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
 
     RooDataSet *mmumuFit;
     double bgNormalizationForToy = (*mmumu).sumEntries(fitRange.Data());
@@ -692,7 +695,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       
       mmumuFit = (RooDataSet*) mmumuTOY.Clone((*mmumu).GetName());
 
-      RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+      RooPlot *frame = x.frame(std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
       frame->SetTitle("");//BG dimuon mass fit");
       frame->SetMinimum(0.0);
       
@@ -720,7 +723,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       mmumuFit = (RooDataSet*) (*mmumu).Clone((*mmumu).GetName());
     }
 
-    RooPlot *frame = x.frame(std::max(minMforFit,mass-5.0*stddev_window),mass+5.0*stddev_window);
+    RooPlot *frame = x.frame(std::max(minMforFit,mass-windWidth*stddev_window),mass+windWidth*stddev_window);
     frame->SetTitle("");//BG dimuon mass fit");
     frame->SetMinimum(0.0);
 

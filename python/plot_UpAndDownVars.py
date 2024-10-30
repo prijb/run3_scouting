@@ -258,6 +258,9 @@ years.append("2022")
 
 ROOT.gStyle.SetOptStat(0)
 
+
+NORMCONST = 1.0 # Assuming a cross section of 1 pb
+
 # Load signals
 if useSignalMC:
     if sigModel=="HTo2ZdTo2mu2x":
@@ -439,6 +442,7 @@ for y in years:
                 # Retrieve signal normalization
                 nSig = w.var("signalNorm%s"%catExtS).getValV()
                 nSigRaw = w.var("signalRawNorm%s"%catExtS).getValV()
+                nSig = nSig * NORMCONST
                 # Retrieve BG normalization:
                 nBG = w.data("data_obs%s"%catExtB).sumEntries()
                 # Retrieve signal width and mean

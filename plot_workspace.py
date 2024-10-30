@@ -13,7 +13,7 @@ today= date.today().strftime("%b-%d-%Y")
 
 doRatio = False
 doPull = False
-useSignalMC = False
+useSignalMC = True
 doPartialUnblinding = False
 normalizeSignal = False # Only if background is > 0
 
