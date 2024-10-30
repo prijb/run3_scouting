@@ -25,7 +25,10 @@ def plotBiasDistribution(name, h, fg, xlabel, ylabel = 'Number of toys', outDir 
         vx.append(h.GetBinLowEdge(bins) + h.GetBinWidth(bins))
         vy = [h.GetBinContent(i) for i in range(1, bins + 1)]
         vyerr = [h.GetBinError(i) for i in range(1, bins + 1)]
-        x_fit = np.linspace(-5.0, 5.0, 1000)
+        if 'relative' not in name:
+            x_fit = np.linspace(-5.0, 5.0, 1000)
+        else:
+            x_fit = np.linspace(-3.0, 3.0, 1000)
         y_fit = [fg.Eval(xi) for xi in x_fit]
         quantiles = np.zeros(1)
         prob = np.array([0.5])
@@ -130,11 +133,8 @@ ROOT.gStyle.SetOptStat(0)
 
 # Load signals
 if sigModel=="HTo2ZdTo2mu2x":
-    sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-    sigMasses = [5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+    sigMasses = [0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
     sigCTaus = [1, 10, 100]
-    #sigMasses = [5.0]
-    #sigCTaus = [10]
 elif sigModel=="ScenarioB1":
     sigMasses = [1.33]
     sigCTaus = [0.1, 1, 10, 100]
@@ -160,37 +160,40 @@ for fit in fitTypes:
             mean_rel.append([])
             mass_xbins.append([])
             for m in sigMasses:
-                ## Access the limit to know what was injected...
-                expLim = 1.0 # provisional
-                limFile = '/ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Sep-30-2024_2022/limits_HTo2ZdTo2mu2x_2022.txt'
-                if os.path.exists(limFile):
-                    print('> Limit file opened successfully')
-                    flim = open(limFile,"r")
-                    for ll in flim.readlines():
-                        if ll.split(",")[1]!=str(m) or ll.split(",")[2]!=str(t):
-                            continue
-                        expLim=float(ll.split(",")[8]) # Expected limit
-                        break
-                    flim.close()
-                    print('> Found expected limit %f'%(expLim))
-                else:
-                    print('> Expected limit not found')
                 ## Access results:
                 try:
                     fd = ROOT.TFile.Open("%s/fitDiagnostics_%s_M%.1f_ctau%i_r%i_%s_combined.root"%(inDir,sigModel,m,t,r,fit))
                 except OSError:
                     print('Skipping point...')
                     continue
+                                ## Access the limit to know what was injected...
+                expLim = 1.0 # provisional
+                # Get expected limit:
+                limFile = "%s/log_asym_combined_%s_M%s_ctau%i_%s.txt"%(inDir,sigModel,m,t,2022)
+                flim = open(limFile, 'r')
+                print('> Limit file opened successfully')
+                for ll in flim.readlines():
+                    if "Expected 97" in ll:
+                        rLimOneBin = float(ll.split()[len(ll.split())-1])
+                    if "Expected 50" in ll:
+                        rLimExpOneBin = float(ll.split()[len(ll.split())-1])
+                flim.close() 
+                expLim = rLimOneBin
+                print('> Found expected limit %f'%(expLim))
+                #
                 td = fd.Get("tree_fit_sb")
                 hs = ROOT.TH1D("hs","",41,-6.1,6.1) # Bias wrt sigma
-                hr = ROOT.TH1D("hr","",41,-3.0,3.0) # Bias wrt injected value
+                hr = ROOT.TH1D("hr","",41,-1.0,1.0) # Bias wrt injected value
                 hrout = ROOT.TH1D("hrout","",50,0,float(r)*expLim+5)
                 hrLoErr = ROOT.TH1D("hrLoErr","",50,0,round(float(r)*expLim)+1)
                 hrHiErr = ROOT.TH1D("hrHiErr","",50,0,round(float(r)*expLim)+1)
                 # Draw
                 #condition = "fit_status>-1 && abs(r-%f)<20.0 && (r-rLoErr)>0.11 && rHiErr>0 && rLoErr>0"%(float(r)*expLim)
+                #condition = "fit_status>-1 && rHiErr>0 && rLoErr>0"
+                print("INJECTED!! %f"%(float(r)*expLim))
                 condition = "fit_status>-1 && rHiErr>0 && rLoErr>0"
                 todraw = "(r-%f)/((rLoErr/rHiErr>3.0 || rHiErr/rLoErr>3.0) ? rErr : (r>%f ? rLoErr : rHiErr))>>hs"%(float(r)*expLim,float(r)*expLim)
+                #todraw = "(r-%f)/(0.5*(rLoErr+rHiErr)) >> hs"%(float(r)*expLim)
                 td.Draw(todraw,condition,"goff")
                 todraw = "(r-%f)/%f>>hr"%(float(r)*expLim,float(r)*expLim)
                 td.Draw(todraw,condition,"goff")
@@ -198,12 +201,14 @@ for fit in fitTypes:
                 td.Draw("rLoErr>>hrLoErr",condition,"goff")
                 td.Draw("rHiErr>>hrHiErr",condition,"goff")
                 # Fit
-                fs = ROOT.TF1("fg","gaus",-5.0,5.0)
+                fs = ROOT.TF1("fg","gaus",-2.5,2.5)
                 fs.SetLineColor(2)
-                hs.Fit(fs,"0L","",-5.0,5.0)
-                fr = ROOT.TF1("fr","gaus",-2.5,2.5)
+                fs.SetParameter(1, 0.0);
+                fs.SetParameter(2, 5.0);
+                hs.Fit(fs,"0L","",-2.5,2.5)
+                fr = ROOT.TF1("fr","gaus",-1.0,1.0)
                 fr.SetLineColor(2)
-                hr.Fit(fs,"0L","",-2.5,2.5)
+                hr.Fit(fr,"0L","",-1.0,1.0)
                 print('Valid %i toys'%(hs.GetEntries()))
                 squantiles = np.zeros(1)
                 hs.GetQuantiles(1, squantiles, np.array([0.5]))
@@ -211,14 +216,14 @@ for fit in fitTypes:
                 hr.GetQuantiles(1, rquantiles, np.array([0.5]))
                 mean_sig[_t].append(fs.GetParameter(1))
                 median_sig[_t].append(squantiles[0])
-                #mean_sig[_t].append(fr.GetParameter(1))
-                #median_sig[_t].append(rquantiles[0])
+                mean_rel[_t].append(fr.GetParameter(1))
+                median_rel[_t].append(rquantiles[0])
                 mass_xbins[_t].append(m)
                 plotBiasDistribution('%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hs, fs, xlabel=r'$(r_{out} - r_{in})/\sigma_{r}$', outDir = outDir)
-                #plotBiasDistribution('%s_M%.1f_ctau_%i_r%i_%s_combined_relative'%(sigModel,m,t,r,fit), hr, fr, xlabel=r'$(r_{out} - r_{in})/r_{in}$', outDir = outDir)
-                plotDistribution('rout_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrout, xlabel=r'$r_{out}$', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
-                plotDistribution('rLoErr_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrLoErr, xlabel='rLoErr', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
-                plotDistribution('rHiErr_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrHiErr, xlabel='rHiErr', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
+                plotBiasDistribution('%s_M%.1f_ctau_%i_r%i_%s_combined_relative'%(sigModel,m,t,r,fit), hr, fr, xlabel=r'$(r_{out} - r_{in})/r_{in}$', outDir = outDir)
+                #plotDistribution('rout_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrout, xlabel=r'$r_{out}$', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
+                #plotDistribution('rLoErr_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrLoErr, xlabel='rLoErr', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
+                #plotDistribution('rHiErr_%s_M%.1f_ctau_%i_r%i_%s_combined'%(sigModel,m,t,r,fit), hrHiErr, xlabel='rHiErr', ylabel = 'Number of toys', outDir = outDir, line=float(r)*expLim)
         # Summary plot:
         plt.style.use(hep.style.CMS)
         colors = ['#3f90da', '#ffa90e', '#bd1f01', '#94a4a2', '#832db6', '#a96b59', '#e76300', '#b9ac70', '#717581', '#92dadd']
@@ -229,13 +234,49 @@ for fit in fitTypes:
         fig.text(0.35, 0.9, r'Bias tests with $r_{in} = %i x r_{+2\sigma}$'%(r), color='black', fontsize = 14)
         ax.set_ylabel(r'Median of $(r_{out} - r_{in})/\sigma_{r}$', fontsize=20)
         ax.set_xlabel(r'Dimuon mass $m_{\mu\mu}$', fontsize=20)
-        ax.set_ylim(-4, 4)
+        ax.set_ylim(-1.5, 1.5)
+        ax.axhline(y=0.0, color='gray', linestyle='--', linewidth=1)
         ax.set_xscale('log')
         for _t,t in enumerate(sigCTaus):
             ax.plot(mass_xbins[_t], median_sig[_t], label=r'$c\tau = $%i mm'%(t), color=colors[_t],marker='o')
         ax.legend(loc='best', frameon = True, fontsize = 14)
         ## Save
         fig.savefig('%s/summary_median_%s_M%.1f_ctau_%i_r%i_%s_combined.png'%(outDir, sigModel,m,t,r,fit), dpi=140)
+        #
+        #
+        fig, ax = plt.subplots(figsize=(16, 5)) 
+        fig.subplots_adjust(bottom=0.2, right=0.80)
+        luminosity = 35
+        hep.cms.label("Preliminary", data=True, lumi=luminosity, year=2022, com='13.6')
+        fig.text(0.35, 0.9, r'Bias tests with $r_{in} = %i x r_{+2\sigma}$'%(r), color='black', fontsize = 14)
+        ax.set_ylabel(r'Mean of $(r_{out} - r_{in})/\sigma_{r}$', fontsize=20)
+        ax.set_xlabel(r'Dimuon mass $m_{\mu\mu}$', fontsize=20)
+        ax.set_ylim(-1.5, 1.5)
+        ax.axhline(y=0.0, color='gray', linestyle='--', linewidth=1)
+        ax.set_xscale('log')
+        for _t,t in enumerate(sigCTaus):
+            ax.plot(mass_xbins[_t], mean_sig[_t], label=r'$c\tau = $%i mm'%(t), color=colors[_t],marker='o')
+        ax.legend(loc='best', frameon = True, fontsize = 14)
+        ## Save
+        fig.savefig('%s/summary_mean_%s_M%.1f_ctau_%i_r%i_%s_combined.png'%(outDir, sigModel,m,t,r,fit), dpi=140)
+        #
+        #
+        #
+        fig, ax = plt.subplots(figsize=(16, 5)) 
+        fig.subplots_adjust(bottom=0.2, right=0.80)
+        luminosity = 35
+        hep.cms.label("Preliminary", data=True, lumi=luminosity, year=2022, com='13.6')
+        fig.text(0.35, 0.9, r'Bias tests with $r_{in} = %i x r_{+2\sigma}$'%(r), color='black', fontsize = 14)
+        ax.set_ylabel(r'Median of $(r_{out} - r_{in})/r_{in}$', fontsize=20)
+        ax.set_xlabel(r'Dimuon mass $m_{\mu\mu}$', fontsize=20)
+        ax.set_ylim(-1.5, 1.5)
+        ax.axhline(y=0.0, color='gray', linestyle='--', linewidth=1)
+        ax.set_xscale('log')
+        for _t,t in enumerate(sigCTaus):
+            ax.plot(mass_xbins[_t], median_rel[_t], label=r'$c\tau = $%i mm'%(t), color=colors[_t],marker='o')
+        ax.legend(loc='best', frameon = True, fontsize = 14)
+        ## Save
+        fig.savefig('%s/summary_median_%s_M%.1f_ctau_%i_r%i_%s_combined_rin.png'%(outDir, sigModel,m,t,r,fit), dpi=140)
         
         
 
