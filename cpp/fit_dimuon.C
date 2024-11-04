@@ -83,16 +83,36 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   // Get the lxy range to obtain the initial fit parameters
   //
   TString lxyString;
-  if ( datasetname.Contains("d_FourMu_sep") ) lxyString = "d_FourMu_sep";
-  else if ( datasetname.Contains("d_FourMu_osv") ) lxyString = "d_FourMu_sep";
-  else if ( datasetname.Contains("lxy0p0to0p2") ) lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
-  else if ( datasetname.Contains("lxy0p2to1p0") ) lxyString = "d_Dimuon_lxy0p2to1p0_inclusive";
-  else if ( datasetname.Contains("lxy1p0to2p4") ) lxyString = "d_Dimuon_lxy1p0to2p4_inclusive";
-  else if ( datasetname.Contains("lxy2p4to3p1") ) lxyString = "d_Dimuon_lxy2p4to3p1_inclusive";
-  else if ( datasetname.Contains("lxy3p1to7p0") ) lxyString = "d_Dimuon_lxy3p1to7p0_inclusive";
-  else if ( datasetname.Contains("lxy7p0to11p0") ) lxyString = "d_Dimuon_lxy7p0to11p0_inclusive";
-  else if ( datasetname.Contains("lxy11p0to16p0") ) lxyString = "d_Dimuon_lxy11p0to16p0_inclusive";
-  else if ( datasetname.Contains("lxy16p0to70p0") ) lxyString = "d_Dimuon_lxy16p0to70p0_inclusive";
+  int masking = -1; // Type of masking { 1 : lxy < 2.4 cm , 2 : lxy < 11 cm}
+  if ( datasetname.Contains("d_FourMu_sep") ) {
+    lxyString = "d_FourMu_sep";
+  } else if ( datasetname.Contains("d_FourMu_osv") ) {
+    lxyString = "d_FourMu_sep";
+  } else if ( datasetname.Contains("lxy0p0to0p2") ) {
+    lxyString = "d_Dimuon_lxy0p0to0p2_inclusive";
+    masking = 1;
+  } else if ( datasetname.Contains("lxy0p2to1p0") ) {
+    lxyString = "d_Dimuon_lxy0p2to1p0_inclusive";
+    masking = 1;
+  } else if ( datasetname.Contains("lxy1p0to2p4") ) {
+    lxyString = "d_Dimuon_lxy1p0to2p4_inclusive";
+    masking = 1;
+  } else if ( datasetname.Contains("lxy2p4to3p1") ) {
+    lxyString = "d_Dimuon_lxy2p4to3p1_inclusive";
+    masking = 2;
+  } else if ( datasetname.Contains("lxy3p1to7p0") ) {
+    lxyString = "d_Dimuon_lxy3p1to7p0_inclusive";
+    masking = 2;
+  } else if ( datasetname.Contains("lxy7p0to11p0") ) {
+    lxyString = "d_Dimuon_lxy7p0to11p0_inclusive";
+    masking = 2;
+  } else if ( datasetname.Contains("lxy11p0to16p0") ) {
+    lxyString = "d_Dimuon_lxy11p0to16p0_inclusive";
+    masking = 3;
+  } else if ( datasetname.Contains("lxy16p0to70p0") ) {
+    lxyString = "d_Dimuon_lxy16p0to70p0_inclusive";
+    masking = 3;
+  }
 
   bool useSpline = true;
   double minMforSpline =  200.0;
@@ -262,26 +282,26 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   // Veto of SM resonances: leave the workspace empty if hitting SM resonance boundaries for the background
   // Signal is kept for interpolation purposes
   // We use the sample mass: If dimuons fall within the window, we are out...
-  double lowBound = samplemass-5.0*0.018*samplemass;
-  double upBound = samplemass+5.0*0.018*samplemass;
-  if ( !isSignal ) {
-    if ( (( lowBound < 0.49 ) && (samplemass > 0.49)) || (( upBound > 0.43 ) && (samplemass < 0.43)) || ((samplemass > 0.43) && (samplemass < 0.49)) ) // Ks
+  double lowBound = samplemass-windWidth*stddev_window;
+  double upBound = samplemass+windWidth*stddev_window;
+  if ( !isSignal && datasetname.Contains("d_Dimuon")) {
+    if ( (( lowBound < 0.50 ) && (samplemass > 0.50)) || (( upBound > 0.41 ) && (samplemass < 0.41)) || ((samplemass > 0.41) && (samplemass < 0.50)) ) // Ks
       return;
-    if ( (( lowBound < 0.58 ) && (samplemass > 0.58)) || (( upBound > 0.52 ) && (samplemass < 0.52)) || ((samplemass > 0.52) && (samplemass < 0.58)) ) // eta
+    if ( ( (( lowBound < 0.59 ) && (samplemass > 0.59)) || (( upBound > 0.51 ) && (samplemass < 0.51)) || ((samplemass > 0.51) && (samplemass < 0.59)) ) && (masking==1) ) // eta
       return;
-    if ( (( lowBound < 0.84) && (samplemass > 0.84)) || (( upBound > 0.73 ) && (samplemass < 0.73)) || ((samplemass > 0.73) && (samplemass < 0.84)) ) // rho / w
+    if ( (( lowBound < 0.87) && (samplemass > 0.87)) || (( upBound > 0.69 ) && (samplemass < 0.69)) || ((samplemass > 0.69) && (samplemass < 0.87)) ) // rho / w
       return;
-    if ( (( lowBound < 1.08 ) && (samplemass > 1.08)) || (( upBound > 0.96 ) && (samplemass < 0.96)) || ((samplemass > 0.96) && (samplemass < 1.08)) ) // phi 1020
+    if ( (( lowBound < 1.10 ) && (samplemass > 1.10)) || (( upBound > 0.94 ) && (samplemass < 0.94)) || ((samplemass > 0.94) && (samplemass < 1.10)) ) // phi 1020
       return;
-    if ( (( lowBound < 3.27 ) && (samplemass > 3.27)) || (( upBound > 2.91 ) && (samplemass < 2.91)) || ((samplemass > 2.91) && (samplemass < 3.27)) ) // Jpsi
+    if ( ( (( lowBound < 3.27 ) && (samplemass > 3.27)) || (( upBound > 2.91 ) && (samplemass < 2.91)) || ((samplemass > 2.91) && (samplemass < 3.27)) ) && (masking==2 || masking==1) ) // Jpsi
       return;
-    if ( (( lowBound < 3.89 ) && (samplemass > 3.89)) || (( upBound > 3.47 ) && (samplemass < 3.47)) || ((samplemass > 3.47) && (samplemass < 3.89)) ) // Psi 2S
+    if ( ( (( lowBound < 3.89 ) && (samplemass > 3.89)) || (( upBound > 3.47 ) && (samplemass < 3.47)) || ((samplemass > 3.47) && (samplemass < 3.89)) ) && (masking==2 || masking==1) ) // Psi 2S
       return;
-    if ( (( lowBound < 9.87 ) && (samplemass > 9.87)) || (( upBound > 8.99 ) && (samplemass < 8.99)) || ((samplemass > 8.99) && (samplemass < 9.87)) ) // Upsilon 1S
+    if ( ( (( lowBound < 9.91 ) && (samplemass > 9.91)) || (( upBound > 8.99 ) && (samplemass < 8.99)) || ((samplemass > 8.99) && (samplemass < 9.91)) ) && (masking==1) ) // Upsilon 1S
       return;
-    if ( (( lowBound < 10.39 ) && (samplemass > 10.39)) || (( upBound > 9.61 ) && (samplemass < 9.61)) || ((samplemass > 9.61) && (samplemass < 10.39)) ) // Upsilon 2S
+    if ( ( (( lowBound < 10.56 ) && (samplemass > 10.56)) || (( upBound > 9.64 ) && (samplemass < 9.64)) || ((samplemass > 9.64) && (samplemass < 10.56)) ) && (masking==1) ) // Upsilon 2S
       return;
-    if ( (( lowBound < 10.77 ) && (samplemass > 10.77)) || (( upBound > 9.87 ) && (samplemass < 9.87)) || ((samplemass > 9.87) && (samplemass < 10.77)) ) // Upsilon 3S
+    if ( ( (( lowBound < 10.78 ) && (samplemass > 10.78)) || (( upBound > 9.90 ) && (samplemass < 9.90)) || ((samplemass > 9.90) && (samplemass < 10.78)) ) && (masking==1) ) // Upsilon 3S
       return;
   }
 
@@ -406,8 +426,13 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       std::cout << ">>> SIGNAL NORMALIZATION: " << (*mmumu).numEntries() << " " << (*mmumu).sumEntries() << " " << (*mmumu).sumEntries(fitRange.Data()) << std::endl;
     }
     else {
-      TFile *facc = TFile::Open("../data/acceptanceSplines_2022.root");
-      TSpline3 *acceff = (TSpline3 *) facc->Get(Form("spline_acceptance_%s_%.0f_%s",sigmodel.Data(),ctau,datasetname.Data()));
+      std::cout << "Accessing spline to retrieve acceptance" << std::endl;
+      TFile *facc = TFile::Open("data/acceptanceSplines_2022.root");
+      //facc->ls();;
+      int pos = datasetname.Index("_Signal");
+      TString regionname = datasetname(0, pos);
+      //std::cout << "Getting: " << Form("spline_acceptance_HTo2ZdTo2mu2x_%.0f_%s",ctau,regionname.Data()) << std::endl;
+      TSpline3 *acceff = (TSpline3 *) facc->Get(Form("spline_acceptance_HTo2ZdTo2mu2x_%.0f_%s",ctau,regionname.Data()));
       double tacceff  = acceff->Eval(samplemass);
       facc->Close();
       int sigRawAll = 1e6; // Random for now... But will have to include it for the systematics...
@@ -416,6 +441,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       else
         sigNormalization = tacceff*1000*27;
       sigRawEntries = (int) (sigNormalization/(tacceff*1000*35)*sigRawAll);
+      std::cout << ">>> SIGNAL NORMALIZATION: " << sigNormalization << std::endl;
     }
     std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Import of the signal " << std::endl;
     std::cout << "Refitting signal? " << refitSignal << std::endl;

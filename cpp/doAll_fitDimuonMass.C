@@ -3,7 +3,7 @@
   gROOT->ProcessLine(".L ./cpp/helper.C+");  // Helper with handles 
 
   bool useData = true;
-  bool useSignalMC = true;
+  bool useSignalMC = false;
   bool mergeEras = true;
   bool writeWS = true;
   bool doUpAndDownVariations = true;
@@ -112,7 +112,8 @@
         }
       }
     } else {
-      vector<float> sigCtau = {1, 10, 100, 1000};
+      //vector<float> sigCtau = {1, 10, 100, 1000};
+      vector<float> sigCtau = {1, 10, 100};
       float lastmass = 0.5;
       while (lastmass < 50.0)
       {
@@ -341,11 +342,17 @@
        // Fit invariant mass
        std::cout << "Prepare to fit..." << std::endl;
        if (dNames[d].BeginsWith("d_FourMu_")) {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit, true, period, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit, true, period, "", outDir); 
+          if (useSignalMC)   
+            fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit, true, period, "dcbfastg", outDir);
+          else
+            fitmass(mmumu_sig_merged[isample], "Signal", false, true, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit, true, period, "dcbfastg", outDir);
+          fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_4mu[isample], sigmasses_ctau[isample], wfit, true, period, "", outDir); 
        } else {
-         fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit, false, period, "dcbfastg", outDir);
-         fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit, false, period, "", outDir); 
+        if (useSignalMC)
+          fitmass(mmumu_sig_merged[isample], "Signal", false, true, true, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit, false, period, "dcbfastg", outDir);
+        else
+          fitmass(mmumu_sig_merged[isample], "Signal", false, true, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit, false, period, "dcbfastg", outDir);
+        fitmass(mmumu_bkg_merged, "Background", true, false, false, sigsamples[isample], sigmasses_2mu[isample], sigmasses_2mu[isample], sigmasses_ctau[isample], wfit, false, period, "", outDir); 
        }
        if (doUpAndDownVariations) { 
          if (dNames[d].BeginsWith("d_FourMu_")) {

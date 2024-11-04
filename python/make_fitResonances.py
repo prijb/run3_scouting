@@ -32,11 +32,11 @@ def getValues(histo):
     bins.append(histo.GetBinLowEdge(n) + histo.GetBinWidth(n))
     return np.array(values), np.array(bins)
 
-def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=2022, lumi=1.0, nBins=100):
+def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=2022, lumi=1.0, nBins=100, bOnly=False):
 
     # Loop over pdfs:
     #for pdf in ["exp", "power", "bern"]:
-    for pdf in ["bern"]:
+    for pdf in ["exp", "power", "bern"]:
         ## Frame
         mfit = RooRealVar("mfit", "mfit", fit_range[0], fit_range[1])
         data = dataset.reduce(mfit, "%f < mfit && mfit < %f"%(fit_range[0], fit_range[1]))
@@ -119,12 +119,14 @@ def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=
             sigma3_ = RooRealVar("sigma3", "width of gaussian 3", 0.08, 0.001, 0.1)
             gauss3 = RooGaussian("gauss3", "gauss", x, mean3_, sigma3_)
             # Combine the models
-            frac_g1 = RooRealVar("frac_g1", "fraction of Gaussian 1", 0.1, 0.0, 1.0)
-            frac_g2 = RooRealVar("frac_g2", "fraction of Gaussian 2", 0.1, 0.0, 1.0)
-            frac_g3 = RooRealVar("frac_g3", "fraction of Gaussian 3", 0.1, 0.0, 1.0)
+            frac_g1 = RooRealVar("frac_g1", "fraction of Gaussian 1", 0.01, 0.0, 1.0)
+            frac_g2 = RooRealVar("frac_g2", "fraction of Gaussian 2", 0.01, 0.0, 1.0)
+            frac_g3 = RooRealVar("frac_g3", "fraction of Gaussian 3", 0.01, 0.0, 1.0)
             model = RooAddPdf("model", "DCB + Gaussian + Background", RooArgList(gauss1, gauss2, gauss3, background), RooArgList(frac_g1, frac_g2, frac_g3))
 
         # Fit
+        if bOnly:
+            model = background
         nMaxFitAttempts = 1
         nFits = 0
         while (nFits < nMaxFitAttempts):
@@ -165,6 +167,7 @@ def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=
         vg2 = []
         vg3 = []
         bkg_integral_value = background.createIntegral(RooArgSet(x)).getVal()
+        model_integral_value = model.createIntegral(RooArgSet(x)).getVal()
         if "Upsilon" not in name:
             gauss_integral_value = gauss.createIntegral(RooArgSet(x)).getVal()
             dcb_integral_value = dcb.createIntegral(RooArgSet(x)).getVal()
@@ -175,27 +178,33 @@ def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=
         #    
         for val in xval:
             x.setVal(val)
-            if "Upsilon" not in name:
-                frac_bkg = 1.0 - frac_dcb.getVal()-frac_gauss.getVal()
-                vbkg.append(background.getVal()*data.sumEntries()*binw*(frac_bkg)/bkg_integral_value)
-                vdcb.append(dcb.getVal()*data.sumEntries()*binw*frac_dcb.getVal()/dcb_integral_value)
-                vgaus.append(gauss.getVal()*data.sumEntries()*binw*frac_gauss.getVal()/gauss_integral_value)
-                vmodel.append(vbkg[-1]+vdcb[-1]+vgaus[-1])
-                vsignal.append(vdcb[-1]+vgaus[-1])
+            if not bOnly:
+                if "Upsilon" not in name:
+                    frac_bkg = 1.0 - frac_dcb.getVal()-frac_gauss.getVal()
+                    vbkg.append(background.getVal()*data.sumEntries()*binw*(frac_bkg)/bkg_integral_value)
+                    vdcb.append(dcb.getVal()*data.sumEntries()*binw*frac_dcb.getVal()/dcb_integral_value)
+                    vgaus.append(gauss.getVal()*data.sumEntries()*binw*frac_gauss.getVal()/gauss_integral_value)
+                    vmodel.append(vbkg[-1]+vdcb[-1]+vgaus[-1])
+                    vsignal.append(vdcb[-1]+vgaus[-1])
+                else:
+                    frac_bkg = 1.0 - frac_g1.getVal()-frac_g2.getVal()-frac_g3.getVal()
+                    vbkg.append(background.getVal()*data.sumEntries()*binw*(frac_bkg)/bkg_integral_value)
+                    vg1.append(gauss1.getVal()*data.sumEntries()*binw*frac_g1.getVal()/g1_integral_value)
+                    vg2.append(gauss2.getVal()*data.sumEntries()*binw*frac_g2.getVal()/g2_integral_value)
+                    vg3.append(gauss3.getVal()*data.sumEntries()*binw*frac_g3.getVal()/g3_integral_value)
+                    vmodel.append(vbkg[-1]+vg1[-1]+vg2[-1]+vg3[-1])
             else:
-                frac_bkg = 1.0 - frac_g1.getVal()-frac_g2.getVal()-frac_g3.getVal()
-                vbkg.append(background.getVal()*data.sumEntries()*binw*(frac_bkg)/bkg_integral_value)
-                vg1.append(gauss1.getVal()*data.sumEntries()*binw*frac_g1.getVal()/g1_integral_value)
-                vg2.append(gauss2.getVal()*data.sumEntries()*binw*frac_g2.getVal()/g2_integral_value)
-                vg3.append(gauss3.getVal()*data.sumEntries()*binw*frac_g3.getVal()/g3_integral_value)
-                vmodel.append(vbkg[-1]+vg1[-1]+vg2[-1]+vg3[-1])
+                vmodel.append(model.getVal()*data.sumEntries()*binw/model_integral_value)
         residuals = []
         masses = []
         for i in range(0, len(bins)-1):
             masses.append(0.5*(bins[i] + bins[i+1]))
             x.setVal(masses[-1])
             if histo[i] > 0:
-                residuals.append((histo[i]-(background.getVal()*data.sumEntries()*binw*(frac_bkg)/bkg_integral_value))/y_err[i])
+                if not bOnly:
+                    residuals.append((histo[i]-(background.getVal()*data.sumEntries()*binw*(frac_bkg)/bkg_integral_value))/y_err[i])
+                else:
+                    residuals.append((histo[i]-(model.getVal()*data.sumEntries()*binw/model_integral_value))/y_err[i])
             else:
                 residuals.append(0.0)
         #
@@ -205,22 +214,36 @@ def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=
         ax.set_ylabel(r'Events / 0.01 GeV', fontsize=24)
         ax.set_xlabel('')
         ax.set_xlim(fit_range[0], fit_range[1])
-        hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, com='13.6', ax=ax)
-        ax.set_ylim(0.0,1.2*max(histo))
+        hep.cms.label("Preliminary", data=True, year=year, com='13.6', ax=ax)
+        ax.set_ylim(0.0,1.45*max(histo))
         ax.errorbar(masses, histo, yerr=y_err, fmt='o', capsize=5, label='Data', color='k', markersize=8)
-        ax.plot(xval, vbkg, label='Background (%s)'%(pdf), color='slateblue', lw = 3, linestyle='--')
-        ax.plot(xval, vmodel, label='Signal + Background', color='tab:red', lw = 3)
-        ax.text(0.63, 0.95, 'Fit parameters', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes, fontweight='bold')
-        if "Upsilon" not in name:
-            ax.text(0.63, 0.9, r'Mean = %.2f GeV'%(mean_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-            ax.text(0.63, 0.86, r'$\sigma =$ %.1f MeV'%(sigma_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        if not bOnly:
+            ax.plot(xval, vbkg, label='Background (%s)'%(pdf), color='slateblue', lw = 3, linestyle='--')
+            ax.plot(xval, vmodel, label='Signal + Background', color='tab:red', lw = 3)
         else:
-            ax.text(0.63, 0.9, r'Mean (1S) = %.2f GeV'%(mean1_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-            ax.text(0.63, 0.86, r'$\sigma (1S) =$ %.1f MeV'%(sigma1_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-            ax.text(0.63, 0.82, r'Mean (2S) = %.2f GeV'%(mean2_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-            ax.text(0.63, 0.78, r'$\sigma (2S) =$ %.1f MeV'%(sigma2_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-            ax.text(0.63, 0.74, r'Mean (3S) = %.2f GeV'%(mean3_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-            ax.text(0.63, 0.70, r'$\sigma (3S) =$ %.1f MeV'%(sigma3_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+            ax.plot(xval, vmodel, label='Background (%s)'%(pdf), color='tab:red', lw = 3)
+        ax.text(0.63, 0.95, 'Fit parameters', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes, fontweight='bold')
+        if not bOnly:
+            if "Upsilon" not in name:
+                ax.text(0.63, 0.9, r'Mean = %.2f GeV'%(mean_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.86, r'$\sigma =$ %.1f MeV'%(sigma_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.82, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+            else:
+                ax.text(0.63, 0.9, r'Mean (1S) = %.2f GeV'%(mean1_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.86, r'$\sigma (1S) =$ %.1f MeV'%(sigma1_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.82, r'Mean (2S) = %.2f GeV'%(mean2_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.78, r'$\sigma (2S) =$ %.1f MeV'%(sigma2_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.74, r'Mean (3S) = %.2f GeV'%(mean3_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.70, r'$\sigma (3S) =$ %.1f MeV'%(sigma3_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+                ax.text(0.63, 0.66, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        else:
+            ax.text(0.63, 0.9, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        if 'short' in name:
+            ax.text(0.05, 0.74, r'$l_{xy} \in [0, 2.4]$ cm', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        elif 'medium' in name:
+            ax.text(0.05, 0.74, r'$l_{xy} \in [2.4, 11.0]$ cm', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        elif 'high' in name:
+            ax.text(0.05, 0.74, r'$l_{xy} \in [11.0, 70.0]$ cm', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
         ax.legend(loc='upper left', fontsize = 18, frameon = True, ncol=1)
         # Residual subplot
         ax_residuals.stairs(np.array(residuals), bins, color="red", alpha=0.3)
@@ -232,8 +255,8 @@ def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=
 if __name__=="__main__":
 
     # Year
-    year = 2022
-    lumi = 35.0
+    year = 2023
+    lumi = 35 if year==2022 else 27
     # Inclusive regions for fitting
     sdNames = {}
     
@@ -245,8 +268,10 @@ if __name__=="__main__":
                                      "d_Dimuon_lxy7p0to11p0_inclusive",
                                      "d_Dimuon_lxy11p0to16p0_inclusive",
                                      "d_Dimuon_lxy16p0to70p0_inclusive"]
-    sdNames["d_Dimuon_short"] = ["d_Dimuon_lxy0p0to0p2_inclusive", "d_Dimuon_lxy0p2to1p0_inclusive"]
-    sdNames["d_Dimuon_medium"] = ["d_Dimuon_lxy1p0to2p4_inclusive", "d_Dimuon_lxy2p4to3p1_inclusive", "d_Dimuon_lxy3p1to7p0_inclusive", "d_Dimuon_lxy7p0to11p0_inclusive"]
+    #sdNames["d_Dimuon_short"] = ["d_Dimuon_lxy0p0to0p2_inclusive", "d_Dimuon_lxy0p2to1p0_inclusive"]
+    #sdNames["d_Dimuon_medium"] = ["d_Dimuon_lxy1p0to2p4_inclusive", "d_Dimuon_lxy2p4to3p1_inclusive", "d_Dimuon_lxy3p1to7p0_inclusive", "d_Dimuon_lxy7p0to11p0_inclusive"]
+    sdNames["d_Dimuon_short"] = ["d_Dimuon_lxy0p0to0p2_inclusive", "d_Dimuon_lxy0p2to1p0_inclusive", "d_Dimuon_lxy1p0to2p4_inclusive"]
+    sdNames["d_Dimuon_medium"] = ["d_Dimuon_lxy2p4to3p1_inclusive", "d_Dimuon_lxy3p1to7p0_inclusive", "d_Dimuon_lxy7p0to11p0_inclusive"]
     sdNames["d_Dimuon_high"] = ["d_Dimuon_lxy11p0to16p0_inclusive", "d_Dimuon_lxy16p0to70p0_inclusive"]
     #dNames = []
     #dNames.append("d_Dimuon_lxy0p0to0p2_inclusive")
@@ -269,18 +294,26 @@ if __name__=="__main__":
     resonances['Upsilon'] = [10.0, (8.5, 11.0)] # Needs special treatment
     #
     # Input
-    inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind"
+    #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind"
+    #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Oct-30-2024_2022_unblind_noMuonIPSel"
+    inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Oct-30-2024_unblind_allCuts"
+    #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Oct-30-2024_unblind_noMuonIPSel"
     files = os.listdir(inDir)
     #
     eras = []
-    eras.append("DataC")
-    eras.append("DataD")
-    eras.append("DataE")
-    eras.append("DataF")
-    eras.append("DataG")
+    if year==2022:
+        eras.append("DataC")
+        eras.append("DataD")
+        eras.append("DataE")
+        eras.append("DataF")
+        eras.append("DataG")
+    elif year==2023:
+        eras.append("DataC")
+        eras.append("DataD")
+
     #
     today = date.today().strftime("%b-%d-%Y")
-    outDir = "plotsMasking_%s"%(today)
+    outDir = "plotsMasking_%i_%s"%(year,today)
     if not os.path.exists(outDir):
         os.makedirs(outDir)
     #
@@ -309,13 +342,15 @@ if __name__=="__main__":
             # Fitting:
             if 'medium' in sr:
                 print("Using 80 bins...")
-                fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=2022, lumi=lumi, nBins=80)
+                fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=80)
+                fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=80, bOnly=True)
             elif 'high' in sr:
                 print("Using 60 bins...")
-                fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=2022, lumi=lumi, nBins=60)
+                fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=50)
+                fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=50, bOnly=True)
             else:
                 print("Using 100 bins...")
-                fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=2022, lumi=lumi, nBins=100)
+                fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=100, bOnly=False)
 
 
 

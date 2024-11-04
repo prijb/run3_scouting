@@ -21,7 +21,7 @@ useCategorizedSignal = True
 useCategorizedBackground = True
 
 useData = True
-useSignalMC = True
+useSignalMC = False
 
 # Constant to control the yields of the signal in the datacard (to be used consistently when limits are made)
 useNorm = True
@@ -199,7 +199,7 @@ if sigModel=="HTo2ZdTo2mu2x":
                     continue
                 sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t))
     else:
-        sigCTaus = [1, 10, 100, 1000]
+        sigCTaus = [1, 10, 100]
         lastmass = 0.5
         while (lastmass < 50.0):
             lastmass = 1.04*lastmass
@@ -226,7 +226,7 @@ mean = 0.0
 sigma = 0.0
 for y in years:
     for m in sigTags:
-        isValidPoint = True # Control bool to check if the point can be actually be computed
+        #isValidPoint = True # Control bool to check if the point can be actually be computed
         M = float(m.split('-')[1].split('_')[0].replace('p','.'))
         T = float(m.split('ctau-')[1].split('mm')[0].replace('p','.'))
         listOfBins = []
@@ -326,7 +326,6 @@ for y in years:
                 catExtS = "_ch%d_%s"%(binidx, year)
             if useCategorizedBackground:
                 catExtB = "_ch%d_%s"%(binidx, year)
-            listOfBins.append(binidx)
             # Open input file with workspace
             f = ROOT.TFile(finame)
             # Retrieve workspace from file
@@ -350,10 +349,11 @@ for y in years:
             # Retrive BG normalization:
             try:
                 nBG = w.data("data_obs%s"%catExtB).sumEntries()
-            except TypeError: # if it doesn't exist... (assuming there ir signal)
+            except TypeError: # if it doesn't exist... (assuming there is signal)
                 print("Background not found for this mass, skipping to next")
-                isValidPoint = False
-                break
+                #isValidPoint = False
+                continue
+            listOfBins.append(binidx)
             #if not doCounting:
             #    os.system("cp %s %s/"%(finame,outDir))
             #    finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
@@ -549,19 +549,22 @@ for y in years:
                     card.write("pdf_index_ch%d_%s discrete\n"%(binidx, year)) # For discrete profiling
                     #card.write("pdf_index discrete\n") # For discrete profiling
             card.close()
+            print("> %s ready and closed!"%(cardn))
         
             ## text2workspace for individual cards:
             #os.chdir(outDir)
-            if noModel:
-                os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
-            else:
-                os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
+            #if noModel:
+            #    os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
+            #else:
+            #    os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
             #os.chdir(thisDir)
-        if not isValidPoint:
-            continue
+        #if not isValidPoint:
+        #    continue
         #
         ## Combine cards:
         if len(dNames)>1:
+            print("Changing dir to %s"%(outDir))
+            print("listOfBins to combine: ", listOfBins)
             os.chdir(outDir)
             combinedCards = ""
             for binidx in listOfBins:
@@ -574,9 +577,14 @@ for y in years:
                 #else:
                 #    os.system("combineCards.py -S card%s_ch1_%s_M%s_%s.txt card%s_ch2_%s_M%s_%s.txt > card%s_combined_%s_M%s_%s.txt"%(cname,s,m,y,cname,s,m,y,cname,s,m,y))
                 #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
-                combinedCards += "%s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt "%(outDir,cname,binidx,sigModel,M,T,y)
-            os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
-            os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau%i_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
+                icard = "card%s_ch%d_%s_M%.3f_ctau%i_%s.txt "%(cname,binidx,sigModel,M,T,y)
+                combinedCards += icard
+
+            print(combinedCards)
+            if combinedCards!="":
+                print("Combining cards into card%s_combined_%s_M%.3f_ctau%i_%s.txt"%(cname,sigModel,M,T,y))
+                os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau%i_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
+                os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau%i_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
             if not useSignalMC:
                 for binidx in listOfBins:
                     os.system("rm %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))
