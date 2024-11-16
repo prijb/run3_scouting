@@ -6,6 +6,7 @@
   bool useSignalMC = false;
   bool mergeEras = true;
   bool writeWS = true;
+  bool reweighting = false;
   bool doUpAndDownVariations = true;
   if (!useSignalMC)
     doUpAndDownVariations = false;
@@ -18,6 +19,7 @@
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-02-2024_2022_SRsOnly"; // last 2022
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2023"; // last 2023
   TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind"; // last 2022 (unblinded)
+  //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Nov-13-2024_ctauReweighting";
 
   // Names of the search regions
   vector<TString> dNames = { };
@@ -95,30 +97,90 @@
   //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
   if ( model=="HTo2ZdTo2mu2x" ) {
     if ( useSignalMC ) {
-      vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
-      vector<float> sigCtau = {1, 10, 100, 1000};
-      for ( unsigned int m=0; m<sigMass.size(); m++ ) {
-        TString massString = Form("%.1f",sigMass[m]); 
-        massString.ReplaceAll(".", "p");
-        for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
-          if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
-            continue;
-          TString ctauString = Form("%.0f",sigCtau[t]); 
-          sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
-          sigmasses_2mu.push_back(sigMass[m]);
-          sigmasses_4mu.push_back(125.); // Mass of the higgs
-          sigmasses_ctau.push_back(sigCtau[t]); // Lifetime
-          std::cout << Form("Reading signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+        if (!reweighting) {
+          //vector<float> sigMass = {0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0};
+          //vector<float> sigMass = {6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 30.0, 40.0, 50.0};
+	  vector<float> sigMass = {1.5, 2.0};
+          vector<float> sigCtau = {1, 10, 100, 1000};
+          for ( unsigned int m=0; m<sigMass.size(); m++ ) {
+            TString massString = Form("%.1f",sigMass[m]); 
+            massString.ReplaceAll(".", "p");
+            for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
+              if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
+                continue;
+              TString ctauString = Form("%.0f",sigCtau[t]); 
+              sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
+              sigmasses_2mu.push_back(sigMass[m]);
+              sigmasses_4mu.push_back(125.); // Mass of the higgs
+              sigmasses_ctau.push_back(sigCtau[t]); // Lifetime
+              std::cout << Form("Reading signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
+            }
+          }
+        } else { 
+          //vector<float> sigMass = {1.5, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 30.0, 40.0};
+          vector<float> sigMass = {1.5, 2.0, 2.5, 5.0};
+          vector<float> sigCtau = {0.1, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00};
+          for ( unsigned int m=0; m<sigMass.size(); m++ ) {
+            TString massString = Form("%.1f",sigMass[m]);
+            massString.ReplaceAll(".", "p");
+            for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
+              if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
+                continue;
+                if (sigCtau[t]==1.0 || sigCtau[t]==10.0 || sigCtau[t]==100.0) {
+                    sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%.0fmm",massString.Data(),sigCtau[t]));
+                } else {
+                    sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%.2fmm",massString.Data(),sigCtau[t]));
+                }
+                sigmasses_2mu.push_back(sigMass[m]);
+                sigmasses_4mu.push_back(125.); // Mass of the higgs
+                sigmasses_ctau.push_back(sigCtau[t]); // Lifetime
+                std::cout << Form("Reading signal sample: Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%.2fmm",massString.Data(),sigCtau[t]) << std::endl;
+            }
+          }
+          //// Only for validation (leave commented unless you want to use it!!):
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-10mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-10.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-1mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-1.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10.00mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1mm");
+          //sigsamples.push_back("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm");
+          //sigmasses_2mu = {1.5, 1.5, 1.5, 1.5, 6.0, 6.0, 6.0, 6.0, 8.0, 8.0, 8.0, 8.0, 14.0, 14.0, 14.0, 14.0, 22.0, 22.0, 22.0, 22.0};
+          //sigmasses_4mu = {125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0, 125.0};
+          //sigmasses_ctau = {10, 10, 1, 1, 10, 10, 1, 1, 10, 10, 1, 1, 10, 10, 1, 1, 10, 10, 1, 1};
         }
-      }
     } else {
       //vector<float> sigCtau = {1, 10, 100, 1000};
       vector<float> sigCtau = {1, 10, 100};
       float lastmass = 0.5;
       while (lastmass < 50.0)
       {
-        lastmass = 1.04*lastmass;
+        if (lastmass < 1.0) {
+          lastmass = 1.01*lastmass;
+        } else if (lastmass < 11.0) {
+          lastmass = 1.02*lastmass;
+        } else {
+          lastmass = 1.04*lastmass;
+        }
+        //  
         if (!passMassVeto(lastmass))
+          continue;
+        if (!passMassVeto(lastmass+5*1.017*lastmass))
+          continue;
+        if (!passMassVeto(lastmass-5*1.017*lastmass))
           continue;
         float intpmass = lastmass;
         for ( unsigned int t=0; t<sigCtau.size(); t++ ) {

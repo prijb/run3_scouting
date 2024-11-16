@@ -282,26 +282,28 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   // Veto of SM resonances: leave the workspace empty if hitting SM resonance boundaries for the background
   // Signal is kept for interpolation purposes
   // We use the sample mass: If dimuons fall within the window, we are out...
-  double lowBound = samplemass-windWidth*stddev_window;
-  double upBound = samplemass+windWidth*stddev_window;
+  double lowBound = mass-windWidth*stddev_window;
+  double upBound = mass+windWidth*stddev_window;
+  std::cout << mass << " - " << windWidth << " * " << stddev_window << " = " << lowBound << std::endl;
+  std::cout << mass << " + " << windWidth << " * " << stddev_window << " = " << upBound << std::endl;
   if ( !isSignal && datasetname.Contains("d_Dimuon")) {
-    if ( (( lowBound < 0.50 ) && (samplemass > 0.50)) || (( upBound > 0.41 ) && (samplemass < 0.41)) || ((samplemass > 0.41) && (samplemass < 0.50)) ) // Ks
+    if ( (( lowBound < 0.50 ) && (mass > 0.50)) || (( upBound > 0.41 ) && (mass < 0.41)) || ((mass > 0.41) && (mass < 0.50)) ) // Ks
       return;
-    if ( ( (( lowBound < 0.59 ) && (samplemass > 0.59)) || (( upBound > 0.51 ) && (samplemass < 0.51)) || ((samplemass > 0.51) && (samplemass < 0.59)) ) && (masking==1) ) // eta
+    if ( ( (( lowBound < 0.59 ) && (mass > 0.59)) || (( upBound > 0.51 ) && (mass < 0.51)) || ((mass > 0.51) && (mass < 0.59)) ) && (masking==1) ) // eta
       return;
-    if ( (( lowBound < 0.87) && (samplemass > 0.87)) || (( upBound > 0.69 ) && (samplemass < 0.69)) || ((samplemass > 0.69) && (samplemass < 0.87)) ) // rho / w
+    if ( (( lowBound < 0.87) && (mass > 0.87)) || (( upBound > 0.69 ) && (mass < 0.69)) || ((mass > 0.69) && (mass < 0.87)) ) // rho / w
       return;
-    if ( (( lowBound < 1.10 ) && (samplemass > 1.10)) || (( upBound > 0.94 ) && (samplemass < 0.94)) || ((samplemass > 0.94) && (samplemass < 1.10)) ) // phi 1020
+    if ( (( lowBound < 1.10 ) && (mass > 1.10)) || (( upBound > 0.94 ) && (mass < 0.94)) || ((mass > 0.94) && (mass < 1.10)) ) // phi 1020
       return;
-    if ( ( (( lowBound < 3.27 ) && (samplemass > 3.27)) || (( upBound > 2.91 ) && (samplemass < 2.91)) || ((samplemass > 2.91) && (samplemass < 3.27)) ) && (masking==2 || masking==1) ) // Jpsi
+    if ( ( (( lowBound < 3.27 ) && (mass > 3.27)) || (( upBound > 2.91 ) && (mass < 2.91)) || ((mass > 2.91) && (mass < 3.27)) ) && (masking==2 || masking==1) ) // Jpsi
       return;
-    if ( ( (( lowBound < 3.89 ) && (samplemass > 3.89)) || (( upBound > 3.47 ) && (samplemass < 3.47)) || ((samplemass > 3.47) && (samplemass < 3.89)) ) && (masking==2 || masking==1) ) // Psi 2S
+    if ( ( (( lowBound < 3.89 ) && (mass > 3.89)) || (( upBound > 3.47 ) && (mass < 3.47)) || ((mass > 3.47) && (mass < 3.89)) ) && (masking==2 || masking==1) ) // Psi 2S
       return;
-    if ( ( (( lowBound < 9.91 ) && (samplemass > 9.91)) || (( upBound > 8.99 ) && (samplemass < 8.99)) || ((samplemass > 8.99) && (samplemass < 9.91)) ) && (masking==1) ) // Upsilon 1S
+    if ( ( (( lowBound < 9.91 ) && (mass > 9.91)) || (( upBound > 8.99 ) && (mass < 8.99)) || ((mass > 8.99) && (mass < 9.91)) ) && (masking==1) ) // Upsilon 1S
       return;
-    if ( ( (( lowBound < 10.56 ) && (samplemass > 10.56)) || (( upBound > 9.64 ) && (samplemass < 9.64)) || ((samplemass > 9.64) && (samplemass < 10.56)) ) && (masking==1) ) // Upsilon 2S
+    if ( ( (( lowBound < 10.56 ) && (mass > 10.56)) || (( upBound > 9.64 ) && (mass < 9.64)) || ((mass > 9.64) && (mass < 10.56)) ) && (masking==1) ) // Upsilon 2S
       return;
-    if ( ( (( lowBound < 10.78 ) && (samplemass > 10.78)) || (( upBound > 9.90 ) && (samplemass < 9.90)) || ((samplemass > 9.90) && (samplemass < 10.78)) ) && (masking==1) ) // Upsilon 3S
+    if ( ( (( lowBound < 10.78 ) && (mass > 10.78)) || (( upBound > 9.90 ) && (mass < 9.90)) || ((mass > 9.90) && (mass < 10.78)) ) && (masking==1) ) // Upsilon 3S
       return;
   }
 

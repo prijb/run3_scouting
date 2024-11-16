@@ -68,14 +68,11 @@ scramv1 b clean; scramv1 b
 cmsenv
 cd ../../
 
-#cd HiggsAnalysis/CombinedLimit
-#. env_standalone.sh
-#cd ../../
-
-ls -la
+#ls -la
 
 rm -rf ${OUT}
 mkdir -p ${OUT}
+echo "combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}"
 bash combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}
 
 for FILE in $(ls ${OUT})

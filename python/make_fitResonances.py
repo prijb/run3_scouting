@@ -296,8 +296,8 @@ if __name__=="__main__":
     # Input
     #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind"
     #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Oct-30-2024_2022_unblind_noMuonIPSel"
-    inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Oct-30-2024_unblind_allCuts"
-    #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Oct-30-2024_unblind_noMuonIPSel"
+    #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Oct-30-2024_unblind_allCuts"
+    inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Nov-11-2024_MinBias_fixed_noIP"
     files = os.listdir(inDir)
     #
     eras = []
@@ -310,6 +310,7 @@ if __name__=="__main__":
     elif year==2023:
         eras.append("DataC")
         eras.append("DataD")
+    eras = ["DileptonMinBias"] # Remove if you want to run on Data
 
     #
     today = date.today().strftime("%b-%d-%Y")
