@@ -199,11 +199,13 @@ struct GenPart {
   std::vector<float> pt, eta, phi, m;
   std::vector<float> vx, vy, vz, lxy;
   std::vector<int> status, index, pdgId, motherIndex, motherPdgId;
+  std::vector<float> ct;
 
   void clear() {
     pt.clear(); eta.clear(); phi.clear(); m.clear();
     vx.clear(); vy.clear(); vz.clear(); lxy.clear();
     status.clear(); index.clear(); pdgId.clear(); motherIndex.clear(); motherPdgId.clear();
+    ct.clear();
   }
 };
 
@@ -430,6 +432,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   unsigned int run, lumi, evtn;
   bool passL1, passHLT;
   float nPV, PV_x, PV_y, PV_z;
+  //float ct1 = -1.0, ct2 = -1.0;
   GenPart GenParts;
   SV SVs;
   SVOverlap SVOverlaps;
@@ -487,6 +490,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   tout->Branch("GenPart_pdgId", &GenParts.pdgId);
   tout->Branch("GenPart_motherIndex", &GenParts.motherIndex);
   tout->Branch("GenPart_motherPdgId", &GenParts.motherPdgId);
+  tout->Branch("GenPart_ct", &GenParts.ct);
 
   tout->Branch("SV_index", &SVs.index);
   tout->Branch("SV_ndof", &SVs.ndof);
@@ -698,6 +702,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
 
       // GenPart
       GenParts.clear();
+      std::vector<int> matchIndex;
+      std::vector<float> cts;
       if (isMC) {
         auto genparts = getObject<std::vector<reco::GenParticle>>(ev, "genParticles", "");
         for (unsigned int iGen=0; iGen<genparts.size(); iGen++) {
@@ -718,10 +724,12 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           if (!genpart.isLastCopy())
             continue;
 
-          int motherIdx = -1, motherPdgId = 0; // Default value
+          int motherIdx = -1, motherPdgId = 0;
+          reco::GenParticle lastCopy=genpart; // Default value
           if (genpart.numberOfMothers() > 0) {
             motherIdx = genpart.motherRef().index();
             while (genparts[motherIdx].pdgId() == genpart.pdgId()) {
+              lastCopy = genparts[motherIdx];
               motherIdx = genparts[motherIdx].motherRef().index();
             }
             motherPdgId = genparts[motherIdx].pdgId();
@@ -739,6 +747,27 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           GenParts.pdgId.push_back(genpart.pdgId());
           GenParts.motherIndex.push_back(motherIdx);
           GenParts.motherPdgId.push_back(motherPdgId);
+          // Generator-level information for lifetime reweighting
+          int daughterIndex = -1;
+          if (genpart.pdgId()==13) {
+            if (motherPdgId==1023) {
+              float vx1 = lastCopy.vx() * 10.; // mm
+              float vy1 = lastCopy.vy() * 10.; // mm
+              float vx0 = genparts[motherIdx].vx() * 10.; // mm
+              float vy0 = genparts[motherIdx].vy() * 10.; // mm
+              matchIndex.push_back(motherIdx);
+              cts.push_back ( ((vx1 - vx0)*genparts[motherIdx].px() + (vy1 - vy0)*genparts[motherIdx].py())*genparts[motherIdx].mass()/(genparts[motherIdx].pt()*genparts[motherIdx].pt()) ); // in mm
+            }
+          }
+        }
+        // Set the ct's values for the genParticles
+        GenParts.ct = std::vector<float>(GenParts.pt.size(), 1.0);
+        for (int jGen = 0; jGen < matchIndex.size(); jGen++) {
+            auto it = std::find(GenParts.index.begin(), GenParts.index.end(), matchIndex.at(jGen));
+            if (it != GenParts.index.end()) {
+                auto position = std::distance(GenParts.index.begin(), it); // Calculate index
+                GenParts.ct[position] = cts.at(jGen);
+            }
         }
       }
 

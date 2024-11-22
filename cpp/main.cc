@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
   //
   // Sample list: Monte Carlo
   if ( sampleArg=="DileptonMinBias" && year=="2022") {
-    files = getFiles("/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Nov-13-2023/MC/DileptonMinBias/", startFile, nFiles, isCondor, fromCrab);
+    files = getFiles("/InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8/ppradeep-crab_skim4__2022X_InclusiveDileptonMinBias_TuneCP5Plus_13p6TeV_pythia8_5_syst-cf0b66eebbd8a1efdeefe3d3090bd687/USER", startFile, nFiles, isCondor, true);
     process = "DileptonMinBias";
   }
   //
