@@ -1,6 +1,7 @@
 #include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooDoubleCBFast.h"
 #include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
 #include "../CMSSW_13_3_0/src/HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
+
 #include "RooCategory.h"
 #include "RooWorkspace.h"
 #include "RooFitResult.h"
@@ -77,6 +78,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   double minmass = 0.4;
   double maxmass = 140.;
   double minMforFit = minmass;
+
   bool refitSignal = true;
   TString datasetname(mmumuAll.GetName());
 
@@ -114,7 +116,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     masking = 3;
   }
 
-  bool useSpline = true;
+  bool useSpline = true; 
   double minMforSpline =  200.0;
   double maxMforSpline = 2000.0;
   //if ( mass < (minMforSpline - 0.001) || mass > (maxMforSpline + 0.001) )

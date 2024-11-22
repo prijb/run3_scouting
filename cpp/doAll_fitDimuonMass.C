@@ -11,20 +11,19 @@
   if (!useSignalMC)
     doUpAndDownVariations = false;
   TString period = "2022"; // Either 2022 or 2023
-  TString model = "HTo2ZdTo2mu2x";
-  //TString model = "ScenarioB1";
-  
+  TString model = "HTo2ZdTo2mu2x"; // Either HTo2ZdTo2mu2x : ScenarioB1 : BToPhi
 
   // Dir with the RooDataSets
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-02-2024_2022_SRsOnly"; // last 2022
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_SRsOnly_2023"; // last 2023
+  //TString inDir = "/ceph/cms/store/user/garciaja/Run3ScoutingOutput/BToPhi_allCuts"; // BToPhi
   TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind"; // last 2022 (unblinded)
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Nov-13-2024_ctauReweighting";
 
   // Names of the search regions
   vector<TString> dNames = { };
-  dNames.push_back("d_FourMu_sep");
-  dNames.push_back("d_FourMu_osv");
+  //dNames.push_back("d_FourMu_sep");
+  //dNames.push_back("d_FourMu_osv");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso0_ptlow");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso0_pthigh");
   dNames.push_back("d_Dimuon_lxy0p0to0p2_iso1_ptlow");
@@ -85,6 +84,7 @@
   vector<TString> samples = { };
   vector<TString> sigmodels = { };
   vector<TString> sigsamples = { };
+  vector<TString> sigsamples_outdir = { };
   vector<float> sigmasses_2mu = { };
   vector<float> sigmasses_4mu = { };
   vector<float> sigmasses_ctau = { };
@@ -189,6 +189,7 @@
           TString ctauString = Form("%.1f",sigCtau[t]);
           TString massString = Form("%.3f",intpmass); 
           sigsamples.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm",massString.Data(),ctauString.Data()));
+	  sigsamples_outdir.push_back(Form("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm", massString_outdir.Data(), ctauString_outdir.Data()));
           sigmasses_2mu.push_back(intpmass);
           sigmasses_4mu.push_back(125.);
           sigmasses_ctau.push_back(sigCtau[t]);
@@ -200,12 +201,14 @@
     vector<float> sigMass = {1.33};
     vector<float> sigCtau = {0.1, 1, 10, 100};
     for ( unsigned int m=0; m<sigMass.size(); m++ ) {
+      TString massString_outdir = Form("%.3f", sigMass[m]);
       TString massString = Form("%.2f",sigMass[m]); 
       massString.ReplaceAll(".", "p");
       for ( unsigned int t=0; t<sigCtau.size(); t++ ) {
         if ( (sigMass[m] < 1.0 && sigCtau[t] > 10) || (sigMass[m] < 30.0 && sigCtau[t] > 100) )
           continue;
         TString ctauString;
+	TString ctauString_outdir = Form("%.1f", sigCtau[t]);
         if (sigCtau[t]<1.0) {
           ctauString = Form("%.1f",sigCtau[t]);
           ctauString.ReplaceAll(".", "p");
@@ -213,13 +216,65 @@
           ctauString = Form("%.0f",sigCtau[t]);
         }
         sigsamples.push_back(Form("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm",massString.Data(),ctauString.Data()));
+	sigsamples_outdir.push_back(Form("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm", massString_outdir.Data(), ctauString_outdir.Data()));
         sigmasses_2mu.push_back(sigMass[m]);
         sigmasses_4mu.push_back(4.); // Mass of the mother particle
+        sigmasses_ctau.push_back(sigCtau[t]);
         std::cout << Form("Reading signal sample: Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm",massString.Data(),ctauString.Data()) << std::endl;
       }
     }
   }
+  else if ( model == "BToPhi") {
+    //vector<float> sigMass = {0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.25, 1.5, 2.0, 2.85, 3.35, 4.0, 5.0};
+    vector<float> sigMass = {0.9, 1.25, 1.5, 2.0};
+    //vector<float> sigCtau = {0.0, 0.1, 1, 10, 100};
+    vector<float> sigCtau = {1,10,100};
+    for (unsigned int m = 0; m < sigMass.size(); m++) {
+      TString massString = Form("%.2f", sigMass[m]);
 
+      TString massString_outdir = Form("%.3f", sigMass[m]);
+      
+      int length = massString.Length(); 
+      for (int i = length - 1; i >= 0; --i) {
+        if (massString[i] == '0' && massString[i - 1] == '.') {
+          massString = massString(0, i - 1);
+        } else if (massString[i] == '0') {
+          massString = massString(0, i);
+        } else if (massString[i] == '.') {
+          massString = massString(0, i);
+          break;
+        } else {
+          break;
+        }
+      }
+      if (massString == '2' || massString == '4' || massString == '5') {
+        massString += "p0";
+      }
+      massString.ReplaceAll(".", "p");
+      
+      for (unsigned int t = 0; t < sigCtau.size(); t++) {
+        if ( (sigMass[m] == 0.5 && sigCtau[t] == 100) || (sigMass[m] == 4.0 && sigCtau[t] == 10))
+          continue;
+        TString ctauString;
+	TString ctauString_outdir = Form("%.1f", sigCtau[t]);
+        if (sigCtau[t] == static_cast<int>(sigCtau[t])) {
+          ctauString = Form("%d", static_cast<int>(sigCtau[t]));
+        } else {
+          ctauString = Form("%.1f", sigCtau[t]);
+          ctauString.ReplaceAll(".", "p");
+        }
+        if (sigCtau[t] == 0.0f) {
+          ctauString = "0p0";
+        }
+        sigsamples.push_back(Form("Signal_BToPhi-%s_ctau-%smm", massString.Data(), ctauString.Data()));
+        sigsamples_outdir.push_back(Form("Signal_BToPhi-%s_ctau-%smm", massString_outdir.Data(), ctauString_outdir.Data()));
+	sigmasses_2mu.push_back(sigMass[m]);
+        sigmasses_4mu.push_back(125.); // For B-hadron model this doesn't make much sense
+        sigmasses_ctau.push_back(sigCtau[t]);
+        std::cout << Form("Reading signal sample: Signal_BToPhi-%s_ctau-%smm", massString.Data(), ctauString.Data()) << std::endl;
+        }
+      }
+  }
   /*
   if ( !(useSignalMC) ) {
     sigMass = {mF};
@@ -304,6 +359,9 @@
      for ( int isample=0; isample<sigsamples.size(); isample++ ) {
        TString sample = sigsamples[isample];
        cout<<"Sample: "<< sample << endl;
+       if (sample == "Signal_BToPhi-5p0_ctau-1mm") {
+        continue;
+    }
        if ( useSignalMC ) {
          TString inFile = Form("%s/histograms_%s_%s_%s_0.root",inDir.Data(),sample.Data(),era.Data(),year.Data());
          TFile fin(inFile);
@@ -318,7 +376,7 @@
          if (doUpAndDownVariations) {
            RooDataSet *tds_trg_up = (RooDataSet*) fin.Get(dNames[d]+"_trg_up")->Clone();
            RooDataSet *tds_trg_down = (RooDataSet*) fin.Get(dNames[d]+"_trg_down")->Clone();
-           RooDataSet *tds_sel_up = (RooDataSet*) fin.Get(dNames[d]+"_sel_up")->Clone();
+	   RooDataSet *tds_sel_up = (RooDataSet*) fin.Get(dNames[d]+"_sel_up")->Clone();
            RooDataSet *tds_sel_down = (RooDataSet*) fin.Get(dNames[d]+"_sel_down")->Clone();
            tds_trg_up->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_trg_up");
            tds_trg_down->SetName(dNames[d]+"_"+sample+"_"+year+"_"+era+"_trg_down");
@@ -357,6 +415,7 @@
      mmumu_bkg_merged.SetName(dNames[d]+"_Data_"+period);
      cout << "Merged dataset for background has entries: " << mmumu_bkg_merged.sumEntries() << endl;
      vector<RooDataSet> mmumu_sig_merged = {};
+     vector<RooDataSet> mmumu_sig_merged_outdir = {};
      vector<RooDataSet> mmumu_sig_trg_up_merged = {};
      vector<RooDataSet> mmumu_sig_trg_down_merged = {};
      vector<RooDataSet> mmumu_sig_sel_up_merged = {};
@@ -365,22 +424,28 @@
        // Create worksapce, import data and model
        std::cout << "Creating merged workspace" << std::endl;
        RooWorkspace wfit("wfit","workspace"); 
+       
        RooWorkspace wfit_trg_up("wfit_trg_up","workspace_trg_up");
        RooWorkspace wfit_trg_down("wfit_trg_down","workspace_trg_down");
        RooWorkspace wfit_sel_up("wfit_sel_up","workspace_sel_up");
        RooWorkspace wfit_sel_down("wfit_sel_down","workspace_sel_down");
+       
+       //
        if (useSignalMC) {
          for (unsigned int iera=0; iera<eras.size(); iera++ ) {
-           if (iera==0)
+           if (iera==0){
              mmumu_sig_merged.push_back(mmumu_sigs[isample][iera]);
-           else
+	     mmumu_sig_merged_outdir.push_back(mmumu_sigs[isample][iera]);}
+           else{
              mmumu_sig_merged[isample].append(mmumu_sigs[isample][iera]);
+	     mmumu_sig_merged_outdir[isample].append(mmumu_sigs[isample][iera]);}
          }
        } else {
          RooDataSet *tds = (RooDataSet*) mmumu_bkg_merged.emptyClone(dNames[d]+"_"+sigsamples[isample]+"_"+period, "");
          mmumu_sig_merged.push_back( *tds );
        }
        mmumu_sig_merged[isample].SetName(dNames[d]+"_"+sigsamples[isample]+"_"+period);
+       mmumu_sig_merged_outdir[isample].SetName(dNames[d]+"_"+sigsamples_outdir[isample]+"_"+period);
        if (doUpAndDownVariations) {
          for (unsigned int iera=0; iera<eras.size(); iera++ ) {
            if (iera==0) {
@@ -436,8 +501,10 @@
        wfit.Print();
 
        // Save the workspace into a ROOT file
+       TString fwsname;
        if ( writeWS ) {
-         TString fwsname = Form("%s/%s_workspace.root",outDir.Data(),mmumu_sig_merged[isample].GetName());
+	 fwsname = Form("%s/%s_workspace.root",outDir.Data(),mmumu_sig_merged_outdir[isample].GetName());
+	 //fwsname = Form("%s/%s_workspace.root",outDir.Data(),mmumu_sig_merged[isample].GetName());
          TFile *fws = new TFile(fwsname, "RECREATE");
          fws->cd();
          cout << "Writing workspace..." << endl;
@@ -473,8 +540,8 @@
      mmumu_sigs_sel_down.clear();
    }
    mmumu_bkgs.clear();
+   
  }
-
   /*
   if ( !mergeYears ) {
     for ( int iyear=0; iyear<years.size(); iyear++ ) {
