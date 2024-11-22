@@ -1,6 +1,9 @@
 import os,sys
+import ROOT
 
-useSignalMC = False
+ROOT.gROOT.ProcessLine(".L cpp/helper.C+")
+
+useSignalMC = True
 
 if len(sys.argv)<3:
     print("Please, specify model and limit directory.")
@@ -18,9 +21,19 @@ else:
 
 fout = open("%s/limits_%s_%s.txt"%(outdir,model,year),"w")
 
-#masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-ctaus = [1, 10, 100]
+if useSignalMC:
+    #masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0] # Full set of masses
+    masses =  [1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+    ctaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00]
+else:
+    masses = []
+    ctaus = [1, 10, 100] # Lifetimes for the grid
+    with open('data/HZdZd_limitgrid.txt', 'r') as f:
+        lmasses = f.readlines()[0].split(',')[:-1]
+        for mass in lmasses:
+            m = float(mass)
+            masses.append(m)
+            print(m)
 
 f2bs = [0.0]
 if model == "nomodel":
@@ -39,8 +52,8 @@ for m in masses:
             p1s = -1.0
             p2s = -1.0
             if model != "nomodel":
-                fname = "%s/lim_asymptotic_%s_m%.1f_ctau%i_%s.txt"%(limdir,model,m,t,year)
-                print(fname)
+                fname = "%s/lim_asymptotic_%s_m%.3f_ctau%.2f_%s.txt"%(limdir,model,m,t,year)
+                print('Reading: ' + fname)
             else:
                 fname = "%s/lim_asymptotic_f2b%.0f_m%.0f.txt"%(limdir,100.0*f,m)
             if not os.path.exists(fname):
@@ -62,7 +75,7 @@ for m in masses:
                     p2s = l.split()[len(l.split())-1]
             fin.close()
             if model != "nomodel":
-                fout.write("%s,%.1f,%i,%s,%s,%s,%s,%s,%s\n"%(model,m,t,obs,exp,m2s,m1s,p1s,p2s))
+                fout.write("%s,%.3f,%.2f,%s,%s,%s,%s,%s,%s\n"%(model,m,t,obs,exp,m2s,m1s,p1s,p2s))
             else:
                 fout.write("%.0f,%.2f,%s,%s,%s,%s,%s,%s\n"%(m,f,obs,exp,m2s,m1s,p1s,p2s))
 

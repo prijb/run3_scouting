@@ -1,16 +1,37 @@
 # Muon scouting
 
-Clone repository from GitHub with:
+Full workflow is divided in several stages:
+1. Production of skims reading from RAW/AODSIM. It processes and stores trigger and tracker information.
+2. Production of ntuples reading from the skimmed datasets.
+3. Analysis, including histogram plotting, fitting and limit derivation.
+4. Statistics checks
+
+Each part is described below, but **a set of example commands to reproduce some of the plots of the analysis is collected in Section [Running the analysis](#running-the-analysis).**
+
+## Installation
+
+Recommended machine and CMSSW version are uaf2-3-4 and CMSSW_13_3_0:
+
 ``` shell
 git clone --recursive https://github.com/cmstas/run3_scouting.git
 ```
 
-Full workflow is divided in three stages:
-1. Production of skims reading from RAW/AODSIM. It processes and stores trigger and tracker information.
-2. Production of ntuples reading from the skimmed datasets.
-3. Analysis, including histogram plotting, fitting and limit derivation.
+To keep consistency for the fitting and combine in both local and condor we use singularity:
 
-Each part is described below, but **a set of example commands to reproduce some of the plots of the analysis is collected in Section [Running the analysis](#running-the-analysis).**
+```
+cmssw-el8
+cmsrel CMSSW_13_3_0
+push CMSSW_13_3_0/src
+cmsenv
+git clone https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git HiggsAnalysis/CombinedLimit
+pushd HiggsAnalysis/CombinedLimit
+git fetch origin
+git checkout v10.0.2
+scramv1 b clean; scramv1 b # always make a clean build
+popd
+scram b
+popd
+```
 
 ## Skimming
 
@@ -21,7 +42,7 @@ with additional information, mainly:
 - HLT and L1T flags;
 - tracker information (number of expected muon tracker layers, position of displaced vertices relative to tracker modules).
 
-## Looper (C++)
+## NTuple production: Looper (C++)
 
 The C++ looper resides in `cpp/`.
 
@@ -106,7 +127,10 @@ source scripts/submitLocalAddHistosScouting.sh
 
 To run a set of fits just run:
 ```
-sh cpp/setFittingEnv.sh
+cmssw-el8 --bind /ceph/cms/store/
+cd CMSSW_13_3_0/src
+cmsenv
+cd ../../
 root -b -q -l -n cpp/doAll_fitDimuonMass.C
 ```
 
@@ -115,17 +139,6 @@ root -b -q -l -n cpp/doAll_fitDimuonMass.C
 ## Limit extraction
 
 ### Combine in condor
-
-If running limits for the first time:
-
-```
-git clone https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git HiggsAnalysis/CombinedLimit
-pushd HiggsAnalysis/CombinedLimit
-git fetch origin
-git checkout v9.1.0
-. env_standalone.sh
-make
-```
 
 Then launch with condor with:
 ```
@@ -145,7 +158,32 @@ python3 combineScripts/plot1DLimits.py <model> <limit output directory> <ctau> <
 ```
 which will create the png limit plot.
 
-## Running the analysis
+## Statistics checks
+
+### Bias tests
+
+Running bias tests run for hZdZd model.
+
+1) To run bias tests on a single point:
+```
+# python3 combineScripts/submitBiasTests.py datacards_all_Oct-19-2024_2022 output /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Sep-30-2024_2022/limits_HTo2ZdTo2mu2x_2022.txt HTo2ZdTo2mu2x 5 5 100
+python3 combineScripts/submitBiasTests.py datacards_all_Oct-19-2024_2022 output /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Sep-30-2024_2022/limits_HTo2ZdTo2mu2x_2022.txt HTo2ZdTo2mu2x 5 5 100
+```
+Injecting $r_{in} = 5$, for $m_{Z_D} = 5$ GeV and $c\tau = 100$ mm.
+
+2) To run over the whole masked grid use condor:
+```
+# sh condor/limits/runBiasTests_onCondor.sh <input datacards> <output dir> <year> <txt with asymptotic limits> <injected r>
+sh condor/limits/runBiasTests_onCondor.sh datacards_all_Oct-20-2024_2022 biasTests_Oct-20-2024_r5 2022 /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Sep-30-2024_2022/limits_HTo2ZdTo2mu2x_2022.txt 5
+```
+
+3) To plot results and summary after running with condor. ```<input dir>``` is ```<output dir>``` from previous command.
+```
+# python3 python/plot_biasTestsSummary.py <input dir>
+python3 python/plot_biasTestsSummary.py /ceph/cms/store/user/fernance/Run3ScoutingOutput/biasTests_Oct-20-2024_r5
+```
+
+## Running the analysis (start-to-end)
 
 This set of commands assumed that we are **taking the ntuples as starting point** (skimmer and looper should have been run before). Latest sets of ntupels are available here:
 ```
@@ -178,10 +216,7 @@ If you want to go directly to fitting, you can just fill the spectra and ```RooD
 
 ### Fitting mass windows
 
-Init with:
-```
-source cpp/setFittingEnv.sh
-```
+Follow the steps above to run the fitting within a cmssw-el8 env.
 
 To fit the mass windows, modify the lines within ```cpp/doAll_fitDimuonMass.C``` to define ```period``` and ```inDir```. With the examples below:
 ```

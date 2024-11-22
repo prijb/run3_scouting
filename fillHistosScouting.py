@@ -23,8 +23,11 @@ parser.add_argument("--outSuffix", default="", help="Choose output directory. De
 parser.add_argument("--condor", default=False, action="store_true", help="Run on condor")
 parser.add_argument("--data", default=False, action="store_true", help="Process data")
 parser.add_argument("--signal", default=False, action="store_true", help="Process signal")
+parser.add_argument("--unblind", default=False, action="store_true", help="Unblind data")
 parser.add_argument("--year", default="2022", help="Year to be processed. Default: 2022")
 parser.add_argument("--weightMC", default=True, help="Indicate if MC is weighted")
+parser.add_argument("--reweightFrom", default=-1, help="Indicate ctau of the sample")
+parser.add_argument("--reweightTo", default=-1, help="Indicate ctau to reweight to")
 parser.add_argument("--rooWeight", default="1.00", help="Weight to be used for RooDatasets and Signal Regions (It doesn't weight other histograms)")
 parser.add_argument("--partialUnblinding", default=False, action="store_true", help="Process x% (default: x=50) of available data")
 parser.add_argument("--partialUnblindingFraction", default="0.5", help="Fraction of available data to be processed")
@@ -197,7 +200,136 @@ def getweight(era, ngen, frac=1.0, xsec=1000):
     if era=="2023BPix":
         return frac*9.525199061*xsec/ngen
 
+# Get closest from list
+def getClosest(val, values):
+    iv = 0
+    for v,vv in enumerate(values):
+        if abs(val-vv) < abs(val-values[iv]):
+            iv = v
+    return iv, abs(val-values[iv])
+#
+def getClosestAngular(vals = [0,0,0], values_lxy = [], values_eta = [], values_phi = []):
+    iv = 0
+    ivt = ROOT.TVector3()
+    ivt.SetPtEtaPhi(values_lxy[0], values_eta[0], values_phi[0])
+    v1 = ROOT.TVector3()
+    v1.SetPtEtaPhi(vals[0], vals[1], vals[2])
+    for v in range(0, len(values_lxy)):
+        v2 = ROOT.TVector3()
+        v2.SetPtEtaPhi(values_lxy[v], values_eta[v], values_phi[v])
+        #if abs(val-vv) < abs(val-values[iv]):
+        if v1.DeltaR(v2) < v1.DeltaR(ivt):
+            iv = v
+            ivt = v2
+    return iv
 
+
+# Get trigger SF (2022)
+def getTriggerSF(subpt, lxy):
+    sf = 1.0
+    sfup = 1.0
+    sfdown = 1.0
+    if lxy > 0.0 and lxy < 0.2:
+        if subpt < 5.0:
+            sf = 1.12
+            sfup = 1.12 + 0.01
+            sfdown = 1.12 - 0.01
+        elif subpt > 5. and subpt < 10.:
+            sf = 0.996
+            sfup = 0.996 + 0.004
+            sfdown = 0.996 - 0.003
+        elif subpt > 10. and subpt < 15.:
+            sf = 0.974
+            sfup = 0.974 + 0.007
+            sfdown = 0.974 - 0.008
+        elif subpt > 15.0:
+            sf = 0.915
+            sfup = 0.915 + 0.008
+            sfdown = 0.915 - 0.008
+    elif lxy > 0.2 and lxy < 1.0:
+        if subpt < 5.0:
+            sf = 1.19
+            sfup = 1.19 + 0.04
+            sfdown = 1.19 - 0.05
+        elif subpt > 5. and subpt < 10.:
+            sf = 1.008
+            sfup = 1.008 + 0.007
+            sfdown = 1.008 - 0.008
+        elif subpt > 10. and subpt < 15.:
+            sf = 0.969
+            sfup = 0.969 + 0.006
+            sfdown = 0.969 - 0.008
+        elif subpt > 15.0:
+            sf = 0.96
+            sfup = 0.96 + 0.01
+            sfdown = 0.96 - 0.01
+    elif lxy > 1.0 and lxy < 2.4:
+        if subpt < 5.0:
+            sf = 1.32
+            sfup = 1.32 + 0.1
+            sfdown = 1.32 - 0.2
+        elif subpt > 5. and subpt < 10.:
+            sf = 1.03
+            sfup = 1.03 + 0.02
+            sfdown = 1.03 - 0.02
+        elif subpt > 10. and subpt < 15.:
+            sf = 0.986
+            sfup = 0.986 + 0.008
+            sfdown = 0.986 - 0.017
+        elif subpt > 15.0:
+            sf = 0.98
+            sfup = 0.98 + 0.01
+            sfdown = 0.98 - 0.04
+    elif lxy > 2.4 and subpt < 5.0:
+        sf = 1.00
+        sfup = 1.00 + 0.3
+        sfdown = 1.00 - 0.3
+    elif lxy > 2.4 and lxy < 3.1:
+        sf = 1.04
+        sfup = 1.04 + 0.01
+        sfdown = 1.04 - 0.02
+    elif lxy > 3.1 and lxy < 7.0:
+        sf = 1.02
+        sfup = 1.02 + 0.01
+        sfdown = 1.02 - 0.03
+    elif lxy > 7.0:
+        sf = 1.00
+        sfup = 1.00 + 0.05
+        sfdown = 1.00 - 0.05
+    return sf, sfup, sfdown
+
+# Get Selection SF
+def getSelectionSF(lxy):
+    sf = 1.0
+    sfup = 1.0
+    sfdown = 1.0
+    if lxy > 0.0 and lxy < 0.2:
+        sf = 1.10
+        sfup = 1.10 + 0.01
+        sfdown = 1.10 - 0.01
+    elif lxy > 0.2 and lxy < 1.0:
+        sf = 1.03
+        sfup = 1.03 + 0.02
+        sfdown = 1.03 - 0.02
+    elif lxy > 1.0 and lxy < 2.4:
+        sf = 1.02
+        sfup = 1.02 + 0.03
+        sfdown = 1.02 - 0.03
+    elif lxy > 2.4 and lxy < 3.1:
+        sf = 0.96
+        sfup = 0.96 + 0.06
+        sfdown = 0.96 - 0.06
+    elif lxy > 3.1 and lxy < 7.0:
+        sf = 0.86
+        sfup = 0.86 + 0.06
+        sfdown = 0.86 - 0.06
+    elif lxy > 7.0: # More bins to be added when efficiency (per category) is computed
+        sf = 1.0
+        sfup = 1.0 + 0.3
+        sfdown = 1.0 - 0.3
+    return sf, sfup, sfdown
+
+## Running settings
 indir  = args.inDir.replace("/ceph/cms","")
 outdir = args.outDir
 if args.outSuffix!="":
@@ -281,7 +413,8 @@ ncounts = 1
 efilter = 1.0
 lumiweight = 1.0
 sampleTag = args.inSample.replace('Signal_', '').split('_202')[0]
-if not isData and args.weightMC:
+unblind_frac = 1.0 if args.unblind else 0.1
+if not isData and args.weightMC and 'DileptonMinBias' not in args.inSample:
     counts = ROOT.TH1F("totals", "", 1, 0, 1)
     print("Simulations: Getting counts")
     if "HTo2ZdTo2mu2x" in sampleTag:
@@ -300,6 +433,22 @@ if not isData and args.weightMC:
                 if sampleTag in row[0]:
                     efilter = float(row[-1])
                     break
+    if 'BToPhi' in sampleTag:
+        for _,f in enumerate(files):
+            if not args.condor:
+                f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            else:
+                f_ = ROOT.TFile.Open(f)
+            h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+            counts.Add(h_)
+            f_.Close()
+        ncounts = counts.GetBinContent(1)
+        with open('data/BToPhi-request.csv') as mcinfo:
+            reader = csv.reader(mcinfo, delimiter=',')
+            for row in reader:
+                if sampleTag in row[0]:
+                    efilter = float(row[-1])
+                    break
     if "ScenB2" in sampleTag:
         for _,f in enumerate(files):
             if not args.condor:
@@ -311,14 +460,25 @@ if not isData and args.weightMC:
             f_.Close()
         ncounts = counts.GetBinContent(1)
         efilter = 1.0
+    if "ScenarioB1" in sampleTag:
+        for _,f in enumerate(files):
+            if not args.condor:
+                f_ = ROOT.TFile.Open(f.replace('davs://redirector.t2.ucsd.edu:1095//', '/ceph/cms/'))
+            else:
+                f_ = ROOT.TFile.Open(f)
+            h_ = f_.Get("counts").Clone("Clone_{}".format(_))
+            counts.Add(h_)
+            f_.Close()
+        ncounts = counts.GetBinContent(1)
+        efilter = 1.0
     if "2022postEE" in f:
-        lumiweight = getweight("2022postEE", ncounts/efilter, 0.1)
+        lumiweight = getweight("2022postEE", ncounts/efilter, unblind_frac)
     elif "2022" in f:
-        lumiweight = getweight("2022", ncounts/efilter, 0.1)
+        lumiweight = getweight("2022", ncounts/efilter, unblind_frac)
     elif "2023" in f:
-        lumiweight = getweight("2023", ncounts/efilter, 0.1)
+        lumiweight = getweight("2023", ncounts/efilter, unblind_frac)
     elif "2023BPix" in f:
-        lumiweight = getweight("2023BPix", ncounts/efilter, 0.1)
+        lumiweight = getweight("2023BPix", ncounts/efilter, unblind_frac)
     if "ScenB1" in sampleTag:
         ncounts = 300000.0
         efilter = 1.0
@@ -365,6 +525,10 @@ if args.noSeed:
     print('but excluding: ', args.noSeed)
 ###
 
+# Lifetime-reweighting
+reweightFrom = float(args.reweightFrom)
+reweightTo = float(args.reweightTo)
+
 elist = [] # for duplicate removal
 print("Starting loop over %d events"%t.GetEntries())
 firste = 0
@@ -387,8 +551,20 @@ dphisvcut = 0.02 # Last Run 2 value
 mfit = ROOT.RooRealVar("mfit", "mfit", 0.4, 140.0)
 m4fit = ROOT.RooRealVar("m4fit", "m4fit", 0.4, 140.0)
 roow = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
+roow_trg_up = ROOT.RooRealVar("roow_trg_up", "roow_trg_up", -10000.0, 10000.0)
+roow_trg_down = ROOT.RooRealVar("roow_trg_down", "roow_trg_down", -10000.0, 10000.0)
+roow_sel_up = ROOT.RooRealVar("roow_sel_up", "roow_sel_up", -10000.0, 10000.0)
+roow_sel_down = ROOT.RooRealVar("roow_sel_down", "roow_sel_down", -10000.0, 10000.0)
 roow4 = ROOT.RooRealVar("roow", "roow", -10000.0, 10000.0)
+roow4_trg_up = ROOT.RooRealVar("roow_trg_up", "roow_trg_up", -10000.0, 10000.0)
+roow4_trg_down = ROOT.RooRealVar("roow_trg_down", "roow_trg_down", -10000.0, 10000.0)
+roow4_sel_up = ROOT.RooRealVar("roow_sel_up", "roow_sel_up", -10000.0, 10000.0)
+roow4_sel_down = ROOT.RooRealVar("roow_sel_down", "roow_sel_down", -10000.0, 10000.0)
 roods = {}
+roods_trg_up = {}
+roods_trg_down = {}
+roods_sel_up = {}
+roods_sel_down = {}
 catmass = {}
 dbins = []
 rooweight = float(args.rooWeight) # Weight for RooDataset
@@ -410,9 +586,17 @@ for dbin in dbins:
     if 'Dimuon' in dname:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{#mu#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(mfit,roow),"roow")
+        roods_trg_up[dbin] = ROOT.RooDataSet(dname + "_trg_up",dname,ROOT.RooArgSet(mfit,roow_trg_up),"roow_trg_up")
+        roods_trg_down[dbin] = ROOT.RooDataSet(dname + "_trg_down",dname,ROOT.RooArgSet(mfit,roow_trg_down),"roow_trg_down")
+        roods_sel_up[dbin] = ROOT.RooDataSet(dname + "_sel_up",dname,ROOT.RooArgSet(mfit,roow_sel_up),"roow_sel_up")
+        roods_sel_down[dbin] = ROOT.RooDataSet(dname + "_sel_down",dname,ROOT.RooArgSet(mfit,roow_sel_down),"roow_sel_down")
     else:
         catmass[dbin] = ROOT.TH1F(dname + "_rawmass","; m_{4#mu} [GeV]; Events / 0.01 GeV",15000, 0., 150.)
         roods[dbin] = ROOT.RooDataSet(dname,dname,ROOT.RooArgSet(m4fit,roow4),"roow")
+        roods_trg_up[dbin] = ROOT.RooDataSet(dname + "_trg_up",dname,ROOT.RooArgSet(m4fit,roow4_trg_up),"roow_trg_up")
+        roods_trg_down[dbin] = ROOT.RooDataSet(dname + "_trg_down",dname,ROOT.RooArgSet(m4fit,roow4_trg_down),"roow_trg_down")
+        roods_sel_up[dbin] = ROOT.RooDataSet(dname + "_sel_up",dname,ROOT.RooArgSet(m4fit,roow4_sel_up),"roow_sel_up")
+        roods_sel_down[dbin] = ROOT.RooDataSet(dname + "_sel_down",dname,ROOT.RooArgSet(m4fit,roow4_sel_down),"roow_sel_down")
 
 
 print("From event %d to event %d"%(firste,laste))
@@ -453,7 +637,7 @@ for e in range(firste,laste):
     if not isData:
         nGEN = len(t.GenPart_pdgId)
         for i in range(nGEN):
-            if abs(t.GenPart_pdgId[i]) != 13:
+            if abs(t.GenPart_pdgId[i]) != 13:            
                 continue
             isResonance = False
             for j in range(i+1, nGEN):
@@ -469,12 +653,11 @@ for e in range(firste,laste):
                         gvec = ROOT.TLorentzVector()
                         gvec.SetPtEtaPhiM(t.GenPart_pt[k], t.GenPart_eta[k], t.GenPart_phi[k], t.GenPart_m[k])
                         dmumot.append(gvec)
-                        break
+                        break 
             if isResonance:
                 for h in h1d["genmu"]:
                     tn = h.GetName()
                     h.Fill(eval(variable1d[h.GetName()]), lumiweight)
-
         for g,gp in enumerate(dmumot):
             lxygen = t.GenPart_lxy[dmugen[2*g]] 
             if t.GenPart_motherPdgId[dmugen[2*g]]==443:
@@ -484,6 +667,24 @@ for e in range(firste,laste):
             for h in h1d["llp"]:
                 tn = h.GetName()
                 h.Fill(eval(variable1d[h.GetName()]), lumiweight)
+        # Identify the LLPs
+        LLPs = []
+        LLPs_lxy = []
+        LLPs_ct = []
+        LLPs_eta = []
+        LLPs_phi = []
+        if (reweightTo > 0 and reweightFrom > 0):
+            for i in range(0, len(t.GenPart_pdgId)):
+                if t.GenPart_pdgId[i] not in [1023]:
+                    continue
+                for j in range(0, len(t.GenPart_pdgId)):
+                    if (t.GenPart_pdgId[j]==13 and t.GenPart_motherIndex[j]==t.GenPart_index[i]):
+                        LLPs.append(i)
+                        LLPs_lxy.append(t.GenPart_lxy[j]) # from the muon
+                        LLPs_eta.append(t.GenPart_eta[i])
+                        LLPs_phi.append(t.GenPart_phi[i])
+                        LLPs_ct.append(t.GenPart_ct[i])
+                        break
 
     # Loop over SVs
     nSV = len(t.SV_index)
@@ -786,6 +987,9 @@ for e in range(firste,laste):
         minpt = min(qmu_dmuvecminlxy[vn].Pt(), qmu_dmuvecmaxlxy[vn].Pt())
         maxpt = max(qmu_dmuvecminlxy[vn].Pt(), qmu_dmuvecmaxlxy[vn].Pt())
         nhitsbeforesvtotal = t.Muon_nhitsbeforesv[qmuidxs[vn*4]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+1]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+2]] + t.Muon_nhitsbeforesv[qmuidxs[vn*4+3]]
+        ptlist = [t.Muon_pt[qmuidxs[vn*4]], t.Muon_pt[qmuidxs[vn*4+1]], t.Muon_pt[qmuidxs[vn*4+2]], t.Muon_pt[qmuidxs[vn*4+3]]]
+        ptlist.sort(reverse=True)
+        subpt = ptlist[1]
         for m in range(vn*4,vn*4+4):
             if not m%2==0:
                 continue
@@ -965,7 +1169,7 @@ for e in range(firste,laste):
                 continue
         #
         if applyFourMuonMassDiffSel:
-            if reldmass > 0.1:
+            if reldmass > 0.05:
                 continue
         #
         for h in h1d["fourmuon"]:
@@ -975,11 +1179,32 @@ for e in range(firste,laste):
             tn = h.GetName()
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
         # Scan:
+        # Lifetime reweighting
+        tweight = 1.0
+        if (reweightTo > 0 and reweightFrom > 0 and not isData):
+            ict, ival = getClosest(minlxy, LLPs_lxy)
+            jct, jval = getClosest(maxlxy, LLPs_lxy)
+            tweight = tweight * (reweightFrom/reweightTo) * math.exp(LLPs_ct[ict]/reweightFrom - LLPs_ct[ict]/reweightTo)
+            tweight = tweight * (reweightFrom/reweightTo) * math.exp(LLPs_ct[jct]/reweightFrom - LLPs_ct[jct]/reweightTo)
+        #print("-> Lifetime reweighting: ", tweight)
+        # Scale factors
+        sf_trg, sf_trg_up, sf_trg_down  = 1., 1., 1.
+        sf_sel, sf_sel_up, sf_sel_down  = 1., 1.2, 0.8
+        if not isData:
+            sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, minlxy)
         if ((not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu)): 
             m4fit.setVal(mass)
-            roow4.setVal(lumiweight*rooweight);
+            roow4.setVal(lumiweight*rooweight*sf_trg*sf_sel*tweight);
+            roow4_trg_up.setVal(lumiweight*rooweight*sf_trg_up*sf_sel*tweight);
+            roow4_trg_down.setVal(lumiweight*rooweight*sf_trg_down*sf_sel*tweight);
+            roow4_sel_up.setVal(lumiweight*rooweight*sf_trg*sf_sel_up*tweight);
+            roow4_sel_down.setVal(lumiweight*rooweight*sf_trg*sf_sel_down*tweight);
             roods["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
-            catmass["FourMu_sep"].Fill(mass, lumiweight*rooweight);
+            roods_trg_up["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4_trg_up),roow4_trg_up.getVal());
+            roods_trg_down["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4_trg_down),roow4_trg_down.getVal());
+            roods_sel_up["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4_sel_up),roow4_sel_up.getVal());
+            roods_sel_down["FourMu_sep"].add(ROOT.RooArgSet(m4fit,roow4_sel_down),roow4_sel_down.getVal());
+            catmass["FourMu_sep"].Fill(mass, lumiweight*rooweight*sf_trg*sf_sel*tweight);
             #mfit.setVal(avgmass)
             #roow.setVal(lumiweight);
             #roods["FourMu_sep"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
@@ -1032,6 +1257,9 @@ for e in range(firste,laste):
         mass = v.M()
         pt   = v.Pt()
         nhitsbeforesvtotal = t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+1]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+2]] + t.Muon_nhitsbeforesv[qmuidxs_osv[vn*4+3]]
+        ptlist = [t.Muon_pt[qmuidxs_osv[vn*4]], t.Muon_pt[qmuidxs_osv[vn*4+1]], t.Muon_pt[qmuidxs_osv[vn*4+2]], t.Muon_pt[qmuidxs_osv[vn*4+3]]]
+        ptlist.sort(reverse=True)
+        subpt = ptlist[1]
         for m in range(vn*4,vn*4+4):
             for mm in range(m+1,vn*4+4):
                 drmm = t.Muon_vec[qmuidxs_osv[m]].DeltaR(t.Muon_vec[qmuidxs_osv[mm]])
@@ -1150,12 +1378,29 @@ for e in range(firste,laste):
         for h in h2d["fourmuon_osv"]:
             tn = h.GetName()
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
+        # Lifetime reweighting
+        tweight = 1.0
+        if (reweightTo > 0 and reweightFrom > 0 and not isData):
+            ict, ival = getClosest(lxy, LLPs_lxy)
+            tweight = tweight * (reweightFrom/reweightTo) * math.exp(LLPs_ct[ict]/reweightFrom - LLPs_ct[ict]/reweightTo)
         # Scan:
+        sf_trg, sf_trg_up, sf_trg_down  = 1., 1., 1.
+        sf_sel, sf_sel_up, sf_sel_down  = 1., 1.2, 0.8
+        if not isData:
+            sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, lxy)
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             m4fit.setVal(mass)
-            roow4.setVal(lumiweight*rooweight);
+            roow4.setVal(lumiweight*rooweight*sf_trg*sf_sel*tweight);
+            roow4_trg_up.setVal(lumiweight*rooweight*sf_trg_up*sf_sel*tweight);
+            roow4_trg_down.setVal(lumiweight*rooweight*sf_trg_down*sf_sel*tweight);
+            roow4_sel_up.setVal(lumiweight*rooweight*sf_trg*sf_sel_up*tweight);
+            roow4_sel_down.setVal(lumiweight*rooweight*sf_trg*sf_sel_down*tweight);
             roods["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4),roow4.getVal());
-            catmass["FourMu_osv"].Fill(mass, lumiweight*rooweight);
+            roods_trg_up["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4_trg_up),roow4_trg_up.getVal());
+            roods_trg_down["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4_trg_down),roow4_trg_down.getVal());
+            roods_sel_up["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4_sel_up),roow4_sel_up.getVal());
+            roods_sel_down["FourMu_osv"].add(ROOT.RooArgSet(m4fit,roow4_sel_down),roow4_sel_down.getVal());
+            catmass["FourMu_osv"].Fill(mass, lumiweight*rooweight*sf_trg*sf_sel*tweight);
             filledcat4muosv = True
         else:
             filledcat4muosv = False
@@ -1196,6 +1441,7 @@ for e in range(firste,laste):
         mass = v.M()
         pt   = v.Pt()
         nhitsbeforesvtotal = t.Muon_nhitsbeforesv[dmuidxs[int(vn*2)]] + t.Muon_nhitsbeforesv[dmuidxs[int(vn*2)+1]]
+        subpt = t.Muon_pt[dmuidxs[int(vn*2)]] if t.Muon_pt[dmuidxs[int(vn*2)]] < t.Muon_pt[dmuidxs[int(vn*2)+1]] else t.Muon_pt[dmuidxs[int(vn*2)+1]]
         #
         # Check if the dimuon is gen-matched
         isgen = False
@@ -1212,8 +1458,6 @@ for e in range(firste,laste):
             lxygen = t.GenPart_lxy[dmugen[2*gn]]
             idgen = t.GenPart_motherPdgId[dmugen[2*gn]]
         deltalxy = (lxy - lxygen)/lxygen
-        #if not isgen or abs(deltalxy) < 0.1 or lxy < 2:
-        #    continue
         #
         #  Apply selection on muon lifetime-scaled dxy
         if applyMuonIPSel:
@@ -1332,7 +1576,17 @@ for e in range(firste,laste):
             if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
                 continue
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
+        # Lifetime reweighting
+        tweight = 1.0
+        if (reweightTo > 0 and reweightFrom > 0 and not isData):
+            ict = getClosestAngular([lxy, v.Eta(), v.Phi()], LLPs_lxy, LLPs_eta, LLPs_phi)
+            tweight = (reweightFrom/reweightTo) * math.exp(LLPs_ct[ict]/reweightFrom - LLPs_ct[ict]/reweightTo)
         # Scan:
+        sf_trg, sf_trg_up, sf_trg_down  = 1., 1., 1.
+        sf_sel, sf_sel_up, sf_sel_down  = 1., 1., 1.
+        if not isData:
+            sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, lxy)
+            sf_sel, sf_sel_up, sf_sel_down = getSelectionSF(lxy)
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             slice = ""
             if dphisvu < dphisvcut:
@@ -1358,11 +1612,27 @@ for e in range(firste,laste):
                         break
             if slice!="":
                 mfit.setVal(mass)
-                roow.setVal(lumiweight*rooweight);
+                roow.setVal(lumiweight*rooweight*sf_trg*sf_sel*tweight);
+                roow_trg_up.setVal(lumiweight*rooweight*sf_sel*sf_trg_up*tweight);
+                roow_trg_down.setVal(lumiweight*rooweight*sf_sel*sf_trg_down*tweight);
+                roow_sel_up.setVal(lumiweight*rooweight*sf_trg*sf_sel_up*tweight);
+                roow_sel_down.setVal(lumiweight*rooweight*sf_trg*sf_sel_down*tweight);
                 roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-                catmass[slice].Fill(mass, lumiweight*rooweight);
+                roods_trg_up[slice].add(ROOT.RooArgSet(mfit,roow_trg_up),roow_trg_up.getVal());
+                roods_trg_down[slice].add(ROOT.RooArgSet(mfit,roow_trg_down),roow_trg_down.getVal());
+                roods_sel_up[slice].add(ROOT.RooArgSet(mfit,roow_sel_up),roow_sel_up.getVal());
+                roods_sel_down[slice].add(ROOT.RooArgSet(mfit,roow_sel_down),roow_sel_down.getVal());
                 roods["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+                roods_trg_up["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_up),roow_trg_up.getVal());
+                roods_trg_down["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_down),roow_trg_down.getVal());
+                roods_sel_up["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_up),roow_sel_up.getVal());
+                roods_sel_down["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_down),roow_sel_down.getVal());
                 roods["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+                roods_trg_up["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_up),roow_trg_up.getVal());
+                roods_trg_down["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_down),roow_trg_down.getVal());
+                roods_sel_up["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_up),roow_sel_up.getVal());
+                roods_sel_down["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_down),roow_sel_down.getVal());
+                catmass[slice].Fill(mass, lumiweight*rooweight*sf_trg*sf_sel*tweight);
                 filledcat2mu = True
 
     # Apply selections and fill histograms for muon pairs from overlapping SVs
@@ -1383,6 +1653,7 @@ for e in range(firste,laste):
         mass = v.M()
         pt   = v.Pt()
         nhitsbeforesvtotal = t.Muon_nhitsbeforesv[dmuidxs_osv[int(vn*2)]] + t.Muon_nhitsbeforesv[dmuidxs_osv[int(vn*2)+1]]
+        subpt = t.Muon_pt[dmuidxs_osv[int(vn*2)]] if t.Muon_pt[dmuidxs_osv[int(vn*2)]] < t.Muon_pt[dmuidxs_osv[int(vn*2)+1]] else t.Muon_pt[dmuidxs_osv[int(vn*2)+1]]
         #  Apply selection on muon lifetime-scaled dxy
         if applyMuonIPSel:
             if ( abs(t.Muon_dxyCorr[dmuidxs_osv[int(vn*2)]]  )/(lxy*mass/pt)<0.1 or
@@ -1514,7 +1785,20 @@ for e in range(firste,laste):
             if "dimuon_genjpsi_" in tn and not isgen and not idgen==443:
                 continue
             h.Fill(eval(variable2d[h.GetName()][0]),eval(variable2d[h.GetName()][1]), lumiweight)
+        # Lifetime reweighting
+        tweight = 1.0
+        #if (reweightTo > 0 and reweightFrom > 0 and not isData): # provisional, could be adapted, but better go for the lower option...
+        #    ict, ival = getClosest(lxy, LLPs_lxy)
+        #    tweight = (reweightFrom/reweightTo) * math.exp(LLPs_ct[ict]/reweightFrom - LLPs_ct[ict]/reweightTo)
+        if (reweightTo > 0 and reweightFrom > 0 and not isData):
+            ict = getClosestAngular([lxy, v.Eta(), v.Phi()], LLPs_lxy, LLPs_eta, LLPs_phi)
+            tweight = (reweightFrom/reweightTo) * math.exp(LLPs_ct[ict]/reweightFrom - LLPs_ct[ict]/reweightTo)
         # Scan:
+        sf_trg, sf_trg_up, sf_trg_down  = 1., 1., 1.
+        sf_sel, sf_sel_up, sf_sel_down  = 1., 1., 1.
+        if not isData:
+            sf_trg, sf_trg_up, sf_trg_down = getTriggerSF(subpt, lxy)
+            sf_sel, sf_sel_up, sf_sel_down = getSelectionSF(lxy)
         if ( (not filledcat4musep) and (not filledcat4muosv) and (not filledcat2mu) ): 
             slice = "Dimuon_excluded"
             if dphisvu < dphisvcut:
@@ -1539,11 +1823,27 @@ for e in range(firste,laste):
                         slice = "Dimuon_"+label+"_non-pointing"
                         break
             mfit.setVal(mass)
-            roow.setVal(lumiweight*rooweight);
+            roow.setVal(lumiweight*rooweight*sf_trg*sf_sel*tweight);
+            roow_trg_up.setVal(lumiweight*rooweight*sf_sel*sf_trg_up*tweight);
+            roow_trg_down.setVal(lumiweight*rooweight*sf_sel*sf_trg_down*tweight);
+            roow_sel_up.setVal(lumiweight*rooweight*sf_trg*sf_sel_up*tweight);
+            roow_sel_down.setVal(lumiweight*rooweight*sf_trg*sf_sel_down*tweight);
             roods[slice].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
-            catmass[slice].Fill(mass, lumiweight*rooweight);
+            roods_trg_up[slice].add(ROOT.RooArgSet(mfit,roow_trg_up),roow_trg_up.getVal());
+            roods_trg_down[slice].add(ROOT.RooArgSet(mfit,roow_trg_down),roow_trg_down.getVal());
+            roods_sel_up[slice].add(ROOT.RooArgSet(mfit,roow_sel_up),roow_sel_up.getVal());
+            roods_sel_down[slice].add(ROOT.RooArgSet(mfit,roow_sel_down),roow_sel_down.getVal());
             roods["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            roods_trg_up["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_up),roow_trg_up.getVal());
+            roods_trg_down["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_down),roow_trg_down.getVal());
+            roods_sel_up["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_up),roow_sel_up.getVal());
+            roods_sel_down["Dimuon_"+label+"_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_down),roow_sel_down.getVal());
             roods["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow),roow.getVal());
+            roods_trg_up["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_up),roow_trg_up.getVal());
+            roods_trg_down["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_trg_down),roow_trg_down.getVal());
+            roods_sel_up["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_up),roow_sel_up.getVal());
+            roods_sel_down["Dimuon_full_inclusive"].add(ROOT.RooArgSet(mfit,roow_sel_down),roow_sel_down.getVal());
+            catmass[slice].Fill(mass, lumiweight*rooweight*sf_trg*sf_sel*tweight);
             filledcat2mu = True
 
     # Fill histograms for selected SVs (with a selected muon pair)
@@ -1671,6 +1971,12 @@ if args.inSample!="*":
         foname = "%s/histograms_%s_%s"%(outdir,args.inSample,args.year)
 if index>=0:
     foname = foname+("_%d"%index)
+
+if reweightFrom > 0 and reweightTo > 0:
+    foname = foname.replace("ctau-%imm"%reweightFrom, "ctau-%.2fmm"%(reweightTo))
+else:
+    ctau_string = foname.split('ctau-')[1].split('mm')[0]
+    foname = foname.replace(ctau_string+'mm', "%.2fmm"%(float(ctau_string)))
 fout = ROOT.TFile(foname+".root","RECREATE")
 fout.cd()
 for cat in h1d.keys():
@@ -1680,7 +1986,15 @@ for cat in h2d.keys():
     for h in h2d[cat]:
         h.Write()
 for dbin in dbins:
-    print("RooDataSet {}  with {} entries".format(dbin, roods[dbin].sumEntries()))
+    print("RooDataSet {}  with {}({}) entries".format(dbin, roods[dbin].sumEntries(), roods[dbin].numEntries()))
     roods[dbin].Write()
+    print("RooDataSet (up) {}  with {} entries".format(dbin, roods_trg_up[dbin].sumEntries()))
+    roods_trg_up[dbin].Write()
+    print("RooDataSet (down) {}  with {} entries".format(dbin, roods_trg_down[dbin].sumEntries()))
+    roods_trg_down[dbin].Write()
+    print("RooDataSet (up) {}  with {} entries".format(dbin, roods_sel_up[dbin].sumEntries()))
+    roods_sel_up[dbin].Write()
+    print("RooDataSet (down) {}  with {} entries".format(dbin, roods_sel_down[dbin].sumEntries()))
+    roods_sel_down[dbin].Write()
     catmass[dbin].Write()
 fout.Close()

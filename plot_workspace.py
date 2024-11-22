@@ -6,6 +6,7 @@ from datetime import date
 import plotUtils
 
 ROOT.gROOT.SetBatch(1)
+ROOT.gROOT.ProcessLine(".L cpp/helper.C+")
 
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
@@ -13,7 +14,7 @@ today= date.today().strftime("%b-%d-%Y")
 doRatio = False
 doPull = False
 useSignalMC = True
-doPartialUnblinding = True
+doPartialUnblinding = False
 normalizeSignal = False # Only if background is > 0
 
 wsname = "wfit"
@@ -39,13 +40,13 @@ useData = not plotOnlySignal
 useCategorizedSignal = True
 useCategorizedBackground = True
 
-outDir = ("%s/fitPlots_%s_"%(thisDir, year))+today
+outDir = ("%s/fitPlots_%s_%s_"%(thisDir, sys.argv[3], year))+today
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 
 dNames = []
-dNames.append("d_FourMu_sep")
-dNames.append("d_FourMu_osv")
+#dNames.append("d_FourMu_sep")
+#dNames.append("d_FourMu_osv")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
@@ -86,34 +87,35 @@ dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
 dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
 dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
 dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
-#dNames.append("")
 
 years = []
 years.append(year)
 
 # Signals
-sigModels = []
-sigModels.append("Y3")
-#sigModels.append("DY3")
-#sigModels.append("DYp3")
-#sigModels.append("B3mL2")
+model = "BToPhi" # HTo2ZdTo2mu2x
 
 sigMasses = []
 if useSignalMC:
-    sigMasses = [0.5, 0.7, 2.0, 2.5, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+    if (model=="HTo2ZdTo2mu2x"):
+        sigMasses = [0.5, 0.7, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+        sigCtau = [1, 10, 100]
+    elif (model=="ScenarioB1"):
+        sigMasses = [1.33]
+        sigCtau = ["0p1", "1", "10", "100"]
+    elif model == "BToPhi":
+        #sigMasses = [0.9, 1.25, 1.5, 1.5, 2.0, 5.0]
+        sigMasses = [1.25, 1.5, 1.5, 2.0, 5.0]
+        #sigCtau = ["0p0", "0p1", "1", "10", "100"]
+        sigCtau = [1, 10, 100]
 else:
-    mF = 350.0
-    mL = 2000.0
-    sigMasses.append("%.0f"%mF)
-    tm = mF
-    while tm < mL:
-      if tm<400.0: tm=tm+5.0
-      elif tm<700.0: tm=tm+10.0
-      elif tm<1000.0: tm=tm+15.0
-      elif tm<1500.0: tm=tm+25.0
-      else: tm=tm+50.0
-      sigMasses.append("%.0f"%tm)
-sigCtau = ["1", "10", "100"]
+    if (model=="HTo2ZdTo2mu2x"):
+        sigCtau = [1, 10, 100]
+        lastmass = 0.5
+        while (lastmass < 5.0):
+            lastmass = 1.04*lastmass
+            if not ROOT.passMassVeto(lastmass):
+                continue
+            sigMasses.append(lastmass)
 
 def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
     # Labels
@@ -197,11 +199,23 @@ sigma = 0.0
 for y in years:
     for t in sigCtau:
         for mf in sigMasses:
-            if mf < 1.0 and t=="100":
+            if (model=="HTo2ZdTo2mu2x") and ((mf < 1.0 and t > 10) or (mf < 30.0 and t > 100)):
                 continue
             m = str(mf)
             for d_,d in enumerate(dNames):
-                sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%smm"%(m.replace(".", "p"),t)
+                if (model=="HTo2ZdTo2mu2x"):
+                    if useSignalMC:
+                        sample = "Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.1fmm" % (float(m), float(t))
+                        #sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(m.replace(".", "p"),t)
+                    else:
+                        sample = "Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.1fmm"%(float(mf),float(t))
+                elif (model=="BToPhi"):
+                    #sample = ("Signal_BToPhi-%s_ctau-%smm"%(m.replace('.','p'), t))
+                    sample = "Signal_BToPhi-%.3f_ctau-%.1fmm" % (float(m), float(t))
+                    #finame = "%s/%s_%s_%s_2022_workspace.root"%(inDir,d,sample,y)
+                else:
+                    #sample = "Signal_ScenarioB1_mpi-4_mA-%s_ctau-%imm"%(m.replace(".", "p"),t)
+                    sample = "Signal_ScenarioB1_mpi-4_mA-%.3f_ctau-%.1fmm" % (float(m), float(t))
                 finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,sample,y)
                 print(finame)
                 if (d == "d_FourMu_sep" ): binidx=1
@@ -267,7 +281,7 @@ for y in years:
                 #nBins = int((maxx-minx)/(0.01*float(m)))
                 nBins = 5*10;
                 # Retrieve signal normalization
-                lumi=35. if year=='2022' else 17.1 # 27.2              
+                lumi=35. if year=='2022' else 27.2 # 27.2              
                 if doPartialUnblinding:
                     lumi = 0.1*lumi
                 nSig = w.var("signalNorm%s"%catExtS).getValV()
@@ -278,13 +292,17 @@ for y in years:
                     sigma = w.var("sigma%s"%catExtS).getValV()
 
                 # Retrive BG normalization:
-                nBG = w.data("data_obs%s"%catExtB).sumEntries()
+                try:
+                    nBG = w.data("data_obs%s"%catExtB).sumEntries()
+                except TypeError: # if it doesn't exist... (assuming there ir signal)
+                    print("Background not found for this mass, skipping to next")
+                    break
 
                 # Get data
                 data = w.data("data_obs%s"%catExtB)
                 hd = x.createHistogram("hd",ROOT.RooFit.Binning(nBins,minx,maxx))                
                 data.fillHistogram(hd,ROOT.RooArgList(x))
-                 
+
                 # Get mc
                 if plotOnlySignal:
                     mc = w.data("signalRooDataSet%s"%catExtS)
@@ -620,11 +638,15 @@ for y in years:
 
                 ## Save canvas
                 if plotOnlySignal:
-                    can.SaveAs("%s/fitSIG_M%s_CT_%smm_%s.png"%(outDir,m,t,d))
-                    can.SaveAs("%s/fitSIG_M%s_CT_%smm_%s.pdf"%(outDir,m,t,d))
+                    #can.SaveAs("%s/fitSIG_M%s_CT_%imm_%s.png"%(outDir,m,t,d))
+                    can.SaveAs("%s/fitSIG_M%.3f_CT_%.1fmm_%s.png" % (outDir, float(m), float(t), d))
+                    #can.SaveAs("%s/fitSIG_M%s_CT_%imm_%s.pdf"%(outDir,m,t,d))
+                    can.SaveAs("%s/fitSIG_M%.3f_CT_%.1fmm_%s.pdf" % (outDir, float(m), float(t), d))
                 else:
-                    can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.png"%(outDir,m,t,d))
-                    can.SaveAs("%s/fitBG_M%s_CT_%smm_%s.pdf"%(outDir,m,t,d))
+                    #can.SaveAs("%s/fitBG_M%s_%s.png"%(outDir,m,d))
+                    can.SaveAs("%s/fitBG_M%.3f_%s.png" % (outDir, float(m), d))
+                    #can.SaveAs("%s/fitBG_M%s_%s.pdf"%(outDir,m,d))
+                    can.SaveAs("%s/fitBG_M%.3f_%s.pdf" % (outDir, float(m), d))
 
                 # Close input file with workspace                
                 f.Close()

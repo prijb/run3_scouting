@@ -57,23 +57,22 @@ function stageout {
 }
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
+cmssw-el8
 tar xvf package.tar.gz
 cd ScoutingRun3/
-cd HiggsAnalysis/CombinedLimit
-. env_standalone.sh
+
+cmsrel CMSSW_13_3_0
+cp -r HiggsAnalysis CMSSW_13_3_0/src
+cd CMSSW_13_3_0/src
+scramv1 b clean; scramv1 b
+cmsenv
 cd ../../
 
-#cd CMSSW_12_6_0/src
-#scram b -j 8
-#cmsenv
-#cd HiggsAnalysis/CombinedLimit
-#. env_standalone.sh
-#cd ../../../../
-
-ls -la
+#ls -la
 
 rm -rf ${OUT}
 mkdir -p ${OUT}
+echo "combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}"
 bash combineScripts/submitLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}
 
 for FILE in $(ls ${OUT})
