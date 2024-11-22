@@ -654,12 +654,10 @@ for e in range(firste,laste):
                         gvec.SetPtEtaPhiM(t.GenPart_pt[k], t.GenPart_eta[k], t.GenPart_phi[k], t.GenPart_m[k])
                         dmumot.append(gvec)
                         break 
-            '''
             if isResonance:
                 for h in h1d["genmu"]:
                     tn = h.GetName()
                     h.Fill(eval(variable1d[h.GetName()]), lumiweight)
-            '''
         for g,gp in enumerate(dmumot):
             lxygen = t.GenPart_lxy[dmugen[2*g]] 
             if t.GenPart_motherPdgId[dmugen[2*g]]==443:
