@@ -24,6 +24,11 @@ export HOMEDIR=$PWD
 mkdir -p condor/limits/limits_logs
 mkdir -p /ceph/cms/store/user/$USER/Run3ScoutingOutput/$SCOUTINGSNTOUTPUTDIRLIM
 
-sh condor/limits/create_package.sh $SCOUTINGSNTINPUTDIRLIM fitResults_${PERIOD}
+sh condor/limits/create_package.sh $SCOUTINGSNTINPUTDIRLIM
 
-condor_submit condor/limits/runLimits_onCondor.sub
+## Submission files to try extract limits on different subsets of signal samples
+#condor_submit condor/limits/runLimits_onCondor.sub
+#condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_onCondor.sub
+condor_submit condor/limits/runLimits_reweighting_onCondor.sub
+#condor_submit condor/limits/runLimits_reweightingValidation_onCondor.sub
+#condor_submit condor/limits/runLimits_limited_onCondor.sub

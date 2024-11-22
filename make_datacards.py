@@ -6,6 +6,7 @@ ROOT.gROOT.ProcessLine(".L cpp/helper.C+")
 
 user = os.environ.get("USER")
 today= date.today().strftime("%b-%d-%Y")
+validation = False
 
 wsname = "wfit"
 thisDir = os.environ.get("PWD")
@@ -21,7 +22,7 @@ useCategorizedSignal = True
 useCategorizedBackground = True
 
 useData = True
-useSignalMC = True
+useSignalMC = False
 
 # Constant to control the yields of the signal in the datacard (to be used consistently when limits are made)
 useNorm = True
@@ -40,6 +41,7 @@ fullMeanFloat = False
 meanFloat = True
 doMuonResolution = True
 noModel = False
+usePredefinedGrid = True # only applied if not using MC
 dirExt = ""
 
 # In line arguments
@@ -189,26 +191,66 @@ sigModel = "HTo2ZdTo2mu2x" # HTo2ZdTo2mu2x : ScenarioB1 : BToPhi
 sigTags = []
 if sigModel=="HTo2ZdTo2mu2x":
     if useSignalMC:
-        sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-        for  m in sigMasses:
-            sigCTaus = [1,10,100,1000]
-            for t in sigCTaus:
-                if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
-                    continue
-                #sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(str(m).replace('.','p'), t))
-                sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.1fmm" % (m, t))
+        if not validation:
+            sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+            for  m in sigMasses:
+                #sigCTaus = [1,10,100]
+                sigCTaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00]
+                for t in sigCTaus:
+                    if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
+                        continue
+                    sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%.2fmm"%(str(m).replace('.','p'), t))
+        else:
+            # Only for lifetime-reweighting validation, if not validating don't run!
+            print("-> Taking samples for lifetime-reweighting validation")
+            sigTags = []
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-10mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-10.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm")
+    elif usePredefinedGrid:
+        with open('data/HZdZd_limitgrid.txt', 'r') as f:
+            masses = f.readlines()[0].split(',')[:-1]
+            sigCTaus = [100]
+            for mass in masses:
+                m = float(mass)
+                for t in sigCTaus:
+                    if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
+                        continue
+                    sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.2fmm"%(m, t))
     else:
-        sigCTaus = [1, 10, 100, 1000]
+        sigCTaus = [1, 10, 100]
         lastmass = 0.5
         while (lastmass < 50.0):
-            lastmass = 1.04*lastmass
+            if lastmass < 1.0: 
+                lastmass = 1.01*lastmass
+            elif lastmass < 11.0:
+                lastmass = 1.02*lastmass
+            else:
+                lastmass = 1.04*lastmass
             if not ROOT.passMassVeto(lastmass):
                 continue
             m = lastmass
             for t in sigCTaus:
                 if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
                     continue
-                sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.1fmm"%(m, t))
+                sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.2fmm"%(m, t))
 elif sigModel=="BToPhi":
     #sigMasses = [0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.90, 1.25, 1.50, 2.0, 2.85, 3.35, 4.00, 5.00]
     sigMasses = [0.90, 1.25, 1.50, 2.0, 5.0] #Other masses are either too small or too close to SM resonance
@@ -216,7 +258,8 @@ elif sigModel=="BToPhi":
         #sigCTaus = [0.0, 0.1, 1, 10, 100]
         sigCTaus = [1, 10, 100]
         for t in sigCTaus:
-            sigTags.append(f"Signal_BToPhi-{m:.3f}_ctau-{t:.1f}mm")              
+            sigTags.append(f"Signal_BToPhi-{m:.3f}_ctau-{t:.2f}mm")              
+
 elif sigModel=="ScenarioB1":
     sigMasses = [1.33]
     sigCTaus = [0.1, 1, 10, 100]
@@ -235,9 +278,12 @@ mean = 0.0
 sigma = 0.0
 for y in years:
     for m in sigTags:
-        isValidPoint = True # Control bool to check if the point can be actually be computed
+        #isValidPoint = True # Control bool to check if the point can be actually be computed
         M = float(m.split('-')[1].split('_')[0].replace('p','.'))
-        T = float(m.split('ctau-')[1].split('mm')[0].replace('p','.'))
+        if validation and "." in m.split('ctau-')[1].split('mm')[0]:
+            T = float("9"+m.split('ctau-')[1].split('mm')[0])
+        else:
+            T = float(m.split('ctau-')[1].split('mm')[0].replace('p','.'))
         listOfBins = []
         for d_,d in enumerate(dNames):
             print("Analyzing %s, in region %s"%(m, d))
@@ -337,7 +383,6 @@ for y in years:
                 catExtS = "_ch%d_%s"%(binidx, year)
             if useCategorizedBackground:
                 catExtB = "_ch%d_%s"%(binidx, year)
-            listOfBins.append(binidx)
             # Open input file with workspace
             f = ROOT.TFile(finame)
             # Retrieve workspace from file
@@ -361,10 +406,11 @@ for y in years:
             # Retrive BG normalization:
             try:
                 nBG = w.data("data_obs%s"%catExtB).sumEntries()
-            except TypeError: # if it doesn't exist... (assuming there ir signal)
+            except TypeError: # if it doesn't exist... (assuming there is signal)
                 print("Background not found for this mass, skipping to next")
-                isValidPoint = False
-                break
+                #isValidPoint = False
+                continue
+            listOfBins.append(binidx)
             #if not doCounting:
             #    os.system("cp %s %s/"%(finame,outDir))
             #    finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
@@ -500,7 +546,8 @@ for y in years:
                 if binidx > 0:
                     cname = "_f2b%d"%(f*100)
 
-            cardn = "%s/card%s_ch%d_%s_M%.3f_ctau-%.1f_%s.txt" % (outDir, cname, binidx, sigModel, float(M), float(T), y)
+            cardn = "%s/card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y)
+
             if noModel:
                 cardn = "%s/card%s_ch%d_nomodel_M%s_%s.txt"%(outDir,cname,binidx,m,y)
             card = open("%s"%cardn,"w")
@@ -561,19 +608,22 @@ for y in years:
                     card.write("pdf_index_ch%d_%s discrete\n"%(binidx, year)) # For discrete profiling
                     #card.write("pdf_index discrete\n") # For discrete profiling
             card.close()
+            print("> %s ready and closed!"%(cardn))
         
             ## text2workspace for individual cards:
             #os.chdir(outDir)
-            if noModel:
-                os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
-            else:
-                os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau%.1f_%s.txt"%(outDir,cname,binidx,sigModel,float(M),float(T),y))                        
+            #if noModel:
+            #    os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
+            #else:
+            #    os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
             #os.chdir(thisDir)
-        if not isValidPoint:
-            continue
+        #if not isValidPoint:
+        #    continue
         #
         ## Combine cards:
         if len(dNames)>1:
+            print("Changing dir to %s"%(outDir))
+            print("listOfBins to combine: ", listOfBins)
             os.chdir(outDir)
             combinedCards = ""
             for binidx in listOfBins:
@@ -586,12 +636,17 @@ for y in years:
                 #else:
                 #    os.system("combineCards.py -S card%s_ch1_%s_M%s_%s.txt card%s_ch2_%s_M%s_%s.txt > card%s_combined_%s_M%s_%s.txt"%(cname,s,m,y,cname,s,m,y,cname,s,m,y))
                 #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
-                combinedCards += "%s/card%s_ch%d_%s_M%.3f_ctau-%.1f_%s.txt " % (outDir, cname, binidx, sigModel, float(M), float(T), y)
-            os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau-%.1f_%s.txt" % (combinedCards, cname, sigModel, float(M), float(T), y))
-            os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau-%.1f_%s.txt --channel-masks" % (outDir, cname, sigModel, float(M), float(T), y))
+                icard = "card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt "%(cname,binidx,sigModel,M,T,y)
+                combinedCards += icard
+
+            print(combinedCards)
+            if combinedCards!="":
+                print("Combining cards into card%s_combined_%s_M%.3f_ctau%.2f_%s.txt"%(cname,sigModel,M,T,y))
+                os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau%.2f_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
+                os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau%.2f_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
             if not useSignalMC:
                 for binidx in listOfBins:
-                    os.system("rm %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))
+                    os.system("rm %s/card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))
             os.chdir(thisDir)
 
 # f it dir within the datacard directory is not needed anymore (avoid using rm -rf)
