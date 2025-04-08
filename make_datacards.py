@@ -1,6 +1,7 @@
 import os,sys
 import ROOT
 from datetime import date
+import csv
 
 ROOT.gROOT.ProcessLine(".L cpp/helper.C+")
 
@@ -22,11 +23,11 @@ useCategorizedSignal = True
 useCategorizedBackground = True
 
 useData = True
-useSignalMC = False
+useSignalMC = True
 
 # Constant to control the yields of the signal in the datacard (to be used consistently when limits are made)
 useNorm = True
-NORMCONST = 0.01 
+NORMCONST = 0.1
 
 doPartiaUnblinding = False
 ext = "data"
@@ -42,18 +43,29 @@ meanFloat = True
 doMuonResolution = True
 noModel = False
 usePredefinedGrid = True # only applied if not using MC
-dirExt = ""
+dirExt = "standard"
+doIndividualRootCard = True
 
 # In line arguments
+sigModel = ""
 if len(sys.argv)>1:
     fit = sys.argv[1]
     _inDir = sys.argv[2]
     year = sys.argv[3]
+    if len(sys.argv)>4:
+        sigModel = sys.argv[4]
+    else:
+        sigModel = "HTo2ZdTo2mu2x" # HTo2ZdTo2mu2x : ScenarioB1 : ScenarioA : BToPhi
+    if len(sys.argv)>5:
+        NORMCONST = float(sys.argv[5])
+    else:
+        NORMCONST = 0.1
+    
 
 # Channel selection flags
-doAll = True
+doAll = False
 doIso0HighPt = False
-doIso1HighPt = False
+doIso1HighPt = True
 doIso0LowPt = False
 doIso1LowPt = False
 doNonPointing = False
@@ -102,8 +114,8 @@ if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
 #### Caution, here the names AND order should be consistent to the ones set in cpp/doAll_fitDimuonMass.C 
 # Example of workspace: d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
 dNames = []
-#dNames.append("d_FourMu_sep")
-#dNames.append("d_FourMu_osv")
+dNames.append("d_FourMu_sep")
+dNames.append("d_FourMu_osv")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
@@ -166,7 +178,7 @@ years.append(year)
 #years.append("2023")
 
 # Output directory
-outDir = ("%s/datacards_all%s_"%(thisDir,dirExt))+today+"_"+year
+outDir = ("%s/datacards_%s_Norm%s_%s_"%(thisDir, sigModel, float(NORMCONST), dirExt))+today+"_"+year
 if doIso0HighPt:
     outDir = outDir + "_Iso0HighPt"
 if doIso1HighPt:
@@ -182,56 +194,48 @@ if doFourMuon:
 if not os.path.exists(outDir):
     os.makedirs(outDir)
 os.system('cp -r %s %s/'%(_inDir, outDir))
-#inDir  = "%s/%s/"%(thisDir, _inDir)
 inDir  = "%s/%s"%(thisDir, _inDir)
-
-# Signals
-sigModel = "HTo2ZdTo2mu2x" # HTo2ZdTo2mu2x : ScenarioB1 : BToPhi
 
 sigTags = []
 if sigModel=="HTo2ZdTo2mu2x":
     if useSignalMC:
         if not validation:
-            sigMasses = [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
+            sigMasses = [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 50.0]
+            sigMasses = [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 40.0, 50.0]
+            #sigMasses = [30.0, 40.0, 50.0]
+            sigMasses = [50.0]
             for  m in sigMasses:
-                #sigCTaus = [1,10,100]
-                sigCTaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00]
+                sigCTaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00, 160.00, 250.00, 400.00, 630.00, 1000.00]
+                #sigCTaus = [160.00, 250.00, 400.00, 630.00, 1000.00]
+                sigCTaus = [100.00]
                 for t in sigCTaus:
-                    if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
+                    if ((m < 1.0 and t > 10) or (m < 2.0 and t > 100)):
                         continue
                     sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%.2fmm"%(str(m).replace('.','p'), t))
         else:
             # Only for lifetime-reweighting validation, if not validating don't run!
             print("-> Taking samples for lifetime-reweighting validation")
             sigTags = []
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm")
             sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-10mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-10.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-1mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-6p0_ctau-1.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-1p5_rectau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-5p0_rectau-1.00mm")
             sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-8p0_rectau-1.00mm")
             sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10.00mm")
-            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-14p0_rectau-1.00mm")
             sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-22p0_rectau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1.00mm")
+            sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-40p0_rectau-1.00mm")
     elif usePredefinedGrid:
-        with open('data/HZdZd_limitgrid.txt', 'r') as f:
-            masses = f.readlines()[0].split(',')[:-1]
-            sigCTaus = [100]
+        with open('data/sigmasses_HTo2ZdTo2mu2x_fine.txt', 'r') as f:
+            masses = f.readlines()
+            sigCTaus = [1, 10, 100, 1000]
             for mass in masses:
                 m = float(mass)
                 for t in sigCTaus:
-                    if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
+                    if ((m < 1.0 and t > 10) or (m < 2.0 and t > 100)):
                         continue
                     sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.2fmm"%(m, t))
     else:
@@ -252,22 +256,44 @@ if sigModel=="HTo2ZdTo2mu2x":
                     continue
                 sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.2fmm"%(m, t))
 elif sigModel=="BToPhi":
-    #sigMasses = [0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.90, 1.25, 1.50, 2.0, 2.85, 3.35, 4.00, 5.00]
-    sigMasses = [0.90, 1.25, 1.50, 2.0, 5.0] #Other masses are either too small or too close to SM resonance
-    for m in sigMasses:
-        #sigCTaus = [0.0, 0.1, 1, 10, 100]
-        sigCTaus = [1, 10, 100]
-        for t in sigCTaus:
-            sigTags.append(f"Signal_BToPhi-{m:.3f}_ctau-{t:.2f}mm")              
-
+    if useSignalMC:
+        #sigMasses = [0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.90, 1.25, 1.50, 2.0, 2.85, 3.35, 4.00, 5.00]
+        sigMasses = [4.00] #Other masses are either too small or too close to SM resonance
+        for m in sigMasses:
+            sigCTaus = [0.0, 0.1, 1, 10, 100]
+            for t in sigCTaus:
+                sigTags.append("Signal_BToPhi_MPhi-%s_ctau-%.2fmm"%(('%.2f'%m).replace('.','p'), t))
+    elif usePredefinedGrid:
+        with open('data/BToPhi_limitgrid.txt', 'r') as f:
+            masses = f.readlines()
+            sigCTaus = [1, 10, 100]
+            for mass in masses:
+                m = float(mass)
+                for t in sigCTaus:
+                    sigTags.append("Signal_BToPhi_MPhi-%.3f_ctau-%.2fmm"%(m, t))
 elif sigModel=="ScenarioB1":
-    sigMasses = [1.33]
+    sigMasses = []
+    #sigMasses.append([4,1.33])
+    sigMasses.append([5,2.40])
     sigCTaus = [0.1, 1, 10, 100]
     for m in sigMasses:
         for t in sigCTaus:
-            #sigTags.append("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(str(m).replace(".", "p"),str(t).replace('.','p')))
-            #sigTags.append("Signal_ScenarioB1_mpi-4_mA-%s_ctau-%smm"%(m, t))
-            sigTags.append("Signal_ScenarioB1_mpi-4_mA-%.3f_ctau-%.1fmm" % (float(m), float(t)))
+            sigTags.append("Signal_ScenarioB1_Mpi-%i_MA-%s_ctau-%.2fmm" % (m[0], ('%.2f'%m[1]).replace('.','p'), float(t)))
+elif sigModel=="ScenarioA":
+    sigMasses = []
+    sigMasses.append([1,0.33])
+    #sigMasses.append([1,0.25])
+    #sigMasses.append([2,0.67])
+    #sigMasses.append([5,2.40])
+    sigMasses.append([4,1.33])
+    #sigMasses.append([5,2.40])
+    #sigMasses.append([10,2.00])
+    #sigMasses.append([10,3.33])
+    #sigMasses.append([10,4.90])
+    sigCTaus = [0.1, 1, 10, 100]
+    for m in sigMasses:
+        for t in sigCTaus:
+            sigTags.append("Signal_ScenarioA_Mpi-%i_MA-%s_ctau-%.2fmm" % (m[0], ('%.2f'%m[1]).replace('.','p'), float(t)))
 
 f2l = [0.0]
 nSigTot = 1.0
@@ -280,18 +306,26 @@ for y in years:
     for m in sigTags:
         #isValidPoint = True # Control bool to check if the point can be actually be computed
         M = float(m.split('-')[1].split('_')[0].replace('p','.'))
-        if validation and "." in m.split('ctau-')[1].split('mm')[0]:
+        if "Scenario" in sigModel:
+            M2 = float(m.split('-')[1].split('_')[0].replace('p','.'))
+            M = float(m.split('MA-')[1].split('_')[0].replace('p','.'))
+        #if validation and "." in m.split('ctau-')[1].split('mm')[0]:
+        if validation and "rectau" in m:
             T = float("9"+m.split('ctau-')[1].split('mm')[0])
         else:
             T = float(m.split('ctau-')[1].split('mm')[0].replace('p','.'))
         listOfBins = []
+        #
+        nSigs = {}
+        nBGs = {}
+        SOverSqrtB = {}
+        #
         for d_,d in enumerate(dNames):
             print("Analyzing %s, in region %s"%(m, d))
             print("%s/%s_%s_%s_workspace.root"%(inDir,d,m,y))
             finame = "%s/%s_%s_%s_workspace.root"%(inDir,d,m,y)
-            #finame = "%s/%s_%s_%s_2022_workspace.root"%(inDir,d,m,y)
             _finame = "%s/%s_%s_%s_workspace.root"%(_inDir,d,m,y)
-            #_finame = "%s/%s_%s_%s_2022_workspace.root"%(_inDir,d,m,y)
+            #
             binidx=-1
             if d=="d_FourMu_sep":
                 binidx=1
@@ -395,14 +429,33 @@ for y in years:
                 nSig = 1e-6
             if useNorm:
                 nSig = NORMCONST*nSig
+            if (binidx > 22 and binidx < 35) or (binidx > 39):
+                nSig = nSig * 0.82
+            nSigs[binidx] = nSig
+            print(f"Measured signal: {nSig}")
             # Retrieve signal mean and std. deviation
             mean = w.var("mean%s"%catExtS).getValV()
             sigma = w.var("sigma%s"%catExtS).getValV()
             # Retrieve MC stat. uncertainty from RooDataSet
-            if w.var("signalRawNorm%s"%catExtS).getValV()>0.0:
-                mcstatunc = 1.0/ROOT.TMath.Sqrt(w.var("signalRawNorm%s"%catExtS).getValV())
+            if useSignalMC:
+                if w.var("signalRawNorm%s"%catExtS).getValV()>0.0:
+                    mcstatunc = 1.0/ROOT.TMath.Sqrt(w.var("signalRawNorm%s"%catExtS).getValV())
+                else:
+                    mcstatunc = 1.0
             else:
-                mcstatunc = 1.0
+                luminosity = 35 if year=="2022" else 27
+                ngenfilter = 300000 if year=="2022" else 340000 # averaged between files
+                if sigModel=="HTo2ZdTo2mu2x":
+                    mass = float(m.split('MZd-')[1].split('_')[0])
+                    smass = ("MZd-%.1f"%(mass)).replace('.', 'p')
+                    with open('data/hahm-request.csv') as mcinfo:
+                        reader = csv.reader(mcinfo, delimiter=',')
+                        for row in reader:
+                            if smass in row[0]:
+                                efilter = float(row[-1])
+                                break
+                mcstatunc = 1.0/ROOT.TMath.Sqrt(nSig/NORMCONST*ngenfilter/efilter/(1000*luminosity))
+                if mcstatunc > 0.5: mcstatunc = 0.5 # To control < 1 raw events
             # Retrive BG normalization:
             try:
                 nBG = w.data("data_obs%s"%catExtB).sumEntries()
@@ -410,6 +463,8 @@ for y in years:
                 print("Background not found for this mass, skipping to next")
                 #isValidPoint = False
                 continue
+            print(f"Measured background: {nBG}")
+            nBGs[binidx] = nBG
             listOfBins.append(binidx)
             #if not doCounting:
             #    os.system("cp %s %s/"%(finame,outDir))
@@ -429,7 +484,8 @@ for y in years:
                 trgsyst = max([(nSig_trgUp/nSig - 1.0), (1.0 - nSig_trgDown/nSig)])
             except AttributeError: # No up and down variations in this tree, probably interpolated point
                 filesyst = ROOT.TFile.Open("data/systematicSplines_2022.root", "READ")
-                spline_trg = filesyst.Get("spline_trgsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, y))
+                #spline_trg = filesyst.Get("spline_trgsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, y))
+                spline_trg = filesyst.Get("spline_trgsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, 2022)) # Use always 2022 as systematics are the same (RE-CHECK for better implementation)
                 trgsyst = spline_trg.Eval(M)
                 filesyst.Close()
             #
@@ -445,7 +501,8 @@ for y in years:
                 selsyst = max([(nSig_selUp/nSig - 1.0), (1.0 - nSig_selDown/nSig)])
             except AttributeError: # No up and down variations in this tree, probably interpolated point
                 filesyst = ROOT.TFile.Open("data/systematicSplines_2022.root", "READ")
-                spline_trg = filesyst.Get("spline_selsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, y))
+                #spline_trg = filesyst.Get("spline_selsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, y))
+                spline_trg = filesyst.Get("spline_selsys_HTo2ZdTo2mu2x_%s_%.1f_%s"%(d, T, 2022)) # Use always 2022 as systematics are the same (RE-CHECK for better implementation)
                 selsyst = spline_trg.Eval(M)
                 filesyst.Close()
             #
@@ -546,8 +603,10 @@ for y in years:
                 if binidx > 0:
                     cname = "_f2b%d"%(f*100)
 
-            cardn = "%s/card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y)
-
+            if "Scenario" not in sigModel:
+                cardn = "%s/card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y)
+            else:
+                cardn = "%s/card%s_ch%d_%s_M%.3f_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M2,M,T,y)
             if noModel:
                 cardn = "%s/card%s_ch%d_nomodel_M%s_%s.txt"%(outDir,cname,binidx,m,y)
             card = open("%s"%cardn,"w")
@@ -609,14 +668,28 @@ for y in years:
                     #card.write("pdf_index discrete\n") # For discrete profiling
             card.close()
             print("> %s ready and closed!"%(cardn))
+            
+            if len(nSigs)==len(nBGs) and nBGs[binidx]!=0:
+                SOverSqrtB[binidx] = nSigs[binidx] / (nBGs[binidx]**(0.5))
+                print(f"Significance for this model is {SOverSqrtB[binidx]}")
+            elif nBGs[binidx]<1e-6:
+                SOverSqrtB[binidx] = -999
+                print(f"Significance set to {SOverSqrtB[binidx]}")
+            else:
+                SOverSqrtB[binidx] = 0
+                print("Signal and background points are not the same, probably you shouldn't be doing datacards from these workspaces") 
+                          
         
             ## text2workspace for individual cards:
-            #os.chdir(outDir)
-            #if noModel:
-            #    os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
-            #else:
-            #    os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau%i_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
-            #os.chdir(thisDir)
+            if doIndividualRootCard:
+                os.chdir(outDir)
+                if noModel:
+                    os.system("text2workspace.py %s/card%s_ch%d_nomodel_M%s_%s.txt -m %s"%(_inDir,cname,binidx,m,y,m))
+                elif "Scenario" not in sigModel:
+                    os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))                        
+                else:
+                    os.system("text2workspace.py %s/card%s_ch%d_%s_M%.3f_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M2,M,T,y))
+                os.chdir(thisDir)
         #if not isValidPoint:
         #    continue
         #
@@ -636,21 +709,32 @@ for y in years:
                 #else:
                 #    os.system("combineCards.py -S card%s_ch1_%s_M%s_%s.txt card%s_ch2_%s_M%s_%s.txt > card%s_combined_%s_M%s_%s.txt"%(cname,s,m,y,cname,s,m,y,cname,s,m,y))
                 #    os.system("text2workspace.py card%s_combined_%s_M%s_%s.txt -m %s"%(cname,s,m,y,m))
-                icard = "card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt "%(cname,binidx,sigModel,M,T,y)
-                combinedCards += icard
+                if "Scenario" not in sigModel:
+                    icard = "card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt "%(cname,binidx,sigModel,M,T,y)
+                else:
+                    icard = "card%s_ch%d_%s_M%.3f_M%.3f_ctau%.2f_%s.txt "%(cname,binidx,sigModel,M2,M,T,y)
+                if (nSigs[binidx] > 1e-6) and (SOverSqrtB[binidx] > 1e-4*max(SOverSqrtB.values()) or SOverSqrtB[binidx] < 0):
+                    combinedCards += icard
 
             print(combinedCards)
             if combinedCards!="":
-                print("Combining cards into card%s_combined_%s_M%.3f_ctau%.2f_%s.txt"%(cname,sigModel,M,T,y))
-                os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau%.2f_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
-                os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau%.2f_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
+                print(f"Combining cards: {len(combinedCards.split(' '))}")
+                if "Scenario" not in sigModel:
+                    os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_ctau%.2f_%s.txt"%(combinedCards,cname,sigModel,M,T,y))
+                    os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_ctau%.2f_%s.txt --channel-masks"%(outDir,cname,sigModel,M,T,y))
+                else:    
+                    os.system("combineCards.py -S %s > card%s_combined_%s_M%.3f_M%.3f_ctau%.2f_%s.txt"%(combinedCards,cname,sigModel,M2,M,T,y))
+                    os.system("text2workspace.py %s/card%s_combined_%s_M%.3f_M%.3f_ctau%.2f_%s.txt --channel-masks"%(outDir,cname,sigModel,M2,M,T,y))
             if not useSignalMC:
                 for binidx in listOfBins:
-                    os.system("rm %s/card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))
+                    if "Scenario" not in sigModel:
+                        os.system("rm %s/card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M,T,y))
+                    else:
+                        os.system("rm %s/card%s_ch%d_%s_M%.3f_M%.3f_ctau%.2f_%s.txt"%(outDir,cname,binidx,sigModel,M2,M,T,y))
             os.chdir(thisDir)
 
 # f it dir within the datacard directory is not needed anymore (avoid using rm -rf)
 os.chdir(outDir)
-os.system('rm %s/*'%(_inDir))
-os.system('rmdir %s'%(_inDir))
+#os.system('rm %s/*'%(_inDir))
+#os.system('rmdir %s'%(_inDir))
 os.chdir(thisDir)
