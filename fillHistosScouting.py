@@ -332,8 +332,8 @@ def getSelectionSF(lxy):
         sfdown = 0.96 - 0.06
     elif lxy > 3.1 and lxy < 7.0:
         sf = 0.86
-        sfup = 0.86 + 0.06
-        sfdown = 0.86 - 0.06
+        sfup = 0.82 + 0.1
+        sfdown = 0.82 - 0.1
     elif lxy > 7.0: # More bins to be added when efficiency (per category) is computed
         sf = 1.0
         sfup = 1.0 + 0.3
