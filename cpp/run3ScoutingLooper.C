@@ -28,7 +28,7 @@ using namespace fwlite;
 #include "tools/tqdm.h"
 
 // Partial unblinding
-bool doPartialUnblinding = true;
+bool doPartialUnblinding = false;
 float partialUnblindingPercentage = 0.1; // 10% of each era
 
 // SV selection
@@ -427,6 +427,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   TTree* tout = new TTree("tout","Run3ScoutingTree");
   TH1F* counts = new TH1F("counts", "", 1, 0, 1);
   TH1F* sum2Weights = new TH1F("sum2Weights", "", 1, 0, 1);
+  TH1F* cutflow = new TH1F("cutflow", "", 7, 0, 7);  
 
   // Branch variables
   unsigned int run, lumi, evtn;
@@ -614,6 +615,10 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
   for (auto inputFile : inputFiles) {
     std::cout << "File number: " << iFile << "\t" << inputFile <<  "\n";
     TFile *file = TFile::Open(inputFile);
+    if (!file || file->IsZombie()) {
+        std::cout << "File is in zombie state, skipping..." << std::endl;
+	continue;
+    }
     auto nEventsFile = ((TTree*)file->Get("Events"))->GetEntries();
     std::cout << "Input events: " << nEventsFile <<  "\n";
     Event ev(file);
@@ -1134,6 +1139,16 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
     std::cout << "Evenst pre-mu: " << nPreMu <<  "\n";
     std::cout << "Evenst saved: " << nSaved <<  "\n";
     std::cout<<"\n\n";
+
+    cutflow->SetBinContent(1, counts->GetBinContent(1));
+    cutflow->SetBinContent(2, cutflow->GetBinContent(2) + nSaved);
+    cutflow->SetBinContent(3, cutflow->GetBinContent(3) + nGoodRun);
+    cutflow->SetBinContent(4, cutflow->GetBinContent(4) + nDuplicate);
+    cutflow->SetBinContent(5, cutflow->GetBinContent(5) + nFraction);
+    cutflow->SetBinContent(6, cutflow->GetBinContent(6) + nL1);
+    cutflow->SetBinContent(7, cutflow->GetBinContent(7) + nHLT);
+    cutflow->SetBinContent(8, cutflow->GetBinContent(8) + nPreMu);
+
   }
 
   bar.finish();
