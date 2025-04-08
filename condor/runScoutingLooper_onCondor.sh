@@ -55,15 +55,17 @@ then
    if [ ${year23} -gt 0 ]
    then
       condor_submit condor/runScoutingLooper_onCondor2023.sub
+      #condor_submit condor/runScoutingLooper_DQCD_onCondor2023.sub
    else
-      condor_submit condor/runScoutingLooper_onCondor.sub
+      condor_submit condor/runScoutingLooper_signalOnly_onCondor.sub
    fi
 else
    sh condor/create_package.sh
    if [ ${year23} -gt 0 ]
    then
       condor_submit condor/runScoutingLooper_onCondor2023.sub
+      #condor_submit condor/runScoutingLooper_DQCD_onCondor2023.sub
    else
-      condor_submit condor/runScoutingLooper_onCondor.sub
+      condor_submit condor/runScoutingLooper_signalOnly_onCondor.sub
    fi
 fi
