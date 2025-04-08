@@ -4,8 +4,8 @@ import os
 
 # To be modified by user:
 sourceDir = "/ceph/cms/store/group/Run3Scouting/RAWScouting_5c"
-finalDir = "/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Feb-03-2024/CentralSignal"
-sourceDir = "/ceph/cms/store/group/Run3Scouting/RAWScouting_BToPhi_2023_v7p0"
+#finalDir = "/ceph/cms/store/group/Run3Scouting/Run3ScoutingSamples/Feb-03-2024/CentralSignal"
+sourceDir = "/ceph/cms/store/group/Run3Scouting/RAWScouting_HTo2ZdTo2mu2x_2023_vhahm_7p0"
 modeto = False # Set to True if moving files it is necessary
 selected_era = '2023BPix'
 

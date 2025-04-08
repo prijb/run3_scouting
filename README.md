@@ -233,8 +233,8 @@ Which will create ```fitResults_2022``` and ```fitResults_2023```.
 ### Make datacards
 
 ```
-python3 make_datacards.py 2022
-python3 make_datacards.py 2023
+python3 make_datacards.py sta fitResults_2022 2022 HTo2ZdTo2mu2x
+python3 make_datacards.py sta fitResults_2023 2023 HTo2ZdTo2mu2x
 ```
 
 ### Limit extraction
