@@ -51,6 +51,7 @@
 using namespace std;
 using namespace RooFit;
 
+bool debug = true;
 bool doBinnedFit = false;
 //bool refitSignal = false;
 bool categorizeSignal = true;
@@ -75,7 +76,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //TString outDir = Form("%s_%s",outDirPrefix.Data(), year.Data());
   int mdir = mkdir(outDir,0755);
 
-  double minmass = 0.4;
+  double minmass = 0.1; // Before 0.4 for some reason
   double maxmass = 140.;
   double minMforFit = minmass;
 
@@ -123,9 +124,25 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   //  useSpline = false;
   //TFile *ffitParams = TFile::Open("utils/signalFitParameters_default.root", "READ");
   //TFile *ffitParams = TFile::Open("utils/signalFitParameters_lxybins_2022_v3.root", "READ");
-  TFile *ffitParams = TFile::Open("utils/signalFitParameters_HTo2ZdTo2mu2x_lxybins_2022.root", "READ");
+  //TFile *ffitParams = TFile::Open("utils/signalFitParameters_HTo2ZdTo2mu2x_lxybins_2022.root", "READ");
+  TFile *ffitParams;
+  std::cout << sample << std::endl;
+  if (sigmodel.Contains("HTo2ZdTo2mu2x")) {
+    ffitParams = TFile::Open("utils/signalFitParameters_HTo2ZdTo2mu2x_lxybins_2022.root", "READ");
+    std::cout << "Reading fitting parameters from: signalFitParameters_HTo2ZdTo2mu2x_lxybins_2022.root" << std::endl;
+  } else if (sigmodel.Contains("BToPhi")) {
+    ffitParams = TFile::Open("utils/signalFitParameters_BToPhi_lxybins_2022.root", "READ");
+    std::cout << "Reading fitting parameters from: signalFitParameters_BToPhi_lxybins_2022.root" << std::endl;
+  } else if (sigmodel.Contains("Scenario")) {
+    ffitParams = TFile::Open("utils/signalFitParameters_HTo2ZdTo2mu2x_lxybins_2022.root", "READ");
+    //useFixedSigma = true;
+    std::cout << "Reading fitting parameters from: signalFitParameters_FAKE_lxybins_2022.root" << std::endl;
+  } else {
+    ffitParams = TFile::Open("utils/signalFitParameters_HTo2ZdTo2mu2x_lxybins_2022.root", "READ");
+    std::cout << "No model, using: signalFitParameters_nomodel_lxybins_2022.root" << std::endl;
+  }
   //Provisional: m = 0.5 doesn't have MC to have a defined peak, so we take initial fit parameters from 0.7:
-  if (samplemass < 0.7) samplemass = 0.7;
+  if (samplemass < 0.7 && sigmodel.Contains("HTo2ZdTo2mu2x")) samplemass = 0.7;
   
   //////Set starting standard deviation (sigma)
   double stddev = 0.018*mass; // Updated, before 2%
@@ -149,7 +166,11 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     maxstddev = 1.25*stddev;      
   }
   double binsize = 0.1*stddev_window;
-  double binsizePlot = 1.0*stddev_window;
+  double binsizePlot = 0.1*stddev_window;
+
+  if ( datasetname.Contains("d_FourMu_osv") && sigmodel.Contains("Scenario")) {
+    minstddev = 0.001*mass;
+  }
 
   // For Four muon regions there is not a proper spline that works for sigma at every mass, so we take 1.8%
   // This was true for some time but not anymore... kept in case we have to go back to that
@@ -284,8 +305,10 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
   // Veto of SM resonances: leave the workspace empty if hitting SM resonance boundaries for the background
   // Signal is kept for interpolation purposes
   // We use the sample mass: If dimuons fall within the window, we are out...
-  double lowBound = mass-windWidth*stddev_window;
-  double upBound = mass+windWidth*stddev_window;
+  //double lowBound = mass-windWidth*stddev_window;
+  //double upBound = mass+windWidth*stddev_window;
+  double lowBound = mass-windWidth*0.016*mass;
+  double upBound = mass+windWidth*0.016*mass;
   std::cout << mass << " - " << windWidth << " * " << stddev_window << " = " << lowBound << std::endl;
   std::cout << mass << " + " << windWidth << " * " << stddev_window << " = " << upBound << std::endl;
   if ( !isSignal && datasetname.Contains("d_Dimuon")) {
@@ -293,9 +316,9 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       return;
     if ( ( (( lowBound < 0.59 ) && (mass > 0.59)) || (( upBound > 0.51 ) && (mass < 0.51)) || ((mass > 0.51) && (mass < 0.59)) ) && (masking==1) ) // eta
       return;
-    if ( (( lowBound < 0.87) && (mass > 0.87)) || (( upBound > 0.69 ) && (mass < 0.69)) || ((mass > 0.69) && (mass < 0.87)) ) // rho / w
+    if ( (( lowBound < 0.83) && (mass > 0.83)) || (( upBound > 0.735 ) && (mass < 0.735)) || ((mass > 0.735) && (mass < 0.83)) ) // rho / w
       return;
-    if ( (( lowBound < 1.10 ) && (mass > 1.10)) || (( upBound > 0.94 ) && (mass < 0.94)) || ((mass > 0.94) && (mass < 1.10)) ) // phi 1020
+    if ( (( lowBound < 1.08 ) && (mass > 1.08)) || (( upBound > 0.96 ) && (mass < 0.96)) || ((mass > 0.96) && (mass < 1.08)) ) // phi 1020
       return;
     if ( ( (( lowBound < 3.27 ) && (mass > 3.27)) || (( upBound > 2.91 ) && (mass < 2.91)) || ((mass > 2.91) && (mass < 3.27)) ) && (masking==2 || masking==1) ) // Jpsi
       return;
@@ -430,22 +453,39 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       std::cout << ">>> SIGNAL NORMALIZATION: " << (*mmumu).numEntries() << " " << (*mmumu).sumEntries() << " " << (*mmumu).sumEntries(fitRange.Data()) << std::endl;
     }
     else {
-      std::cout << "Accessing spline to retrieve acceptance" << std::endl;
-      TFile *facc = TFile::Open("data/acceptanceSplines_2022.root");
-      //facc->ls();;
-      int pos = datasetname.Index("_Signal");
-      TString regionname = datasetname(0, pos);
-      //std::cout << "Getting: " << Form("spline_acceptance_HTo2ZdTo2mu2x_%.0f_%s",ctau,regionname.Data()) << std::endl;
-      TSpline3 *acceff = (TSpline3 *) facc->Get(Form("spline_acceptance_HTo2ZdTo2mu2x_%.0f_%s",ctau,regionname.Data()));
-      double tacceff  = acceff->Eval(samplemass);
-      facc->Close();
-      int sigRawAll = 1e6; // Random for now... But will have to include it for the systematics...
-      if (period.Contains("2022"))
-        sigNormalization = tacceff*1000*35;
-      else
-        sigNormalization = tacceff*1000*27;
-      sigRawEntries = (int) (sigNormalization/(tacceff*1000*35)*sigRawAll);
-      std::cout << ">>> SIGNAL NORMALIZATION: " << sigNormalization << std::endl;
+        std::cout << "Accessing spline to retrieve acceptance..." << std::endl;
+        TFile *facc;
+        if (sigmodel.Contains("HTo2ZdTo2mu2x"))
+            facc = TFile::Open(Form("data/acceptanceSplines_HTo2ZdTo2mu2x_%s.root", period.Data()));
+        else if (sigmodel.Contains("BToPhi"))
+            facc = TFile::Open(Form("data/acceptanceSplines_BToPhi_%s.root", period.Data()));
+        else
+            facc = TFile::Open(Form("data/acceptanceSplines_HTo2ZdTo2mu2x_%s.root", period.Data())); // To check
+        std::cout << "Spline accessed succesfully!" << std::endl;
+        //facc->ls();;
+        int pos = datasetname.Index("_Signal");
+        TString regionname = datasetname(0, pos);
+        //std::cout << "Getting: " << Form("spline_acceptance_HTo2ZdTo2mu2x_%.0f_%s",ctau,regionname.Data()) << std::endl;
+        std::cout << "Getting acceptance..." << std::endl;
+        TSpline3 *acceff;
+        if (sigmodel.Contains("HTo2ZdTo2mu2x")) {
+            acceff = (TSpline3 *) facc->Get(Form("spline_acceptance_HTo2ZdTo2mu2x_%.2f_%s",ctau,regionname.Data()));
+        } else if (sigmodel.Contains("BToPhi")) {
+            acceff = (TSpline3 *) facc->Get(Form("spline_acceptance_BToPhi_%.2f_%s",ctau,regionname.Data()));
+            std::cout << Form("spline_acceptance_BToPhi_%.2f_%s",ctau,regionname.Data()) << std::endl;
+        } else {
+            acceff = (TSpline3 *) facc->Get(Form("spline_acceptance_HTo2ZdTo2mu2x_%.0f_%s",ctau,regionname.Data()));
+        }
+        double tacceff = std::max(0., acceff->Eval(samplemass));
+        std::cout << "Found acceptance " << acceff->Eval(samplemass) << " using " << tacceff << std::endl;
+        facc->Close();
+        int sigRawAll = 1e6; // Random for now... But will have to include it for the systematics...
+        if (period.Contains("2022"))
+          sigNormalization = tacceff*1000*35;
+        else
+          sigNormalization = tacceff*1000*27;
+        sigRawEntries = (int) (sigNormalization/(tacceff*1000*35)*sigRawAll);
+        std::cout << ">>> SIGNAL NORMALIZATION: " << sigNormalization << std::endl;
     }
     std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Import of the signal " << std::endl;
     std::cout << "Refitting signal? " << refitSignal << std::endl;
@@ -759,6 +799,11 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 
     //////Plot RooDataSet onto frame
     (*mmumuFit).plotOn(frame/*, DataError(RooAbsData::SumW2)*/, Binning(binningPlot));
+    if (debug) {
+      TCanvas *c1 = new TCanvas("c1", "Data plot", 800, 600);
+      frame->Draw();
+      c1->SaveAs(Form("%s/%s_data_mass%.3f.png",outDir,mmumuAll.GetName(),mass));
+    }
 
     //////Define index over event categories
     int binidx=-1;

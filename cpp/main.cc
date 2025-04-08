@@ -23,6 +23,7 @@ std::vector<TString> getFiles(const std::string inputDir, const int startFile, c
   std::string fullInputDir;
   unsigned int iFile=0;
   if (fromCrab) {
+    std::cout << "Trying to identify the files with dasgoclient" << std::endl;
     std::string command;
     command = "/cvmfs/cms.cern.ch/common/dasgoclient --query=\"file dataset=";
     command += inputDir; 
@@ -38,6 +39,7 @@ std::vector<TString> getFiles(const std::string inputDir, const int startFile, c
       if (!TString(line.c_str()).Contains(".root"))
 	continue;
       else {
+	std::cout << "...adding file: " << line << std::endl;
 	files.push_back(TString("root://cmsxrootd.fnal.gov//"+line));
       }
       iFile++;
