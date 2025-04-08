@@ -36,7 +36,7 @@ def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=
 
     # Loop over pdfs:
     #for pdf in ["exp", "power", "bern"]:
-    for pdf in ["exp", "power", "bern"]:
+    for pdf in ["exp"]:
         ## Frame
         mfit = RooRealVar("mfit", "mfit", fit_range[0], fit_range[1])
         data = dataset.reduce(mfit, "%f < mfit && mfit < %f"%(fit_range[0], fit_range[1]))
@@ -210,35 +210,53 @@ def fitDataset(name, dataset, mass, fit_range=(2.6, 3.6), outDir="output", year=
         #
         plt.style.use(hep.style.CMS)
         #fig, (ax, ax_residuals) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [4, 1], 'hspace': 0.05}, sharex=True, figsize=(10, 10))
-        fig, ax = plt.subplots(1, 1, figsize=(10, 7.5))
+        fig, ax = plt.subplots(1,1, figsize=(10, 7.5))
         # Main plot
-        ax.set_ylabel(r'Events / 0.01 GeV', fontsize=24)
+        ax.set_ylabel(r'Events / %.5f GeV'%((fit_range[1]-fit_range[0])/nBins), fontsize=24)
         ax.set_xlabel('')
         ax.set_xlim(fit_range[0], fit_range[1])
         hep.cms.label("Preliminary", data=True, year=year, com='13.6', ax=ax)
         ax.set_ylim(0.0,1.45*max(histo))
-        ax.errorbar(masses, histo, yerr=y_err, fmt='o', capsize=5, label='Data', color='k', markersize=8)
-        if not bOnly:
-            ax.plot(xval, vbkg, label='Background (%s)'%(pdf), color='slateblue', lw = 3, linestyle='--')
-            ax.plot(xval, vmodel, label='Signal + Background', color='tab:red', lw = 3)
-        else:
-            ax.plot(xval, vmodel, label='Background (%s)'%(pdf), color='tab:red', lw = 3)
-        ax.text(0.63, 0.95, 'Fit parameters', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes, fontweight='bold')
-        if not bOnly:
-            if "Upsilon" not in name:
-                ax.text(0.63, 0.9, r'Mean = %.2f GeV'%(mean_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.86, r'$\sigma =$ %.1f MeV'%(sigma_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.82, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-            else:
-                ax.text(0.63, 0.9, r'Mean (1S) = %.2f GeV'%(mean1_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.86, r'$\sigma (1S) =$ %.1f MeV'%(sigma1_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.82, r'Mean (2S) = %.2f GeV'%(mean2_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.78, r'$\sigma (2S) =$ %.1f MeV'%(sigma2_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.74, r'Mean (3S) = %.2f GeV'%(mean3_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.70, r'$\sigma (3S) =$ %.1f MeV'%(sigma3_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-                ax.text(0.63, 0.66, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
-        else:
-            ax.text(0.63, 0.9, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        llabel = ''
+        if '0p0to0p2' in name:
+            llabel = '[0.0, 0.2] cm'
+        if '0p2to1p0' in name:
+            llabel = '[0.2, 1.0] cm'
+        if '1p0to2p4' in name:
+            llabel = '[1.0, 2.4] cm'
+        if '2p4to3p1' in name:
+            llabel = '[2.4, 3.1] cm'
+        if '3p1to7p0' in name:
+            llabel = '[3.1, 7.0] cm'
+        if '7p0to11p0' in name:
+            llabel = '[7.0, 11.0] cm'
+        if '11p0to16p0' in name:
+            llabel = '[11.0, 16.0] cm'
+        if '16p0to70p0' in name:
+            llabel = '[16.0, 70.0] cm'
+        ax.errorbar(masses, histo, yerr=y_err, fmt='o', capsize=5, label='Data (%s)'%(llabel), color='k', markersize=8)
+        ax.axvline(x=3.55, color='orange', linestyle='--')
+        #if not bOnly:
+        #    ax.plot(xval, vbkg, label='Background (%s)'%(pdf), color='slateblue', lw = 3, linestyle='--')
+        #    ax.plot(xval, vmodel, label='Signal + Background', color='tab:red', lw = 3)
+        #else:
+        #    ax.plot(xval, vmodel, label='Background (%s)'%(pdf), color='tab:red', lw = 3)
+        #ax.text(0.63, 0.95, 'Fit parameters', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes, fontweight='bold')
+        #if not bOnly:
+        #    if "Upsilon" not in name:
+        #        ax.text(0.63, 0.9, r'Mean = %.2f GeV'%(mean_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.86, r'$\sigma =$ %.1f MeV'%(sigma_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.82, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #    else:
+        #        ax.text(0.63, 0.9, r'Mean (1S) = %.2f GeV'%(mean1_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.86, r'$\sigma (1S) =$ %.1f MeV'%(sigma1_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.82, r'Mean (2S) = %.2f GeV'%(mean2_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.78, r'$\sigma (2S) =$ %.1f MeV'%(sigma2_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.74, r'Mean (3S) = %.2f GeV'%(mean3_.getVal()), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.70, r'$\sigma (3S) =$ %.1f MeV'%(sigma3_.getVal()*1000.0), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #        ax.text(0.63, 0.66, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+        #else:
+        #    ax.text(0.63, 0.9, r'$\chi^2/ndof =$ %.3f'%(chi2_over_ndof), fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
         if 'short' in name:
             ax.text(0.05, 0.74, r'$l_{xy} \in [0, 2.4]$ cm', fontsize=18, color='black', horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
         elif 'medium' in name:
@@ -261,19 +279,28 @@ if __name__=="__main__":
     # Inclusive regions for fitting
     sdNames = {}
     
-    sdNames["d_Dimuon_inclusive"] = ["d_Dimuon_lxy0p0to0p2_inclusive",
-                                     "d_Dimuon_lxy0p2to1p0_inclusive",
-                                     "d_Dimuon_lxy1p0to2p4_inclusive", 
-                                     "d_Dimuon_lxy2p4to3p1_inclusive",
-                                     "d_Dimuon_lxy3p1to7p0_inclusive",
-                                     "d_Dimuon_lxy7p0to11p0_inclusive",
-                                     "d_Dimuon_lxy11p0to16p0_inclusive",
-                                     "d_Dimuon_lxy16p0to70p0_inclusive"]
+    sdNames["d_Dimuon_lxy0p0to0p2_inclusive"] = ["d_Dimuon_lxy0p0to0p2_inclusive"]
+    sdNames["d_Dimuon_lxy0p2to1p0_inclusive"] = ["d_Dimuon_lxy0p2to1p0_inclusive"]
+    sdNames["d_Dimuon_lxy1p0to2p4_inclusive"] = ["d_Dimuon_lxy1p0to2p4_inclusive"]
+    sdNames["d_Dimuon_lxy2p4to3p1_inclusive"] = ["d_Dimuon_lxy2p4to3p1_inclusive"]
+    sdNames["d_Dimuon_lxy3p1to7p0_inclusive"] = ["d_Dimuon_lxy3p1to7p0_inclusive"]
+    sdNames["d_Dimuon_lxy7p0to11p0_inclusive"] = ["d_Dimuon_lxy7p0to11p0_inclusive"]
+    sdNames["d_Dimuon_lxy11p0to16p0_inclusive"] = ["d_Dimuon_lxy11p0to16p0_inclusive"]
+    sdNames["d_Dimuon_lxy16p0to70p0_inclusive"] = ["d_Dimuon_lxy16p0to70p0_inclusive"]
+    
+    #sdNames["d_Dimuon_inclusive"] = ["d_Dimuon_lxy0p0to0p2_inclusive",
+    #                                 "d_Dimuon_lxy0p2to1p0_inclusive",
+    #                                 "d_Dimuon_lxy1p0to2p4_inclusive", 
+    #                                 "d_Dimuon_lxy2p4to3p1_inclusive",
+    #                                 "d_Dimuon_lxy3p1to7p0_inclusive",
+    #                                 "d_Dimuon_lxy7p0to11p0_inclusive",
+    #                                 "d_Dimuon_lxy11p0to16p0_inclusive",
+    #                                 "d_Dimuon_lxy16p0to70p0_inclusive"]
     #sdNames["d_Dimuon_short"] = ["d_Dimuon_lxy0p0to0p2_inclusive", "d_Dimuon_lxy0p2to1p0_inclusive"]
     #sdNames["d_Dimuon_medium"] = ["d_Dimuon_lxy1p0to2p4_inclusive", "d_Dimuon_lxy2p4to3p1_inclusive", "d_Dimuon_lxy3p1to7p0_inclusive", "d_Dimuon_lxy7p0to11p0_inclusive"]
-    sdNames["d_Dimuon_short"] = ["d_Dimuon_lxy0p0to0p2_inclusive", "d_Dimuon_lxy0p2to1p0_inclusive", "d_Dimuon_lxy1p0to2p4_inclusive"]
-    sdNames["d_Dimuon_medium"] = ["d_Dimuon_lxy2p4to3p1_inclusive", "d_Dimuon_lxy3p1to7p0_inclusive", "d_Dimuon_lxy7p0to11p0_inclusive"]
-    sdNames["d_Dimuon_high"] = ["d_Dimuon_lxy11p0to16p0_inclusive", "d_Dimuon_lxy16p0to70p0_inclusive"]
+    #sdNames["d_Dimuon_short"] = ["d_Dimuon_lxy0p0to0p2_inclusive", "d_Dimuon_lxy0p2to1p0_inclusive", "d_Dimuon_lxy1p0to2p4_inclusive"]
+    #sdNames["d_Dimuon_medium"] = ["d_Dimuon_lxy2p4to3p1_inclusive", "d_Dimuon_lxy3p1to7p0_inclusive", "d_Dimuon_lxy7p0to11p0_inclusive"]
+    #sdNames["d_Dimuon_high"] = ["d_Dimuon_lxy11p0to16p0_inclusive", "d_Dimuon_lxy16p0to70p0_inclusive"]
     #dNames = []
     #dNames.append("d_Dimuon_lxy0p0to0p2_inclusive")
     #dNames.append("d_Dimuon_lxy0p2to1p0_inclusive")
@@ -286,13 +313,12 @@ if __name__=="__main__":
     #
     # Resonances to fit: {Resonance : center, fit_range}
     resonances = {}
-    resonances['Ks'] = [0.46, (0.41, 0.51)]
-    resonances['Eta'] = [0.54, (0.495, 0.605)]
-    resonances['Rho'] = [0.78, (0.7, 0.86)]
-    resonances['Psi'] = [1.02, (0.92, 1.12)]
-    resonances['JPsi'] = [3.1, (2.8, 3.4)]
-    resonances['Psi2S'] = [3.68, (3.30, 4.06)]
-    resonances['Upsilon'] = [10.0, (8.5, 11.0)] # Needs special treatment
+    #resonances['TT'] = [3.55, (3.54, 3.56)]
+    #resonances['TT'] = [3.55, (3.53, 3.57)]
+    #resonances['TT'] = [3.55, (3.52, 3.58)]
+    #resonances['TT'] = [3.55, (3.50, 3.60)]
+    resonances['TT'] = [3.525, (3.515, 3.535)]
+    #resonances['TT'] = [3.835, (3.810, 3.860)]
     #
     # Input
     #inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Sep-25-2024_RooDatasets_unblind"
@@ -344,17 +370,18 @@ if __name__=="__main__":
                 else:
                     sdataset.append(dataset)
             # Fitting:
-            if 'medium' in sr:
-                print("Using 80 bins...")
-                fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=80)
-                fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=80, bOnly=True)
-            elif 'high' in sr:
-                print("Using 60 bins...")
-                fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=50)
-                fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=50, bOnly=True)
-            else:
-                print("Using 100 bins...")
-                fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=100, bOnly=False)
+            fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=70, bOnly=True)
+            #if 'medium' in sr:
+            #    print("Using 80 bins...")
+            #    fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=80)
+            #    fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=80, bOnly=True)
+            #elif 'high' in sr:
+            #    print("Using 60 bins...")
+            #    fitDataset("%s_%s"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=50)
+            #    fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=50, bOnly=True)
+            #else:
+            #    print("Using 100 bins...")
+            #    fitDataset("%s_%s_bOnly"%(p,sr), sdataset, mass = resonances[p][0], fit_range=resonances[p][1], outDir=outDir, year=year, lumi=lumi, nBins=100, bOnly=False)
 
 
 

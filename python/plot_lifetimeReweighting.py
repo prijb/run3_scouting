@@ -27,7 +27,7 @@ NORMCONST = 0.01 # To get a 10 fb
 
 
 # Options:
-doLimitValidation = True
+doLimitValidation = False
 
 # Parameters:
 sigModel = "HTo2ZdTo2mu2x" # HTo2ZdTo2mu2x  ScenarioB1
@@ -88,9 +88,203 @@ years.append("2022")
 ROOT.gStyle.SetOptStat(0)
 
 # Inputs:
-inDir  = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Nov-11-2024_ctauReweighting_fixed/"
+#inDir  = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Nov-11-2024_ctauReweighting_fixed/" # 2022
+inDir  = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/"
 #
 tocompare = {}
+tocompare["1.5GeV_1mm"] = [   
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm",
+                                "legend" : r"$c\tau$ = 1 mm (original)",
+                                "color" : "b"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-10mm",
+                                "legend" : r"$c\tau$ = 10 mm (original)",
+                                "color" : "g"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm",
+                                "legend" : r"$c\tau'$ = 1 mm (reweighted from $c\tau$ = 10 mm)",
+                                "color" : "r"
+                            },
+                    ]
+tocompare["5GeV_1mm"] = [   
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1mm",
+                                "legend" : r"$c\tau$ = 1 mm (original)",
+                                "color" : "b"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-10.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-10.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-10.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-10mm",
+                                "legend" : r"$c\tau$ = 10 mm (original)",
+                                "color" : "g"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-5p0_ctau-1mm",
+                                "legend" : r"$c\tau'$ = 1 mm (reweighted from $c\tau$ = 10 mm)",
+                                "color" : "r"
+                            },
+                    ]
+tocompare["8GeV_1mm"] = [   
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1mm",
+                                "legend" : r"$c\tau$ = 1 mm (original)",
+                                "color" : "b"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-10mm",
+                                "legend" : r"$c\tau$ = 10 mm (original)",
+                                "color" : "g"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-8p0_ctau-1mm",
+                                "legend" : r"$c\tau'$ = 1 mm (reweighted from $c\tau$ = 10 mm)",
+                                "color" : "r"
+                            },
+                    ]
+tocompare["14GeV_1mm"] = [   
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1mm",
+                                "legend" : r"$c\tau$ = 1 mm (original)",
+                                "color" : "b"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10mm",
+                                "legend" : r"$c\tau$ = 10 mm (original)",
+                                "color" : "g"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1mm",
+                                "legend" : r"$c\tau'$ = 1 mm (reweighted from $c\tau$ = 10 mm)",
+                                "color" : "r"
+                            },
+                    ]
+tocompare["22GeV_1mm"] = [   
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1mm",
+                                "legend" : r"$c\tau$ = 1 mm (original)",
+                                "color" : "b"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-10mm",
+                                "legend" : r"$c\tau$ = 10 mm (original)",
+                                "color" : "g"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-22p0_ctau-1mm",
+                                "legend" : r"$c\tau'$ = 1 mm (reweighted from $c\tau$ = 10 mm)",
+                                "color" : "r"
+                            },
+                    ]
+tocompare["40GeV_1mm"] = [   
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1mm",
+                                "legend" : r"$c\tau$ = 1 mm (original)",
+                                "color" : "b"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-10.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-10.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_or/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-10.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-10mm",
+                                "legend" : r"$c\tau$ = 10 mm (original)",
+                                "color" : "g"
+                            },
+                            {
+                                "file" :  [
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1.00mm_2022postEE_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1.00mm_2023_2023_0.root",
+                                        "outputHistograms_Dec-18-2024_2023_40GeV_reweighting_re/histograms_Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1.00mm_2023BPix_2023_0.root"
+                                        ],
+                                "name": "Signal_HTo2ZdTo2mu2x_MZd-40p0_ctau-1mm",
+                                "legend" : r"$c\tau'$ = 1 mm (reweighted from $c\tau$ = 10 mm)",
+                                "color" : "r"
+                            },
+                    ]
+"""
 tocompare["1.5GeV_1mm"] = [   {"file" : ["histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm_2022postEE_2022_0.root",
                                           "histograms_Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm_2022_2022_0.root"],
                         "name": "Signal_HTo2ZdTo2mu2x_MZd-1p5_ctau-1mm",
@@ -255,6 +449,7 @@ tocompare["22GeV_10mm"] = [   {"file" : ["histograms_Signal_HTo2ZdTo2mu2x_MZd-22
                         "legend" : r"$c\tau'$ = 10 mm (reweighted from $c\tau$ = 100 mm)",
                         "color" : "r"}
                     ]
+"""
 #
 #tocompare["2GeV_10mm"] = [   {"file" : "histograms_Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm_2022postEE_2022_0.root",
 #                        "name": "Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau-10mm",
@@ -375,9 +570,9 @@ for y in years:
             hsigs.append(ROOT.TH1F(signal["name"], "", len(dNames), 0, len(dNames)))
             hsigsRaw.append(ROOT.TH1F(signal["name"]+"_raw", "", len(dNames), 0, len(dNames)))
             colors.append(signal["color"])
+            legLabels.append(signal["legend"])
             for f in signal["file"]:
                 file_ = ROOT.TFile.Open("%s/%s"%(inDir,f))
-                legLabels.append(signal["legend"])
                 #
                 for d_,d in enumerate(dNames):               
                     #print("Analyzing %s, in region %s"%(signal["name"], d))
@@ -487,6 +682,7 @@ for y in years:
         ax.set_ylabel(r'Events / Search Region', fontsize=20)
         ### Signal
         for h_,h in enumerate(hsigs):
+            print(colors[h_], legLabels[h_], h.GetName())
             mh, mbins = getValues(h)
             mhr, mrbins = getValues(hsigsRaw[h_])
             if "To" in h.GetName().split('ctau')[1]:
@@ -504,7 +700,6 @@ for y in years:
             )
             bin_centers = 0.5 * (mbins[1:] + mbins[:-1])
             errors = np.sqrt(mhr)/mhr*mh
-            print(errors)
             ax.errorbar(bin_centers, mh, yerr=errors, fmt='', linestyle='none', color=colors[h_])
             if h_==0:
                 den = mh
