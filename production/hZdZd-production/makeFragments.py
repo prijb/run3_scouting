@@ -18,8 +18,8 @@ args = parser.parse_args()
 # Branchin ratios (todo)
 brs = parse_table(args.br)
 
-#fragmentTEMPLATE = 'fragment-templates/HTo2ZdTo2mu2x_MZd-ZDMASS_Epsilon-EPSILON_TuneCP5_13p6TeV_pythia8_cff.py' # should be common for both
-fragmentTEMPLATE = 'fragment-templates/HTo2ZdTo2mu2x_MZd-ZDMASS_Epsilon-EPSILON_TuneCP5_13p6TeV_pythia8_cff_noExtLHEP.py' # should be common for both
+fragmentTEMPLATE = 'fragment-templates/HTo2ZdTo2mu2x_MZd-ZDMASS_Epsilon-EPSILON_TuneCP5_13p6TeV_pythia8_cff.py' # should be common for both
+#fragmentTEMPLATE = 'fragment-templates/HTo2ZdTo2mu2x_MZd-ZDMASS_Epsilon-EPSILON_TuneCP5_13p6TeV_pythia8_cff_noExtLHEP.py' # should be common for both
 if args.mode=="epsilon":
     fragmentNAME = 'HTo2ZdTo2mu2x_MZd-{ZDMASS}_Epsilon-{EPSILON}_TuneCP5_13p6TeV_pythia8_cff.py'
 elif args.mode=="lifetime":

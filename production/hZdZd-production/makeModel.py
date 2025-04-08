@@ -97,8 +97,10 @@ if mode=="lifetime":
     mass_proposal += [22.0, 24.0]
     mass_proposal += [32.0, 34.0, 38.0]
     mass_proposal += [42.0, 46.0, 50.0]
+    mass_proposal = [14.0]
 
     ctau_proposal = [1, 10, 100, 1000] # in mm (only integers or change string formatting below to not loose precision)
+    ctau_proposal = [10] # in mm (only integers or change string formatting below to not loose precision)
 
     ctau_grid = []
 
