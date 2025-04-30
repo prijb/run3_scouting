@@ -15,7 +15,7 @@ today= date.today().strftime("%b-%d-%Y")
 
 doRatio = False
 doPull = False
-useSignalMC = True
+useSignalMC = False
 doPartialUnblinding = False
 normalizeSignal = False # Only if background is > 0
 
@@ -113,7 +113,7 @@ if useSignalMC:
     if (model=="HTo2ZdTo2mu2x"):
         sigMasses = [1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
         sigCtau = [1, 10, 100]
-        sigMasses = [2.0]
+        sigMasses = [2.400]
         sigCtau = [1]
     elif (model=="ScenarioB1"):
         sigMasses = []
@@ -139,6 +139,8 @@ else:
             if not ROOT.passMassVeto(lastmass):
                 continue
             sigMasses.append(lastmass)
+        sigMasses = [2.400]
+        sigCtau = [1]
 
 def drawLabels(year="all",lumi=59.83+41.48+19.5+16.8,plotData=False):
     # Labels
@@ -236,7 +238,7 @@ for year in years:
                         #sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%imm"%(m.replace(".", "p"),t)
                         sample = "Signal_HTo2ZdTo2mu2x_MZd-%s_ctau-%.2fmm"%(m.replace(".", "p"),t)
                     else:
-                        sample = "Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.1fmm"%(float(mf),float(t))
+                        sample = "Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.2fmm"%(float(mf),float(t))
                 elif (model=="BToPhi"):
                     #sample = ("Signal_BToPhi-%s_ctau-%smm"%(m.replace('.','p'), t))
                     sample = "Signal_BToPhi_MPhi-%s_ctau-%.2fmm" % (m.replace(".", "p"), float(t))

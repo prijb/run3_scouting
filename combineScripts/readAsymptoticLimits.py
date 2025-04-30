@@ -3,7 +3,7 @@ import ROOT
 
 ROOT.gROOT.ProcessLine(".L cpp/helper.C+")
 
-useSignalMC = True
+useSignalMC = False
 
 if len(sys.argv)<3:
     print("Please, specify model and limit directory.")
@@ -96,6 +96,7 @@ for m in masses:
                 fname = "%s/lim_asymptotic_f2b%.0f_m%.0f.txt"%(limdir,100.0*f,m)
             if not os.path.exists(fname):
                 continue
+                print(">>> Missing point: %.3f GeV, %.2f mm"%(m, t))
             else:
                 fin=open(fname,"r")
             for l in fin.readlines():

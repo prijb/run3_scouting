@@ -142,11 +142,35 @@ Then run once for each period:
 root -b -q -l -n cpp/doAll_fitDimuonMass.C
 ```
 
-<i> Remember to properly set the period and input paths inside before running </i>
+<i> -> Remember to properly set the period and input paths inside before running </i>
+
 ----
 
 **Output:** A set of workspaces with the dataset and the pdfs (for both background and signal). One workspace is defined per mass window.
-These workspaced will be inside a folder of the form ```fitResults_HTo2ZdTo2mu2x_2022``` and ```fitResults_HTo2ZdTo2mu2x_2023``` (assuming you run for `model="HTo2ZdTo2mu2x"`)
+These workspaces will be inside a folder of the form ```fitResults_HTo2ZdTo2mu2x_2022``` and ```fitResults_HTo2ZdTo2mu2x_2023``` (assuming you run for `model="HTo2ZdTo2mu2x"`).
+
+If you look inside these dirs you will see something like:
+
+```
+[...]
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1000.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-100.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2022_workspace.root
+[...]
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-20p0_ctau-1000.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-20p0_ctau-100.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-20p0_ctau-10.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-20p0_ctau-1.00mm_2022_workspace.root
+[...]
+d_Dimuon_lxy1p0to2p4_iso1_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1000.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso1_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-100.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso1_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-10.00mm_2022_workspace.root
+d_Dimuon_lxy1p0to2p4_iso1_pthigh_Signal_HTo2ZdTo2mu2x_MZd-14p0_ctau-1.00mm_2022_workspace.root
+[...]
+```
+
+----
 
 Note 1: Since the fitting takes a lot of time, it is strongly suggested to run by using ```screen```.
 

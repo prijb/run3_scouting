@@ -51,8 +51,8 @@
 using namespace std;
 using namespace RooFit;
 
-bool debug = true;
-bool doBinnedFit = false;
+bool debug = false;
+bool doBinnedFit = true;
 //bool refitSignal = false;
 bool categorizeSignal = true;
 bool categorizeBackground = true; 
@@ -165,8 +165,8 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     minstddev = 0.75*stddev;
     maxstddev = 1.25*stddev;      
   }
-  double binsize = 0.1*stddev_window;
-  double binsizePlot = 0.1*stddev_window;
+  double binsize = 0.1*stddev_window; // 100 bins
+  double binsizePlot = 0.02*stddev_window;
 
   if ( datasetname.Contains("d_FourMu_osv") && sigmodel.Contains("Scenario")) {
     minstddev = 0.001*mass;
@@ -773,20 +773,20 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       (*mmumu).plotOn(frame/*, DataError(RooAbsData::SumW2)*/, Binning(binningPlot), LineColor(kMagenta), MarkerColor(kMagenta));
       (*mmumuFit).plotOn(frame/*, DataError(RooAbsData::SumW2)*/, Binning(binningPlot));
       if ( drawFits ) {
-	exponential_forToy.plotOn(frame,Name("background_toy"),Range("fitRange"),RooFit::NormRange("fitRange"));
-	//////Draw fit
-	TCanvas *can = new TCanvas("can","",600,600);
-	can->cd();
-	frame->SetMinimum(0.0);
-	frame->SetLabelSize(0.02,"Y");
-	frame->SetTitleSize(0.025,"Y");
-	frame->SetXTitle("Dimuon mass [GeV]");
-	frame->Draw();
-	//can->SaveAs(Form("%s/%s_fitBackgroundTOY_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
-	can->SaveAs(Form("%s/%s_fitBackgroundTOY_mass%.0f.png",outDir,mmumuAll.GetName(),mass));
-	can->Update();
-	can->Clear();
-	can->Close();
+	      exponential_forToy.plotOn(frame,Name("background_toy"),Range("fitRange"),RooFit::NormRange("fitRange"));
+	      //////Draw fit
+	      TCanvas *can = new TCanvas("can","",600,600);
+	      can->cd();
+	      frame->SetMinimum(0.0);
+	      frame->SetLabelSize(0.02,"Y");
+	      frame->SetTitleSize(0.025,"Y");
+	      frame->SetXTitle("Dimuon mass [GeV]");
+	      frame->Draw();
+	      //can->SaveAs(Form("%s/%s_fitBackgroundTOY_mass%.0f.png",outDir,(*mmumuFit).GetName(),mass));
+	      can->SaveAs(Form("%s/%s_fitBackgroundTOY_mass%.0f.png",outDir,mmumuAll.GetName(),mass));
+	      can->Update();
+	      can->Clear();
+	      can->Close();
       }
     }
     else {
@@ -862,6 +862,11 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     (*mmumuFit).Print();
     mmumuFit->SetName(Form("data_obs%s",catExt.Data()));
     wfit.import(*(mmumuFit));
+    if ( doBinnedFit ){
+      mfit.setBins(nBins);
+      RooDataHist* mmumuHistFit = new RooDataHist(Form("hist_obs%s",catExt.Data()), Form("hist_obs%s",catExt.Data()), mfit, *mmumuFit);
+      wfit.import(*(mmumuHistFit));
+    }
 
     double alpha = 1.0-0.6827;
     double bgNormalization = (*mmumuFit).sumEntries(fitRange.Data());
@@ -949,7 +954,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     // If p-value is zero, fit does not converge, zero events, or less than 10 events and less than 0.1 events/GeV, do not include
     if ( chi2ExponentialPvalue > 0.01 &&
 	 fitStatusExponential==0 &&
-	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
+	 !( nBG.getVal() < 10 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
       bgPDFs.add(exponential);
       if ( useOnlyExponential ) 
 	wfit.import(exponential);
@@ -1070,7 +1075,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
     // If p-value is zero, fit does not converge, zero events, or less than 1 events and less than 0.1 events/GeV, do not include
     if ( chi2PowerlawPvalue > 0.01 &&
 	 fitStatusPowerlaw==0 && 
-	 !( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 10 ) ) ) {
+	 !( nBG.getVal() < 10 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 10 ) ) ) {
       bgPDFs.add(powerlaw);
       if ( useOnlyPowerLaw )
 	wfit.import(powerlaw);
@@ -1259,7 +1264,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
       if ( (bestBernsteinOrder < 0 && fitStatusBernstein[to-1]==0 && TMath::Prob(ftestChi2,1) > 0.05 && to-1 >= 0) || to>maxpolyorder ) 
 	bestBernsteinOrder = to-1;
       // If zero events, or less than 10 events and less than 0.1 events/GeV, only use lowest order
-      if ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) {
+      if ( nBG.getVal() < 10 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) {
 	   bestBernsteinOrder=0;
       }
 
@@ -1271,7 +1276,7 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
 	int minBernsteinOrder = (addBernsteinOrders) ? bestBernsteinOrder-1 : bestBernsteinOrder;
 	int maxBernsteinOrder = (addBernsteinOrders) ? bestBernsteinOrder+1 : bestBernsteinOrder;
 	for ( int tto = minBernsteinOrder; tto <= maxBernsteinOrder; tto++) {
-          if (nBG.getVal() < 1 && tto==minBernsteinOrder) {
+          if (nBG.getVal() < 10 && tto==minBernsteinOrder) {
             bernstein = new RooUniform(Form("background_uniform%s",catExt.Data()),Form("background_uniform%s",catExt.Data()),x);
 	    isUniform = true;
           } else {
@@ -1279,11 +1284,11 @@ void fitmass(RooDataSet mmumuAll, TString sample, bool isData, bool isSignal, bo
               continue;
 	  if ( tto < 0 ) continue;
 	  // If zero events, or less than 10 events and less than 0.1 events/GeV, only use lowest order
-	  if ( (nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) && tto > 0 ) continue;
+	  if ( (nBG.getVal() < 10 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) && tto > 0 ) continue;
 	  // If p-value is zero, fit does not converge, zero events, or less than 10 events and less than 0.1 events/GeV, do not include
 	  if ( ( chi2BernsteinPvalue[tto] > 0.01 &&
 		 fitStatusBernstein[tto]==0 )
-	       || ( nBG.getVal() < 1 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
+	       || ( nBG.getVal() < 10 || ( nBG.getVal()/(mass+5.0*stddev_window-std::max(minMforFit,mass-5.0*stddev_window)) < 1e-1 && nBG.getVal() < 1e1 ) ) ) {
 	    bernsteinPDFOrders.push_back(tto);
 	    //RooAbsPdf *bernstein;
 	    if (tto == 0) {

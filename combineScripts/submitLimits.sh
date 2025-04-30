@@ -65,7 +65,8 @@ fi
 
 
 #options="--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams --X-rtd MINIMIZER_multiMin_hideConstants --X-rtd MINIMIZER_multiMin_maskConstraints --X-rtd MINIMIZER_multiMin_maskChannels=1"
-options="--cminDefaultMinimizerStrategy 0 -v 0 --rMax 10"
+#options="--cminDefaultMinimizerStrategy 0 -v 0 --rMax 10"
+options="--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams -v 0"
 for m in ${allmasses[@]}
 do
     for t in ${allCTaus[@]}
@@ -85,22 +86,22 @@ do
                 eval "combineTool.py -M AsymptoticLimits ${indir}/${card} ${options} ${name} -m 125 --parallel 16 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysObs" ]
             then
-                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m 125 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
+                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin 0.05 --rMax 2 ${options} ${name} -m 125 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysExp" ]
             then
-                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m 125 --expectedFromGrid=0.5 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
+                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin 0.05 --rMax 2 ${options} ${name} -m 125 --expectedFromGrid=0.5 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysEm1" ]
             then
-                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m 125 --expectedFromGrid=0.16 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
+                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin 0.05 --rMax 1 ${options} ${name} -m 125 --expectedFromGrid=0.16 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysEp1" ]
             then
-                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m 125 --expectedFromGrid=0.84 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
+                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin 0.5 --rMax 3 ${options} ${name} -m 125 --expectedFromGrid=0.84 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysEm2" ]
             then
-                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m 125 --expectedFromGrid=0.025 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
+                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin 0.05 --rMax 1 ${options} ${name} -m 125 --expectedFromGrid=0.025 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysEp2" ]
             then
-                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 -i 2 --rAbsAcc=0.01 --rRelAcc=0.025 ${options} ${name} -m 125 --expectedFromGrid=0.975 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
+                eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin 0.5 --rMax 3 ${options} ${name} -m 125 --expectedFromGrid=0.975 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "sigExp" ]
             then
                 eval "combine ${indir}/${card} -M Significance ${options} ${name} -m ${m} --uncapped=1 --rMin=-5 --rMax=5 -t -1 --expectSignal=1 >& ${outdir}/lim_${which}_${model}_m${m}.txt"

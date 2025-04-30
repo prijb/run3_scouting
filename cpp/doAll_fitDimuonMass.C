@@ -3,7 +3,7 @@
   gROOT->ProcessLine(".L ./cpp/helper.C+");  // Helper with handles 
 
   bool useData = true;
-  bool useSignalMC = true;
+  bool useSignalMC = false;
   bool mergeEras = true;
   bool writeWS = true;
   bool reweighting = true;
@@ -11,7 +11,7 @@
   if (!useSignalMC)
     doUpAndDownVariations = false;
   TString period = "2022"; // Either 2022 or 2023
-  TString model = "ScenarioA"; // Either HTo2ZdTo2mu2x : ScenarioB1 : ScenarioA : BToPhi
+  TString model = "HTo2ZdTo2mu2x"; // Either HTo2ZdTo2mu2x : ScenarioB1 : ScenarioA : BToPhi
 
   // Dir with the RooDataSets
   //TString inDir = "/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jul-02-2024_2022_SRsOnly"; // last 2022
@@ -119,8 +119,9 @@
     if ( useSignalMC ) {
         if (!reweighting) {
           vector<float> sigMass = {1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 24.0, 30.0, 34.0, 40.0, 50.0};
-          //vector<float> sigMass = {6.0, 7.0, 8.0, 14.0, 16.0, 20.0, 30.0, 40.0, 50.0};
+          //vector<float> sigMass = {50.0};
           vector<float> sigCtau = {1, 10, 100, 1000};
+          //vector<float> sigCtau = {100};
           for ( unsigned int m=0; m<sigMass.size(); m++ ) {
             TString massString = Form("%.1f",sigMass[m]); 
             massString.ReplaceAll(".", "p");
@@ -140,7 +141,7 @@
           //vector<float> sigMass = {30.0, 40.0, 50.0};
           //vector<float> sigMass = {50.0};          
           vector<float> sigCtau = {0.1, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00, 160.00, 250.00, 400.00, 630.00, 1000.00};
-          //vector<float> sigCtau = {1000.00};
+          //vector<float> sigCtau = {100.00};
           for ( unsigned int m=0; m<sigMass.size(); m++ ) {
             TString massString = Form("%.1f",sigMass[m]);
             massString.ReplaceAll(".", "p");
@@ -176,7 +177,6 @@
         //vector<float> sigCtau = {1, 10, 100};
         //vector<float> sigCtau = {1000};
         vector<float> sigMass;
-        //std::ifstream infile("data/sigmasses_HTo2ZdTo2mu2x.txt"); // "data/sigmasses_HTo2ZdTo2mu2x_fine.txt"
         std::ifstream infile("data/sigmasses_HTo2ZdTo2mu2x_fine.txt"); // "data/sigmasses_HTo2ZdTo2mu2x_fine.txt"
         std::string line;
         while (std::getline(infile, line)) {

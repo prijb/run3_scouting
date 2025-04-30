@@ -41,10 +41,10 @@ for card1 in os.listdir(inDir1):
             os.system('cp %s/%s %s/%s'%(inDir1, card1, inDir1, tomerge_card1))
             os.system('cp %s/%s %s/%s'%(inDir2, card2, inDir2, tomerge_card2))
             # Correlate systematics
-            os.system("sed -i 's/CMS_eff_sel_2022/CMS_eff_sel     /g' %s/%s"%(inDir1, card1))
-            os.system("sed -i 's/CMS_eff_sel_2023/CMS_eff_sel     /g' %s/%s"%(inDir2, card2))
-            os.system("sed -i 's/CMS_eff_trg_2022/CMS_eff_trg     /g' %s/%s"%(inDir1, card1))
-            os.system("sed -i 's/CMS_eff_trg_2023/CMS_eff_trg     /g' %s/%s"%(inDir2, card2))
+            os.system("sed -i 's/CMS_eff_sel_2022/CMS_eff_sel     /g' %s/%s"%(inDir1, tomerge_card1))
+            os.system("sed -i 's/CMS_eff_sel_2023/CMS_eff_sel     /g' %s/%s"%(inDir2, tomerge_card2))
+            os.system("sed -i 's/CMS_eff_trg_2022/CMS_eff_trg     /g' %s/%s"%(inDir1, tomerge_card1))
+            os.system("sed -i 's/CMS_eff_trg_2023/CMS_eff_trg     /g' %s/%s"%(inDir2, tomerge_card2))
             # Uncorrelate systematics
             os.system("sed -i 's/mcstat_ch/stat22_ch/g' %s/%s"%(inDir1, tomerge_card1))
             os.system("sed -i 's/mcstat_ch/stat23_ch/g' %s/%s"%(inDir2, tomerge_card2))

@@ -27,8 +27,9 @@ useSignalMC = True
 
 # Constant to control the yields of the signal in the datacard (to be used consistently when limits are made)
 useNorm = True
-NORMCONST = 0.1
+NORMCONST = 0.01
 
+doBinnedFit = True
 doPartiaUnblinding = False
 ext = "data"
 if not useData:
@@ -44,7 +45,10 @@ doMuonResolution = True
 noModel = False
 usePredefinedGrid = True # only applied if not using MC
 dirExt = "standard"
-doIndividualRootCard = True
+doIndividualRootCard = False
+doSmartScaling = True
+
+## doc: Smart scaling allows to have the limit around 0.5, or alternatively with the 2.5% quantile above 0.25
 
 # In line arguments
 sigModel = ""
@@ -59,13 +63,21 @@ if len(sys.argv)>1:
     if len(sys.argv)>5:
         NORMCONST = float(sys.argv[5])
     else:
-        NORMCONST = 0.1
+        NORMCONST = 0.01
     
+if doSmartScaling and not len(sys.argv)>5:
+    if sigModel=="HTo2ZdTo2mu2x":
+        if not useSignalMC:
+            scalingFile = '/ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Apr-15-2025_HTo2ZdTo2mu2x_Norm0p01_asymptotic_vsMass_allEras/limits_HTo2ZdTo2mu2x_allEras.txt'
+        else:
+            scalingFile = '/ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_HTo2ZdTo2mu2x_NormSmart_Apr-28-2025_vsCTau_asymptotic_allEras/limits_HTo2ZdTo2mu2x_allEras.txt'
+else:
+    scalingFile = ''
 
 # Channel selection flags
-doAll = False
+doAll = True
 doIso0HighPt = False
-doIso1HighPt = True
+doIso1HighPt = False
 doIso0LowPt = False
 doIso1LowPt = False
 doNonPointing = False
@@ -115,47 +127,47 @@ if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
 # Example of workspace: d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
 dNames = []
 dNames.append("d_FourMu_sep")
-dNames.append("d_FourMu_osv")
-dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
-dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
-dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
+#dNames.append("d_FourMu_osv")
+#dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso1_pthigh")
-dNames.append("d_Dimuon_lxy0p2to1p0_iso0_ptlow")
-dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
-dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
+#dNames.append("d_Dimuon_lxy0p2to1p0_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy0p2to1p0_iso1_pthigh")
-dNames.append("d_Dimuon_lxy1p0to2p4_iso0_ptlow")
-dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
-dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
+#dNames.append("d_Dimuon_lxy1p0to2p4_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
 dNames.append("d_Dimuon_lxy1p0to2p4_iso1_pthigh")
-dNames.append("d_Dimuon_lxy2p4to3p1_iso0_ptlow")
-dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
-dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
+#dNames.append("d_Dimuon_lxy2p4to3p1_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
 dNames.append("d_Dimuon_lxy2p4to3p1_iso1_pthigh")
-dNames.append("d_Dimuon_lxy3p1to7p0_iso0_ptlow")
-dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
-dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
+#dNames.append("d_Dimuon_lxy3p1to7p0_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy3p1to7p0_iso1_pthigh")
-dNames.append("d_Dimuon_lxy7p0to11p0_iso0_ptlow")
-dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
-dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
+#dNames.append("d_Dimuon_lxy7p0to11p0_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy7p0to11p0_iso1_pthigh")
-dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow")
-dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
-dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
+#dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy11p0to16p0_iso1_pthigh")
-dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
-dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
-dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
+#dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
+#dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
+#dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh")
 dNames.append("d_Dimuon_lxy0p0to0p2_non-pointing")
 dNames.append("d_Dimuon_lxy0p2to1p0_non-pointing")
 dNames.append("d_Dimuon_lxy1p0to2p4_non-pointing")
 dNames.append("d_Dimuon_lxy2p4to3p1_non-pointing")
-dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
-dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
-dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
-dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
+#dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
+#dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
+#dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
+#dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
 if doIso0HighPt:
     dNames = [s for s in dNames if "iso0_pthigh" in s]
 elif doIso1HighPt:
@@ -172,13 +184,12 @@ elif doFourMuon:
 
 years = []
 years.append(year)
-###
-#years.append("allEras")
-
-#years.append("2023")
 
 # Output directory
-outDir = ("%s/datacards_%s_Norm%s_%s_"%(thisDir, sigModel, float(NORMCONST), dirExt))+today+"_"+year
+if not doSmartScaling:
+    outDir = ("%s/datacards_%s_Norm%s_%s_"%(thisDir, sigModel, float(NORMCONST), dirExt))+today+"_"+year
+else:
+    outDir =  ("%s/datacards_%s_NormSmart_%s_"%(thisDir, sigModel, dirExt))+today+"_"+year
 if doIso0HighPt:
     outDir = outDir + "_Iso0HighPt"
 if doIso1HighPt:
@@ -203,11 +214,11 @@ if sigModel=="HTo2ZdTo2mu2x":
             sigMasses = [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 50.0]
             sigMasses = [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 40.0, 50.0]
             #sigMasses = [30.0, 40.0, 50.0]
-            sigMasses = [50.0]
+            #sigMasses = [50.0]
             for  m in sigMasses:
                 sigCTaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00, 160.00, 250.00, 400.00, 630.00, 1000.00]
                 #sigCTaus = [160.00, 250.00, 400.00, 630.00, 1000.00]
-                sigCTaus = [100.00]
+                #sigCTaus = [100.00]
                 for t in sigCTaus:
                     if ((m < 1.0 and t > 10) or (m < 2.0 and t > 100)):
                         continue
@@ -239,22 +250,8 @@ if sigModel=="HTo2ZdTo2mu2x":
                         continue
                     sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.2fmm"%(m, t))
     else:
-        sigCTaus = [1, 10, 100]
-        lastmass = 0.5
-        while (lastmass < 50.0):
-            if lastmass < 1.0: 
-                lastmass = 1.01*lastmass
-            elif lastmass < 11.0:
-                lastmass = 1.02*lastmass
-            else:
-                lastmass = 1.04*lastmass
-            if not ROOT.passMassVeto(lastmass):
-                continue
-            m = lastmass
-            for t in sigCTaus:
-                if ((m < 1.0 and t > 10) or (m < 30.0 and t > 100)):
-                    continue
-                sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-%.3f_ctau-%.2fmm"%(m, t))
+        sigTags.append("Signal_HTo2ZdTo2mu2x_MZd-2.400_ctau-1.00mm")
+
 elif sigModel=="BToPhi":
     if useSignalMC:
         #sigMasses = [0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.90, 1.25, 1.50, 2.0, 2.85, 3.35, 4.00, 5.00]
@@ -319,6 +316,35 @@ for y in years:
         nSigs = {}
         nBGs = {}
         SOverSqrtB = {}
+        #
+        if doSmartScaling:
+            with open(scalingFile) as fin:
+                for l_,l in enumerate(fin.readlines()):
+                    if l.startswith("#"):
+                        continue
+                    ls = l.split(",")
+                    if sigModel=="HTo2ZdTo2mu2x":
+                        if (float(ls[1])== float(M)) and (float(ls[2])== float(T)):
+                            obs = float(ls[3])
+                            exp = float(ls[4])
+                            e2m = float(ls[5])
+                            e1m = float(ls[6])
+                            e1p = float(ls[7])
+                            e2p = float(ls[8])
+                            NORMCONST = 0.01 * ( e2m / 0.6 )
+                            print(" -> Using smart scaling of %.2f for em2 limit of %.3f  to be 0.6" % (NORMCONST, e2m))
+                            break
+                        if (float(ls[1]) > float(M)) and (float(ls[2])== float(T)):
+                            obs = float(lsprev[3])
+                            exp = float(lsprev[4])
+                            e2m = float(lsprev[5])
+                            e1m = float(lsprev[6])
+                            e1p = float(lsprev[7])
+                            e2p = float(lsprev[8])
+                            NORMCONST = 0.01 * ( e2m / 0.6 )
+                            print(" -> Using smart scaling of %.2f for em2 limit of %.3f  to be 0.6" % (NORMCONST, e2m))
+                            break
+                        lsprev = ls
         #
         for d_,d in enumerate(dNames):
             print("Analyzing %s, in region %s"%(m, d))
@@ -445,6 +471,7 @@ for y in years:
             else:
                 luminosity = 35 if year=="2022" else 27
                 ngenfilter = 300000 if year=="2022" else 340000 # averaged between files
+                efilter = -99
                 if sigModel=="HTo2ZdTo2mu2x":
                     mass = float(m.split('MZd-')[1].split('_')[0])
                     smass = ("MZd-%.1f"%(mass)).replace('.', 'p')
@@ -454,6 +481,18 @@ for y in years:
                             if smass in row[0]:
                                 efilter = float(row[-1])
                                 break
+                    if efilter < 0:
+                        with open('data/hahm-request.csv') as mcinfo:
+                            smass = ("MZd-%.0f"%(mass)) + 'p0'
+                            reader = csv.reader(mcinfo, delimiter=',')
+                            for row in reader:
+                                if smass in row[0]:
+                                    efilter = float(row[-1])
+                                    break
+                    if efilter < 0:
+                        efilter = 0.3
+                if efilter < 0:
+                    raise Exception("The mcstat uncertainty can't be computed for %s"%(m))
                 mcstatunc = 1.0/ROOT.TMath.Sqrt(nSig/NORMCONST*ngenfilter/efilter/(1000*luminosity))
                 if mcstatunc > 0.5: mcstatunc = 0.5 # To control < 1 raw events
             # Retrive BG normalization:
@@ -617,7 +656,10 @@ for y in years:
             if doCounting:
                 card.write("shapes * * FAKE\n")
             else:
-                card.write("shapes data_obs * %s %s:data_obs%s\n"%(_finame,wsname,catExtB))
+                if doBinnedFit:
+                    card.write("shapes data_obs * %s %s:hist_obs%s\n"%(_finame,wsname,catExtB))
+                else:
+                    card.write("shapes data_obs * %s %s:data_obs%s\n"%(_finame,wsname,catExtB))
                 card.write("shapes signal * %s %s:signal%s\n"%(_finame,wsname,catExtS))
                 if not useSinglePDF:
                     card.write("shapes background * %s %s:roomultipdf%s\n"%(_finame,wsname,catExtB))
@@ -677,7 +719,7 @@ for y in years:
                 print(f"Significance set to {SOverSqrtB[binidx]}")
             else:
                 SOverSqrtB[binidx] = 0
-                print("Signal and background points are not the same, probably you shouldn't be doing datacards from these workspaces") 
+                raise Exception("Signal and background points are not the same, probably you shouldn't be doing datacards from these workspaces")
                           
         
             ## text2workspace for individual cards:
@@ -715,6 +757,8 @@ for y in years:
                     icard = "card%s_ch%d_%s_M%.3f_M%.3f_ctau%.2f_%s.txt "%(cname,binidx,sigModel,M2,M,T,y)
                 if (nSigs[binidx] > 1e-6) and (SOverSqrtB[binidx] > 1e-4*max(SOverSqrtB.values()) or SOverSqrtB[binidx] < 0):
                     combinedCards += icard
+                else:
+                    print('Skipping card: ', icard)
 
             print(combinedCards)
             if combinedCards!="":
