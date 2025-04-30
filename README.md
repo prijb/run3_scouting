@@ -125,7 +125,33 @@ source scripts/submitLocalAddHistosScouting.sh
 
 ## Fitting
 
-To run a set of fits just run:
+### Description
+
+### How to run
+
+**Inputs:** A folder with the RooDataSets for data and (optionally) signal simulation.
+
+To perform the fitting in the mass windows, modify the lines within ```cpp/doAll_fitDimuonMass.C``` to define ```model```, ```period``` and ```inDir```. With the examples below:
+```
+2022: period=2022, model="HTo2ZdTo2mu2x", inDir="/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts"
+2023: period=2023, model="HTo2ZdTo2mu2x", inDir="/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts"
+```
+
+Then run once for each period:
+```
+root -b -q -l -n cpp/doAll_fitDimuonMass.C
+```
+
+<i> Remember to properly set the period and input paths inside before running </i>
+----
+
+**Output:** A set of workspaces with the dataset and the pdfs (for both background and signal). One workspace is defined per mass window.
+These workspaced will be inside a folder of the form ```fitResults_HTo2ZdTo2mu2x_2022``` and ```fitResults_HTo2ZdTo2mu2x_2023``` (assuming you run for `model="HTo2ZdTo2mu2x"`)
+
+Note 1: Since the fitting takes a lot of time, it is strongly suggested to run by using ```screen```.
+
+Note 2 (probably not needed): In case you run on a sl7 node you can perform the fitting by using a singularity container:
+
 ```
 cmssw-el8 --bind /ceph/cms/store/
 cd CMSSW_13_3_0/src
@@ -133,8 +159,6 @@ cmsenv
 cd ../../
 root -b -q -l -n cpp/doAll_fitDimuonMass.C
 ```
-
-**Remember to properly set the period and input paths inside before running**
 
 ## Limit extraction
 
@@ -237,7 +261,7 @@ python3 make_datacards.py sta fitResults_2022 2022 HTo2ZdTo2mu2x
 python3 make_datacards.py sta fitResults_2023 2023 HTo2ZdTo2mu2x
 ```
 
-### Limit extraction
+### Running the limits on condor
 
 Make sure you have followed the steps for setup in #{combine-in-condor} and
 ```
@@ -245,11 +269,27 @@ sh condor/limits/runLimits_onCondor.sh datacards_all_Jun-14-2024_2022 limits_Jun
 sh condor/limits/runLimits_onCondor.sh datacards_all_Jun-14-2024_2023 limits_Jun-14-2024_2023 2023
 ```
 
-Then, for extracting the result in the output directories:
+### Read limits
+
+#### Asympsotic
+
+To extract the result in the output directories:
 ```
 python3 combineScripts/readAsymptoticLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 2022
 python3 combineScripts/readAsymptoticLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 2023
 ```
+
+#### Toys 
+
+You need to indicate if the limits are read vs mass or ctau (a different grid is used in each case).
+
+```
+python3 combineScripts/readToysLimits.py ctau HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_HTo2ZdTo2mu2x_NormSmart-0p6_Apr-28-2025_vsCTau_toys_allEras allEras
+```
+
+Note: Only limits where all the 5 quantiles and observed have run will be collected.
+
+### Plot the limits
 
 And finally for plotting (may be needed to change options in the script):
 ```
