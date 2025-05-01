@@ -61,12 +61,13 @@ then
     condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEp2_onCondor.sub
 elif [ ${TYPE} == "HTo2ZdTo2mu2x_ctau_toys_test" ]
 then
-    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysObs_onCondor_Test.sub
-    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysExp_onCondor_Test.sub
-    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEm1_onCondor_Test.sub
-    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEp1_onCondor_Test.sub
-    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEm2_onCondor_Test.sub
-    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEp2_onCondor_Test.sub
+    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_grid_onCondor_Test.sub
+    #condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysObs_onCondor_Test.sub
+    #condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysExp_onCondor_Test.sub
+    #condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEm1_onCondor_Test.sub
+    #condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEp1_onCondor_Test.sub
+    #condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEm2_onCondor_Test.sub
+    #condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_vsCTau_ToysEp2_onCondor_Test.sub
 else
     echo "The type of limit was not specified -> Aborting submission..."
 fi

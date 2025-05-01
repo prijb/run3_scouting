@@ -3,7 +3,7 @@ import ROOT
 
 ROOT.gROOT.ProcessLine(".L cpp/helper.C+")
 
-useSignalMC = False
+useSignalMC = True
 
 if len(sys.argv)<3:
     print("Please, specify model and limit directory.")

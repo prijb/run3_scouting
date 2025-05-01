@@ -186,13 +186,66 @@ root -b -q -l -n cpp/doAll_fitDimuonMass.C
 
 ## Limit extraction
 
-### Combine in condor
+### Run the limits with condor
 
-Then launch with condor with:
+**Input:** You need a dir with the compiled datacards (ROOT format).
+
+**Commands:** First you need a create a long voms proxy:
+
 ```
-sh condor/limits/runLimits_onCondor.sh <datacard directory> <limit output directory> <year>
+voms-proxy-init --voms cms --valid 192:00
 ```
-model and other parameters are specified in the corresponding .sub file.
+
+and then the jobs will run with:
+
+```
+sh condor/limits/runLimits_onCondor.sh <datacard directory> <limit output directory> <year> <type>
+```
+
+The `<type>` argument picks the set of points and the way (asymptotic aproximation or through toys) in which the limits are to be derived. Existing configurations can be checked by doing:
+
+```
+sh condor/limits/runLimits_onCondor.sh
+```
+
+**Output:** The results of the limits will be saved in the specified `<limit output directory>` in the form of `.txt` files. So for example if you look into the output file you should see something like:
+
+```
+lim_asymptotic_HTo2ZdTo2mu2x_m50.000_ctau0.10_allEras.txt
+lim_asymptotic_HTo2ZdTo2mu2x_m50.000_ctau0.16_allEras.txt
+lim_asymptotic_HTo2ZdTo2mu2x_m50.000_ctau0.25_allEras.txt
+[...]
+lim_toysEm1_HTo2ZdTo2mu2x_m50.000_ctau0.10_allEras.txt
+lim_toysEm1_HTo2ZdTo2mu2x_m50.000_ctau0.16_allEras.txt
+lim_toysEm1_HTo2ZdTo2mu2x_m50.000_ctau0.25_allEras.txt
+[...]
+lim_toysEm2_HTo2ZdTo2mu2x_m50.000_ctau0.10_allEras.txt
+lim_toysEm2_HTo2ZdTo2mu2x_m50.000_ctau0.16_allEras.txt
+lim_toysEm2_HTo2ZdTo2mu2x_m50.000_ctau0.25_allEras.txt
+[...]
+lim_toysEp1_HTo2ZdTo2mu2x_m50.000_ctau0.10_allEras.txt
+lim_toysEp1_HTo2ZdTo2mu2x_m50.000_ctau0.16_allEras.txt
+lim_toysEp1_HTo2ZdTo2mu2x_m50.000_ctau0.25_allEras.txt
+[...]
+lim_toysEp2_HTo2ZdTo2mu2x_m50.000_ctau0.10_allEras.txt
+lim_toysEp2_HTo2ZdTo2mu2x_m50.000_ctau0.16_allEras.txt
+lim_toysEp2_HTo2ZdTo2mu2x_m50.000_ctau0.25_allEras.txt
+[...]
+lim_toysExp_HTo2ZdTo2mu2x_m50.000_ctau0.10_allEras.txt
+lim_toysExp_HTo2ZdTo2mu2x_m50.000_ctau0.16_allEras.txt
+lim_toysExp_HTo2ZdTo2mu2x_m50.000_ctau0.25_allEras.txt
+[...]
+lim_toysObs_HTo2ZdTo2mu2x_m50.000_ctau0.10_allEras.txt
+lim_toysObs_HTo2ZdTo2mu2x_m50.000_ctau0.16_allEras.txt
+lim_toysObs_HTo2ZdTo2mu2x_m50.000_ctau0.25_allEras.txt
+[...]
+```
+
+Note: Notice that the `lim_toys*Obs*_HTo2ZdTo2mu2x_m*_ctau*_*.txt` files will only be available if you run with one configuration using toys.
+
+### Read the limits
+
+Once the jobs have finished running, you have to retrieve the results and put them into a `.txt` file that will be used for plotting later on.
 
 To wrap the limits results:
 ```
