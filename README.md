@@ -278,6 +278,13 @@ Example:
 sh condor/limits/runLimits_ToyGrid_onCondor.sh datacards_HTo2ZdTo2mu2x_NormSmart_standard_Apr-28-2025_vsCTau_allEras limits_HTo2ZdTo2mu2x_NormSmart-0p6_May-01-2025_vsCTau_toys_allEras_50GeV_2000T allEras
 ```
 
+To test iteractively:
+```
+sh combineScripts/submitSmartToyLimits.sh <datacards> <datacards> HTo2ZdTo2mu2x grid allEras 50.000 100.00 <i>
+```
+
+inside `submitSmartToyLimits.sh` the number of toys and the granularity of the grid can be adjusted. The `r` range to run the limits is defined on-the-fly, the parameter `<i>` indicates the point of the grid within this range to do the computation, if omitted, it will run the limit on 100 points equally distributed along the `r` range.
+
 ### Read the limits
 
 Once the jobs have finished running, you have to retrieve the results and put them into a `.txt` file that will be used for plotting later on. There are two scripts to be used depending on if the limits were generated with asymptotic or toys.
