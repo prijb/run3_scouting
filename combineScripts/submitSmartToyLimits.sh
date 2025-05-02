@@ -73,9 +73,9 @@ do
     do
         if [ ${model} != "nomodel" ]
         then
-            name="-n _${which}_${model}_M${m}"
+            name="-n _${which}_${model}_M${m}_ctau${t}"
             card="card_combined_${model}_M${m}_ctau${t}_${period}.root"
-            limitfile="higgsCombine_${which}_${model}_M${m}.AsymptoticLimits.mH125.root"
+            limitfile="higgsCombine_${which}_${model}_M${m}_ctau${t}.AsymptoticLimits.mH125.root"
             eval "combineTool.py -M AsymptoticLimits ${indir}/${card} ${options} ${name} -m 125 --parallel 16 >& ${outdir}/lim_asymptotic_${model}_m${m}_ctau${t}_${period}.txt"
             # Get limit values for next limit derivation
             eval $(root -b -q "combineScripts/getLimitResults.C(\"${limitfile}\")" | grep '^LIM' | tr -d '\r')
@@ -137,11 +137,12 @@ do
                     eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=higgsCombine_${model}_M${m}_ctau${t}_${period}_merged.root -m 125 ${options} >& ${outdir}/lim_toysObs_${model}_m${m}_ctau${t}_${period}.txt"
                     rm higgsCombine*.root
                 else
+                    name="-n _${which}_${model}_M${m}_ctau${t}"
                     NUM=$8
                     DELTA=$(echo "${NUM} * ${STEP}" | bc -l)
                     POINT=$(echo "${RMIN} + ${DELTA}" | bc -l)
-                    echo "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2 -s -1"
-                    eval "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2 -s -1"
+                    echo "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 2000 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2 -s -1"
+                    eval "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 2000 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2 -s -1"
                     mv higgsCombine*HybridNew*.root ${outdir}
                 fi
             elif [ ${which} == "sigExp" ]

@@ -14,16 +14,21 @@ CTAU=1
 
 if [ $# -lt 6 ]
 then
+    echo "No mass and ctau provided"
     MASS=2.0
     CTAU=1
 elif [ $# -lt 7 ]
 then
+    echo "Only mass provided"
     MASS=$6
     CTAU=1
 elif [ $# -lt 8 ]
+then
     MASS=$6
     CTAU=$7
 else
+    MASS=$6
+    CTAU=$7
     ITER=$8
 fi
 
@@ -76,6 +81,7 @@ cd ../../
 rm -rf ${OUT}
 mkdir -p ${OUT}
 if [ $# -lt 8 ]
+then
     echo "combineScripts/submitSmartToyLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}"
     bash combineScripts/submitSmartToyLimits.sh ${DIR} ${OUT} ${SIG} ${LIM} ${PERIOD} ${MASS} ${CTAU}
 else

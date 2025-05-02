@@ -12,13 +12,9 @@ model = sys.argv[2]
 limdir = sys.argv[3]
 year = sys.argv[4]
 if len(sys.argv)>5:
-    outdir = sys.argv[5]
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-else:
-    outdir = limdir
-
-fout = open("%s/limits_%s_%s.txt"%(outdir,model,year),"w")
+    carddir = sys.argv[5]
+doExtraction = True
+outdir = limdir
 
 if model=="HTo2ZdTo2mu2x":
     if var=='ctau':
@@ -26,6 +22,7 @@ if model=="HTo2ZdTo2mu2x":
         masses =  [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
         masses =  [50.0]
         ctaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00, 160.00, 250.00, 400.00, 630.00, 1000.00]
+        #ctaus = [100.00]
     elif var=='mass':
         masses = []
         ctaus = [1, 10, 100, 1000] # Lifetimes for the grid
@@ -65,6 +62,36 @@ elif model=="ScenarioB1":
     elif var=='mass':
         print("No mass grid supported for this model")
 
+### Hadd of the files if it run on multiple grid mode
+if doExtraction:
+    for m in masses:
+        for t in ctaus:
+            ### Hadd for the files of the grid
+            try:
+                print('> Running: hadd %s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root %s/higgsCombine_grid_%s_M%.3f_ctau%.2f*.root'%(limdir, model, m, t, year, limdir, model, m, t))
+                os.system('hadd %s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root %s/higgsCombine_grid_%s_M%.3f_ctau%.2f*.root'%(limdir, model, m, t, year, limdir, model, m, t))
+            except:
+                print('Already hadd it, not force it, just skip it...')
+                pass
+            #
+            options = "--cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_freezeDisassociatedParams -v 0"
+            #
+            card = "%s/card_combined_%s_M%.3f_ctau%.2f_%s.root"%(carddir, model, m, t, year)
+            print("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.025 >& %s/lim_toysEm2_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            print("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.16 >& %s/lim_toysEm1_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            print("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.84 >& %s/lim_toysEp1_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            print("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.975 >& %s/lim_toysEp2_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            print("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.5 >& %s/lim_toysExp_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            print("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s >& %s/lim_toysObs_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            os.system("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.025 >& %s/lim_toysEm2_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            os.system("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.16 >& %s/lim_toysEm1_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            os.system("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.84 >& %s/lim_toysEp1_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            os.system("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.975 >& %s/lim_toysEp2_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            os.system("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s --expectedFromGrid=0.5 >& %s/lim_toysExp_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+            os.system("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s >& %s/lim_toysObs_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
+
+### File heading
+fout = open("%s/limits_%s_%s.txt"%(outdir,model,year),"w")
 
 f2bs = [0.0]
 if model == "nomodel":

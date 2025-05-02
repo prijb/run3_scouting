@@ -3,17 +3,16 @@ import ROOT
 
 ROOT.gROOT.ProcessLine(".L cpp/helper.C+")
 
-useSignalMC = True
-
 if len(sys.argv)<3:
     print("Please, specify model and limit directory.")
     exit(1)
 
-model = sys.argv[1]
-limdir = sys.argv[2]
-year = sys.argv[3]
-if len(sys.argv)>4:
-    outdir = sys.argv[4]
+var = sys.argv[1]
+model = sys.argv[2]
+limdir = sys.argv[3]
+year = sys.argv[4]
+if len(sys.argv)>5:
+    outdir = sys.argv[5]
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 else:
@@ -22,12 +21,12 @@ else:
 fout = open("%s/limits_%s_%s.txt"%(outdir,model,year),"w")
 
 if model=="HTo2ZdTo2mu2x":
-    if useSignalMC:
+    if var=='ctau':
         #masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0] # Full set of masses
         masses =  [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
         #masses =  [5.0, 8.0]
         ctaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00, 160.00, 250.00, 400.00, 630.00, 1000.00]
-    else:
+    elif var=='mass':
         masses = []
         ctaus = [1, 10, 100, 1000] # Lifetimes for the grid
         with open('data/sigmasses_HTo2ZdTo2mu2x_fine.txt', 'r') as f:
@@ -37,10 +36,10 @@ if model=="HTo2ZdTo2mu2x":
                 masses.append(m)
                 print(m)
 elif model=="BToPhi": 
-    if useSignalMC:
+    if var=='ctau':
         masses =  [0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.90, 1.25, 1.50, 2.0, 2.85, 3.35, 4.00, 5.00] # Just full set of masses
         ctaus = [0.1, 1, 10, 100]
-    else:
+    elif var=='mass':
         masses = []
         ctaus = [0.1, 1, 10, 100] # Lifetimes for the grid
         with open('data/BToPhi_limitgrid.txt', 'r') as f:
@@ -50,20 +49,20 @@ elif model=="BToPhi":
                 masses.append(m)
                 print(m)
 elif model=="ScenarioA": 
-    if useSignalMC:
+    if var=='ctau':
         masses =  [] 
         #masses.append([5.0, 2.40])
         masses.append([4.0, 1.33])
         ctaus = [0.1, 1, 10, 100]
-    else:
+    elif var=='mass':
         print("No mass grid supported for this model")
 elif model=="ScenarioB1": 
-    if useSignalMC:
+    if var=='ctau':
         masses =  [] 
         masses.append([5.0, 2.40])
         #masses.append([4.0, 1.33])
         ctaus = [0.1, 1, 10, 100]
-    else:
+    elif var=='mass':
         print("No mass grid supported for this model")
 
 
