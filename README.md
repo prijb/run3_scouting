@@ -204,6 +204,24 @@ python3 combineScripts/combineDatacards.py <datacards_2022> <datacards_2023>
 
 Note: Order is important, `<datacards_2023> <datacards_2022>` will **not** work.
 
+**Up-to-date examples:**
+
+```
+python3 make_datacards.py sta /ceph/cms/store/group/Run3Scouting/Results/fitResults_2022_HTo2ZdTo2mu2_vsCTau_100bins 2022 HTo2ZdTo2mu2x
+python3 make_datacards.py sta /ceph/cms/store/group/Run3Scouting/Results/fitResults_2023_HTo2ZdTo2mu2_vsCTau_100bins 2023 HTo2ZdTo2mu2x
+```
+
+**Up-to-date datacards:**
+
+Datacards vs Ctau (two years and combined):
+
+```
+/ceph/cms/store/group/Run3Scouting/Results/datacards_HTo2ZdTo2mu2x_NormSmart_standard_Apr-28-2025_vsCTau_2022
+/ceph/cms/store/group/Run3Scouting/Results/datacards_HTo2ZdTo2mu2x_NormSmart_standard_Apr-28-2025_vsCTau_2023
+/ceph/cms/store/group/Run3Scouting/Results/datacards_HTo2ZdTo2mu2x_NormSmart_standard_Apr-28-2025_vsCTau_allEras
+```
+(these can be used in the next steps)
+
 ## Limit extraction
 
 ### Run the limits with condor
@@ -408,68 +426,6 @@ python3 plotHistosScouting.py --inSamples Data Signal_HTo2ZdTo2mu2x_MZd-2p0_ctau
 
 If you want to go directly to fitting, you can just fill the spectra and ```RooDataSet```'s in the filling step.
 
-### Fitting mass windows
-
-Follow the steps above to run the fitting within a cmssw-el8 env.
-
-To fit the mass windows, modify the lines within ```cpp/doAll_fitDimuonMass.C``` to define ```period``` and ```inDir```. With the examples below:
-```
-2022: period=2022, inDir=/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts
-2023: period=2023, inDir=/ceph/cms/store/user/fernance/Run3ScoutingOutput/outputHistograms_Jun-14-2024_allCuts
-```
-
-Then run once for each period:
-```
-root -b -q -l -n cpp/doAll_fitDimuonMass.C
-```
-Which will create ```fitResults_2022``` and ```fitResults_2023```.
-
-### Make datacards
-
-```
-python3 make_datacards.py sta fitResults_2022 2022 HTo2ZdTo2mu2x
-python3 make_datacards.py sta fitResults_2023 2023 HTo2ZdTo2mu2x
-```
-
-### Running the limits on condor
-
-Make sure you have followed the steps for setup in #{combine-in-condor} and
-```
-sh condor/limits/runLimits_onCondor.sh datacards_all_Jun-14-2024_2022 limits_Jun-14-2024_2022 2022
-sh condor/limits/runLimits_onCondor.sh datacards_all_Jun-14-2024_2023 limits_Jun-14-2024_2023 2023
-```
-
-### Read limits
-
-#### Asympsotic
-
-To extract the result in the output directories:
-```
-python3 combineScripts/readAsymptoticLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 2022
-python3 combineScripts/readAsymptoticLimits.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 2023
-```
-
-#### Toys 
-
-You need to indicate if the limits are read vs mass or ctau (a different grid is used in each case).
-
-```
-python3 combineScripts/readToysLimits.py ctau HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_HTo2ZdTo2mu2x_NormSmart-0p6_Apr-28-2025_vsCTau_toys_allEras allEras
-```
-
-Note: Only limits where all the 5 quantiles and observed have run will be collected.
-
-### Plot the limits
-
-And finally for plotting (may be needed to change options in the script):
-```
-python3 combineScripts/plot1DLimits_vsMass.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 1 2022
-python3 combineScripts/plot1DLimits_vsMass.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 10 2022
-python3 combineScripts/plot1DLimits_vsMass.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2022 100 2022
-python3 combineScripts/plot1DLimits_vsMass.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 1 2023
-python3 combineScripts/plot1DLimits_vsMass.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 10 2023
-python3 combineScripts/plot1DLimits_vsMass.py HTo2ZdTo2mu2x /ceph/cms/store/user/fernance/Run3ScoutingOutput/limits_Jun-14-2024_2023 100 2023
-```
 
 ## Draft analysis code with uproot and coffea
 

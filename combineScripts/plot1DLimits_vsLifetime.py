@@ -30,6 +30,14 @@ model = sys.argv[1]
 limdir = sys.argv[2]
 mass = sys.argv[3]
 year = sys.argv[4]
+if len(sys.argv) > 5:
+    limtype = sys.argv[5]
+else:
+    limtype = 'asymptotic'
+
+print("> Limits for model %s"%model)
+print("> Selected mass %.3f"%float(mass))
+print("> Using limits computed with %s"%limtype)
 
 if 'Scenario' in model:
     xsec_h = 52.23
@@ -70,7 +78,7 @@ elif typeOfLimit=="xsecBR":
     if model=="HTo2ZdTo2mu2x":
         ylabel = "95% CL upper limit on #sigma(h#rightarrowZ_{D}Z_{D})xB(Z_{D}#rightarrow#mu#mu) [pb]"
 
-fin = open("%s/limits_%s_%s.txt"%(limdir,model,year),"r")
+fin = open("%s/limits_%s_%s_%s.txt"%(limdir,model,limtype,year),"r")
 for l in fin.readlines():
     if l.startswith("#"):
         continue
@@ -238,13 +246,13 @@ legend._legend_box.align = "left"
 #
 if "Scenario" not in model:
     if drawObserved:
-        fig.savefig("%s/limits_%s_mass%s_%s_alt_obs"%(limdir,model,("%.1f"%float(mass)).replace('.','p'),typeOfLimit), dpi=140)
+        fig.savefig("%s/limits_%s_mass%s_%s_%s_obs"%(limdir,model,("%.1f"%float(mass)).replace('.','p'),typeOfLimit, limtype), dpi=140)
     else:
-        fig.savefig("%s/limits_%s_mass%s_%s_alt"%(limdir,model,("%.1f"%float(mass)).replace('.','p'),typeOfLimit), dpi=140)
+        fig.savefig("%s/limits_%s_mass%s_%s_%s"%(limdir,model,("%.1f"%float(mass)).replace('.','p'),typeOfLimit, limtype), dpi=140)
 else:
     if drawObserved:
-        fig.savefig("%s/limits_%s_mass%s_%s_%s_alt_obs"%(limdir,model,mass.split(',')[0].replace('.','p'),mass.split(',')[1].replace('.','p'),typeOfLimit), dpi=140)
+        fig.savefig("%s/limits_%s_mass%s_%s_%s_%s_obs"%(limdir,model,mass.split(',')[0].replace('.','p'),mass.split(',')[1].replace('.','p'),typeOfLimit, limtype), dpi=140)
     else:
-        fig.savefig("%s/limits_%s_mass%s_%s_%s_alt"%(limdir,model,mass.split(',')[0].replace('.','p'),mass.split(',')[1].replace('.','p'),typeOfLimit), dpi=140)
+        fig.savefig("%s/limits_%s_mass%s_%s_%s_%s"%(limdir,model,mass.split(',')[0].replace('.','p'),mass.split(',')[1].replace('.','p'),typeOfLimit, limtype), dpi=140)
 
 

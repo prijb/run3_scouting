@@ -38,17 +38,28 @@ mv package.tar.gz package_${LABEL}.tar.gz
 
 ## Submission files to try extract limits on different subsets of signal samples
 
-allmasses=(50.000)
-allCTaus=(0.10 0.16 0.25 0.40 0.63 1.00 1.60 2.50 4.00 6.30 10.00 16.00 25.00 40.00 63.00 100.00 160.00 250.00 400.00 630.00 1000.00)
+#allmasses=(50.000)
+#allCTaus=(0.10 0.16 0.25 0.40 0.63 1.00 1.60 2.50 4.00 6.30 10.00 16.00 25.00 40.00 63.00 100.00 160.00 250.00 400.00 630.00 1000.00)
 #allCTaus=(0.10 0.16 0.25 0.40 0.63 1.00)
 #allCTaus=(0.10 0.16)
 
+### Preview: For general grid initial testing
+#allmasses=(50.000)
+#allCTaus=(0.10 0.16 0.25 0.40 0.63 1.00 1.60 2.50 4.00 6.30 10.00 16.00 25.00 40.00 63.00 100.00 160.00 250.00 400.00 630.00 1000.00)
+#for m in ${allmasses[@]}
+#do
+#    for t in ${allCTaus[@]}
+#    do
+#        export MASS="${m}"
+#        export CTAU="${t}"
+#        condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_generalGrid_onCondor.sub
+#    done
+#done
+
+#allmasses=(20.000 30.000 40.000 50.000)
+allmasses=(20.000 30.000)
 for m in ${allmasses[@]}
 do
-    for t in ${allCTaus[@]}
-    do
-        export MASS="${m}"
-        export CTAU="${t}"
-        condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_generalGrid_onCondor.sub
-    done
+    export MASS="${m}"
+    condor_submit condor/limits/runLimits_HTo2ZdTo2mu2x_CTauGrid_onCondor.sub
 done

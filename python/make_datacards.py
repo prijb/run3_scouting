@@ -29,7 +29,8 @@ useSignalMC = True
 useNorm = True
 NORMCONST = 0.01
 
-doBinnedFit = True
+doHybridFit = True
+doBinnedFit = False # If doHybridFit is set to True this is basically not used
 doPartiaUnblinding = False
 ext = "data"
 if not useData:
@@ -47,6 +48,7 @@ usePredefinedGrid = True # only applied if not using MC
 dirExt = "standard"
 doIndividualRootCard = False
 doSmartScaling = True
+useOnlyZeroBackground = False
 
 ## doc: Smart scaling allows to have the limit around 0.5, or alternatively with the 2.5% quantile above 0.25
 
@@ -127,47 +129,47 @@ if useOnlyExponential or useOnlyPowerLaw or useOnlyBernstein:
 # Example of workspace: d_Dimuon_lxy0p0to2p7_iso0_pthigh_Signal_HTo2ZdTo2mu2x_MZd-7p0_ctau-1mm_2022_workspace.root
 dNames = []
 dNames.append("d_FourMu_sep")
-#dNames.append("d_FourMu_osv")
-#dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
+dNames.append("d_FourMu_osv")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p0to0p2_iso1_ptlow")
 dNames.append("d_Dimuon_lxy0p0to0p2_iso1_pthigh")
-#dNames.append("d_Dimuon_lxy0p2to1p0_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy0p2to1p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy0p2to1p0_iso1_pthigh")
-#dNames.append("d_Dimuon_lxy1p0to2p4_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_ptlow")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso0_pthigh")
+dNames.append("d_Dimuon_lxy1p0to2p4_iso1_ptlow")
 dNames.append("d_Dimuon_lxy1p0to2p4_iso1_pthigh")
-#dNames.append("d_Dimuon_lxy2p4to3p1_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_ptlow")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso0_pthigh")
+dNames.append("d_Dimuon_lxy2p4to3p1_iso1_ptlow")
 dNames.append("d_Dimuon_lxy2p4to3p1_iso1_pthigh")
-#dNames.append("d_Dimuon_lxy3p1to7p0_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy3p1to7p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy3p1to7p0_iso1_pthigh")
-#dNames.append("d_Dimuon_lxy7p0to11p0_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy7p0to11p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy7p0to11p0_iso1_pthigh")
-#dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy11p0to16p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy11p0to16p0_iso1_pthigh")
-#dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
-#dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
-#dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso0_ptlow")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso0_pthigh")
+dNames.append("d_Dimuon_lxy16p0to70p0_iso1_ptlow")
 dNames.append("d_Dimuon_lxy16p0to70p0_iso1_pthigh")
 dNames.append("d_Dimuon_lxy0p0to0p2_non-pointing")
 dNames.append("d_Dimuon_lxy0p2to1p0_non-pointing")
 dNames.append("d_Dimuon_lxy1p0to2p4_non-pointing")
 dNames.append("d_Dimuon_lxy2p4to3p1_non-pointing")
-#dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
-#dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
-#dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
-#dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
+dNames.append("d_Dimuon_lxy3p1to7p0_non-pointing")
+dNames.append("d_Dimuon_lxy7p0to11p0_non-pointing")
+dNames.append("d_Dimuon_lxy11p0to16p0_non-pointing")
+dNames.append("d_Dimuon_lxy16p0to70p0_non-pointing")
 if doIso0HighPt:
     dNames = [s for s in dNames if "iso0_pthigh" in s]
 elif doIso1HighPt:
@@ -213,7 +215,7 @@ if sigModel=="HTo2ZdTo2mu2x":
         if not validation:
             sigMasses = [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 50.0]
             sigMasses = [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 40.0, 50.0]
-            #sigMasses = [30.0, 40.0, 50.0]
+            sigMasses = [20.0, 30.0, 40.0, 50.0]
             #sigMasses = [50.0]
             for  m in sigMasses:
                 sigCTaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00, 160.00, 250.00, 400.00, 630.00, 1000.00]
@@ -332,7 +334,7 @@ for y in years:
                             e1p = float(ls[7])
                             e2p = float(ls[8])
                             NORMCONST = 0.01 * ( e2m / 0.6 )
-                            print(" -> Using smart scaling of %.2f for em2 limit of %.3f  to be 0.6" % (NORMCONST, e2m))
+                            print(" -> Using smart scaling of %.5f for em2 limit of %.3f  to be 0.6" % (NORMCONST, e2m))
                             break
                         if (float(ls[1]) > float(M)) and (float(ls[2])== float(T)):
                             obs = float(lsprev[3])
@@ -342,7 +344,7 @@ for y in years:
                             e1p = float(lsprev[7])
                             e2p = float(lsprev[8])
                             NORMCONST = 0.01 * ( e2m / 0.6 )
-                            print(" -> Using smart scaling of %.2f for em2 limit of %.3f  to be 0.6" % (NORMCONST, e2m))
+                            print(" -> Using smart scaling of %.5f for em2 limit of %.3f  to be 0.6" % (NORMCONST, e2m))
                             break
                         lsprev = ls
         #
@@ -454,6 +456,7 @@ for y in years:
             if nSig < 1e-6:
                 nSig = 1e-6
             if useNorm:
+                print("Using a normalization constant of %.5f"%(NORMCONST))
                 nSig = NORMCONST*nSig
             if (binidx > 22 and binidx < 35) or (binidx > 39):
                 nSig = nSig * 0.82
@@ -656,7 +659,12 @@ for y in years:
             if doCounting:
                 card.write("shapes * * FAKE\n")
             else:
-                if doBinnedFit:
+                if doHybridFit:
+                    if nBG > 100:
+                        card.write("shapes data_obs * %s %s:hist_obs%s\n"%(_finame,wsname,catExtB))
+                    else:
+                        card.write("shapes data_obs * %s %s:data_obs%s\n"%(_finame,wsname,catExtB))
+                elif doBinnedFit:
                     card.write("shapes data_obs * %s %s:hist_obs%s\n"%(_finame,wsname,catExtB))
                 else:
                     card.write("shapes data_obs * %s %s:data_obs%s\n"%(_finame,wsname,catExtB))
@@ -694,6 +702,8 @@ for y in years:
             card.write("CMS_eff_sel_%s lnN %.3f -\n"%(year, 1.0+selsyst)) # Systematic uncertainty on signal from b-tagging (fully correlated)
             card.write("mcstat_ch%d lnN %.3f -\n"%(binidx,1.0+mcstatunc)) # MC stat. uncertainty (uncorrelated)
             #card.write("accstat_ch%d lnN %.3f -\n"%(binidx,1.0+terrtot)) # Stat. uncertainty on average acceptance (uncorrelated)
+            #
+            # Systematics on signal shape:
             if meanFloat:
                 card.write("mean%s param %.3f -%.3f/+%.3f\n"%(catExtS,mean,0.5*sigma,0.5*sigma)) # Shape systematic on dimuon mass mean value
             elif fullMeanFloat:
@@ -702,6 +712,8 @@ for y in years:
                 card.write("mean param %.3f %.3f\n"%(mean,meanvar))
             if doMuonResolution:
                 card.write("sigma%s param %.5f %.5f\n"%(catExtS,sigma,sigmavar))                        
+            #
+            ## Cut and count or discrete profiling method:
             if doCounting:
                 card.write("bg_norm_ch%d gmN %d - 1.0\n"%(binidx,int(nBG)))
             else:
@@ -755,10 +767,17 @@ for y in years:
                     icard = "card%s_ch%d_%s_M%.3f_ctau%.2f_%s.txt "%(cname,binidx,sigModel,M,T,y)
                 else:
                     icard = "card%s_ch%d_%s_M%.3f_M%.3f_ctau%.2f_%s.txt "%(cname,binidx,sigModel,M2,M,T,y)
-                if (nSigs[binidx] > 1e-6) and (SOverSqrtB[binidx] > 1e-4*max(SOverSqrtB.values()) or SOverSqrtB[binidx] < 0):
-                    combinedCards += icard
+                if useOnlyZeroBackground:
+                    if (nSigs[binidx]/NORMCONST > 1e-6) and (nBGs[binidx] < 0.99):
+                        combinedCards += icard
+                        print('!!!! Adding SR %s with background: %.3f'%(d, nBGs[binidx]))
+                    else:
+                        print('Skipping card: ', icard)
                 else:
-                    print('Skipping card: ', icard)
+                    if (nSigs[binidx]/NORMCONST > 1e-6) and (SOverSqrtB[binidx] > 1e-4*max(SOverSqrtB.values()) or SOverSqrtB[binidx] < 0):
+                        combinedCards += icard
+                    else:
+                        print('Skipping card: ', icard)
 
             print(combinedCards)
             if combinedCards!="":

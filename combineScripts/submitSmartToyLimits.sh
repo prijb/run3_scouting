@@ -85,7 +85,7 @@ do
 		        RMAX=$(echo "1.5 * ${LIM4}" | bc -l)
                 RABS=$(echo "0.01 * ${LIM5}" | bc -l)
 		        echo "${LIM0}, ${LIM1}, ${LIM2}, ${LIM3}, ${LIM4}, ${LIM5}"
-                echo "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin ${RMIN} --rMax ${RMAX} --rAbsAcc=${RABS} ${options} ${name} -m 125"
+                echo "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 --rMin ${RMIN} --rMax ${RMAX} --rAbsAcc=${RABS} ${options} ${name} -m 125"
                 #eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 100 --rMin ${RMIN} --rMax ${RMAX} ${options} ${name} -m 125"
                 eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 --rMin ${RMIN} --rMax ${RMAX} --rAbsAcc=${RABS} ${options} ${name} -m 125 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "toysExp" ]
@@ -120,14 +120,17 @@ do
                 eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 --rMin ${RMIN} --rMax ${RMAX} --rAbsAcc=${RABS} ${options} ${name} -m 125 --expectedFromGrid=0.975 >& ${outdir}/lim_${which}_${model}_m${m}_ctau${t}_${period}.txt"
             elif [ ${which} == "grid" ]
             then
+                NTOY=500
 		        RMIN=$(echo "0.5 * ${LIM0}" | bc -l)
 		        RMAX=$(echo "1.1 * ${LIM4}" | bc -l)
                 INT=$(echo "${RMAX} - ${RMIN}" | bc -l)
                 STEP=$(echo "0.01 * ${INT}" | bc -l)
-                if [ $# -lt 7 ]
+                if [ $# -lt 8 ]
                 then
-                    echo "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${RMIN}:${RMAX}:${STEP} --iterations 2 -s -1"
-                    eval "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 500 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${RMIN}:${RMAX}:${STEP} --iterations 2 -s -1"
+                    # Run a grid of 100 r points well defined in one go
+                    echo "Running grid from ${RMIN} to ${RMAX} in steps of ${STEP}"
+                    echo "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T ${NTOY} ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${RMIN}:${RMAX}:${STEP} --iterations 2"
+                    eval "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T ${NTOY} ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${RMIN}:${RMAX}:${STEP} --iterations 2"
                     hadd higgsCombine_${model}_M${m}_ctau${t}_${period}_merged.root higgsCombine_${which}_${model}_M${m}*.root
                     eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=higgsCombine_${model}_M${m}_ctau${t}_${period}_merged.root -m 125 ${options} --expectedFromGrid=0.025 >& ${outdir}/lim_toysEm2_${model}_m${m}_ctau${t}_${period}.txt"
                     eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=higgsCombine_${model}_M${m}_ctau${t}_${period}_merged.root -m 125 ${options} --expectedFromGrid=0.16 >& ${outdir}/lim_toysEm1_${model}_m${m}_ctau${t}_${period}.txt"
@@ -136,13 +139,30 @@ do
                     eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=higgsCombine_${model}_M${m}_ctau${t}_${period}_merged.root -m 125 ${options} --expectedFromGrid=0.5 >& ${outdir}/lim_toysExp_${model}_m${m}_ctau${t}_${period}.txt"
                     eval "combine ${indir}/${card} -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=higgsCombine_${model}_M${m}_ctau${t}_${period}_merged.root -m 125 ${options} >& ${outdir}/lim_toysObs_${model}_m${m}_ctau${t}_${period}.txt"
                     rm higgsCombine*.root
-                else
+                elif [ $# -lt 9 ]
+                then
+                    # Run point NUM of the 100 r points (only)
                     name="-n _${which}_${model}_M${m}_ctau${t}"
+                    NTOY=2000
                     NUM=$8
                     DELTA=$(echo "${NUM} * ${STEP}" | bc -l)
                     POINT=$(echo "${RMIN} + ${DELTA}" | bc -l)
-                    echo "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 2000 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2 -s -1"
-                    eval "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T 2000 ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2 -s -1"
+                    echo "Running point ${POINT} of grid from ${RMIN} to ${RMAX} in steps of ${STEP}"
+                    echo "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T ${NTOY} ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2"
+                    eval "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T ${NTOY} ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${POINT} --iterations 2"
+                    mv higgsCombine*HybridNew*.root ${outdir}
+                else
+                    # Run from point MINNUM to MAXNUM of the 100 r points (only)
+                    name="-n _${which}_${model}_M${m}_ctau${t}"
+                    NTOY=2000
+                    MINNUM=$8
+                    MAXNUM=$9
+                    MINDELTA=$(echo "${MINNUM} * ${STEP}" | bc -l)
+                    MAXDELTA=$(echo "${MAXNUM} * ${STEP}" | bc -l)
+                    IRMIN=$(echo "${RMIN} + ${MINDELTA}" | bc -l)
+                    IRMAX=$(echo "${RMIN} + ${MAXDELTA}" | bc -l)
+                    echo "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T ${NTOY} ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${IRMIN}:${IRMAX}:${STEP} --iterations 2 -s -1"
+                    eval "combineTool.py ${indir}/${card} -M HybridNew --LHCmode LHC-limits -T ${NTOY} ${options} ${name} --saveHybridResult -m 125 --clsAcc 0 --singlePoint ${IRMIN}:${IRMAX}:${STEP} --iterations 2 -s -1"
                     mv higgsCombine*HybridNew*.root ${outdir}
                 fi
             elif [ ${which} == "sigExp" ]

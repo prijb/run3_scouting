@@ -20,7 +20,7 @@ if model=="HTo2ZdTo2mu2x":
     if var=='ctau':
         #masses =  [0.5, 0.7, 1.5, 2.0, 2.5, 5.0, 6.0, 7.0, 8.0, 12.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0] # Full set of masses
         masses =  [1.5, 2.0, 2.5, 5.0, 7.0, 8.0, 14.0, 16.0, 20.0, 22.0, 24.0, 30.0, 34.0, 40.0, 44.0, 50.0]
-        masses =  [50.0]
+        masses =  [20.0, 30.0]
         ctaus = [0.10, 0.16, 0.25, 0.40, 0.63, 1.00, 1.60, 2.50, 4.00, 6.30, 10.00, 16.00, 25.00, 40.00, 63.00, 100.00, 160.00, 250.00, 400.00, 630.00, 1000.00]
         #ctaus = [100.00]
     elif var=='mass':
@@ -91,7 +91,7 @@ if doExtraction:
             os.system("combine %s -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=%s/higgsCombine_%s_M%.3f_ctau%.2f_%s_merged.root -m 125 %s >& %s/lim_toysObs_%s_m%.3f_ctau%.2f_%s.txt"%(card, limdir, model, m, t, year, options, limdir, model, m, t, year))
 
 ### File heading
-fout = open("%s/limits_%s_%s.txt"%(outdir,model,year),"w")
+fout = open("%s/limits_%s_toys_%s.txt"%(outdir,model,year),"w")
 
 f2bs = [0.0]
 if model == "nomodel":
