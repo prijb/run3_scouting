@@ -11,11 +11,15 @@ if model=='HTo2ZdTo2mu2x':
     signal_template = "Signal_HTo2ZdTo2mu2x_MZd-{MASS}_ctau-{CTAU}mm"
 elif model=='ScenarioA':
     #model_template = "/scenarioA_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/Run3Scouting-private-Skim_2022postEE-v2-7302dba74ed76f00031d7a657aa159c3/USER"
-    model_template = "/scenarioA_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/jleonhol-private-Skim_2022-v1-9b9153b31e58b326ec6234f65b60747a/USER"
+    #model_template = "/scenarioA_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/jleonhol-private-Skim_2022-v1-9b9153b31e58b326ec6234f65b60747a/USER"
+    model_template = "/scenarioA_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/Run3Scouting-private-Skim_2023BPix-v2-*/USER"
+    #model_template = "/scenarioA_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/Run3Scouting-private-Skim_2023-v2-*/USER"
     signal_template = "Signal_ScenarioA_Mpi-{MASS4}_MA-{MASS}_ctau-{CTAU}mm"
 elif model=='ScenarioB1':
     #model_template = "/scenarioB1_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/Run3Scouting-private-Skim_2022postEE-v2-7302dba74ed76f00031d7a657aa159c3/USER"
-    model_template = "/scenarioB1_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/jleonhol-private-Skim_2022-v1-9b9153b31e58b326ec6234f65b60747a/USER"
+    #model_template = "/scenarioB1_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/jleonhol-private-Skim_2022-v1-9b9153b31e58b326ec6234f65b60747a/USER"
+    model_template = "/scenarioB1_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/Run3Scouting-private-Skim_2023BPix-v2-*/USER"
+    #model_template = "/scenarioB1_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/Run3Scouting-private-Skim_2023-v2-*/USER"
     signal_template = "Signal_ScenarioB1_Mpi-{MASS4}_MA-{MASS}_ctau-{CTAU}mm"
 elif model=='ScenarioB2':
     #model_template = "/scenarioB2_mpi_{MASS4}_mA_{MASS}_ctau_{CTAU}/Run3Scouting-private-Skim_2022postEE-v2-7302dba74ed76f00031d7a657aa159c3/USER"
@@ -104,7 +108,7 @@ elif model=='ScenarioA' or model=='ScenarioB1' or model=='ScenarioB2':
         mpi = dataset.split('mpi_')[1].split('_')[0]
         mA = dataset.split('mA_')[1].split('_')[0]
         t = dataset.split('ctau_')[1].split('/')[0]
-        mass_points.append([mpi, mA, t])
+        mass_points.append([mpi, mA, t, dataset])
         
 print('Mass points:')
 print(mass_points)
@@ -154,9 +158,10 @@ f3out_.write("queue arguments from (\n")
 
 
 for p,point in enumerate(mass_points):
-    mass4 = point[-3]
-    mass = point[-2]
-    time = point[-1]
+    mass4 = point[-4]
+    mass = point[-3]
+    time = point[-2]
+    dataname = point[-1]
     if "2022postEE" in model_template:
         era = "2022postEE"
         year = "2022"
@@ -173,7 +178,8 @@ for p,point in enumerate(mass_points):
     if model=='HTo2ZdTo2mu2x':
         dataset = model_template.format(MASS = mass, CTAU = time)
     else:
-        dataset = model_template.format(MASS4 = mass4, MASS = mass, CTAU = time)
+        #dataset = model_template.format(MASS4 = mass4, MASS = mass, CTAU = time)
+        dataset = dataname.replace('\n', '')
     signalid = signal_template.format(MASS4 = mass4, MASS = mass, CTAU = time) + '_' + era
     line = "{},{}\n".format(signalid, dataset)
     fout_.write(line)
