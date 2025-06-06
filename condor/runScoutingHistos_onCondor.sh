@@ -75,7 +75,8 @@ then
    then
       #condor_submit condor/runScoutingHistos_onCondor2023.sub
       #condor_submit condor/runScoutingHistos_dataOnly_onCondor2023.sub
-      condor_submit condor/runScoutingHistos_testSignal_onCondor2023.sub
+      #condor_submit condor/runScoutingHistos_testSignal_onCondor2023.sub
+      condor_submit condor/runScoutingHistos_DQCD_onCondor2023.sub
       #condor_submit condor/runScoutingHistos_HTo2ZdTo2mu2x_reweighting_onCondor2023.sub
    else
       #condor_submit condor/runScoutingHistos_onCondor.sub
@@ -92,6 +93,7 @@ else
       #condor_submit condor/runScoutingHistos_DQCD_onCondor2023.sub
       condor_submit condor/runScoutingHistos_dataOnly_onCondor2023.sub
       #condor_submit condor/runScoutingHistos_testSignal_onCondor2023.sub
+      #condor_submit condor/runScoutingHistos_DQCD_onCondor2023.sub
       #condor_submit condor/runScoutingHistos_HTo2ZdTo2mu2x_reweighting1000mm_onCondor2023.sub
       #condor_submit condor/runScoutingHistos_HTo2ZdTo2mu2x_reweighting_onCondor2023.sub
    else
