@@ -319,22 +319,22 @@ def getSelectionSF(lxy):
         sfup = 1.10 + 0.01
         sfdown = 1.10 - 0.01
     elif lxy > 0.2 and lxy < 1.0:
-        sf = 1.03
-        sfup = 1.03 + 0.02
-        sfdown = 1.03 - 0.02
+        sf = 1.05
+        sfup = 1.05 + 0.02
+        sfdown = 1.05 - 0.02
     elif lxy > 1.0 and lxy < 2.4:
-        sf = 1.02
-        sfup = 1.02 + 0.03
-        sfdown = 1.02 - 0.03
+        sf = 1.03
+        sfup = 1.03 + 0.03
+        sfdown = 1.03 - 0.03
     elif lxy > 2.4 and lxy < 3.1:
-        sf = 0.96
-        sfup = 0.96 + 0.06
-        sfdown = 0.96 - 0.06
+        sf = 0.97
+        sfup = 0.97 + 0.06
+        sfdown = 0.97 - 0.06
     elif lxy > 3.1 and lxy < 7.0:
-        sf = 0.86
+        sf = 0.82
         sfup = 0.82 + 0.1
         sfdown = 0.82 - 0.1
-    elif lxy > 7.0: # More bins to be added when efficiency (per category) is computed
+    elif lxy > 7.0: # This weight is applied later with datacards are filled.
         sf = 1.0
         sfup = 1.0 + 0.3
         sfdown = 1.0 - 0.3
@@ -973,10 +973,11 @@ for e in range(firste,laste):
 
 
     ### Scan analysis initialization 
+    ## If you put one of the to True, it won't fill.
     # Cat selection:
-    filledcat4musep = False
-    filledcat4muosv = False
-    filledcat2mu = False
+    filledcat4musep = False # False
+    filledcat4muosv = False # False
+    filledcat2mu = False # False
 
 
     # Apply selections and fill histograms for four-muon systems from non-overlapping SVs
