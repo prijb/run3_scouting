@@ -616,8 +616,8 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
     std::cout << "File number: " << iFile << "\t" << inputFile <<  "\n";
     TFile *file = TFile::Open(inputFile);
     if (!file || file->IsZombie()) {
-        std::cout << "File is in zombie state, skipping..." << std::endl;
-	continue;
+      std::cout << "File is in zombie state, skipping..." << std::endl;
+	    continue;
     }
     auto nEventsFile = ((TTree*)file->Get("Events"))->GetEntries();
     std::cout << "Input events: " << nEventsFile <<  "\n";
@@ -651,7 +651,7 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         //sum2Weights->Fill(0.5, genWeight*genWeight);
         sum2Weights->Fill(0.5);
       }
-        counts->Fill(0.5);
+      counts->Fill(0.5);
 
       // JSON and duplicate removal
       if ( !isMC ) {
@@ -677,8 +677,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           passL1 = true;
         }
       }
+      // Commented out for systematics study
+      /*
       if (!passL1)
-	continue;
+	      continue;
+      */
       nL1++;
 
       // HLT selection
@@ -690,8 +693,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
           break;
         }
       }
+      // Commented out for systematics study
+      /*
       if (!passHLT)
-	continue;
+	      continue;
+      */
       nHLT++;
 
       // PV selection
@@ -790,9 +796,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
       SVs.clear();
 
       unsigned int nSVs = svs.size();
+      // Commented out for systematics study
+      /*
       if (nSVs < 1)
         continue;
-
+      */
       for (unsigned int iSV=0; iSV<nSVs; ++iSV) {
         auto sv = svs[iSV];
         if (!(sv.isValidVtx()))
@@ -1122,8 +1130,11 @@ void run3ScoutingLooper(std::vector<TString> inputFiles, TString year, TString p
         Muons.mindetaJet.push_back(mindetaJet);
       }
       nPreMu++;
+      // Commented out for systematics study
+      /*
       if (Muons.pt.size() < 2)
         continue;
+      */
       Muons.sort();
 
       tout->Fill();

@@ -38,6 +38,7 @@ if (len(sys.argv)>2):
     else: #MC
         config.Data.inputDataset = sys.argv[2]
         extra = sys.argv[2].split("/")[1]
+
 elif(data): #other data
     config.Data.inputDataset = '/ScoutingPFRun3/Run{}-v1/RAW'.format(era)
     config.JobType.pyCfgParams=["era={}".format(era),"data=True",]
@@ -90,5 +91,11 @@ config.Data.outLFNDirBase = '/store/group/Run3Scouting/RAWScouting_'+ntuple_vers
 config.Data.publication = False
 config.Site.storageSite = "T2_US_UCSD"
 
+#If for systematic studies, add "syst=True" to add orthogonal trigger info
+if "syst" in sys.argv:
+    print(f'Adding "syst=True" to config params')
+    config.JobType.pyCfgParams.append("syst=True")
+    config.General.requestName += "_syst"
+
 print(config)
-crabCommand('submit', config = config, dryrun = False) ## dryrun = True for local test
+#crabCommand('submit', config = config, dryrun = False) ## dryrun = True for local test

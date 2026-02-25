@@ -1063,3 +1063,8 @@ Signal_ScenarioB2_Mpi-5_MA-2p60_ctau-0p1mm_2022postEE,/scenarioB2_mpi_5_mA_2p60_
 Signal_ScenarioB2_Mpi-5_MA-2p60_ctau-10mm_2022postEE,/scenarioB2_mpi_5_mA_2p60_ctau_10/Run3Scouting-private-Skim_2022postEE-v2-7302dba74ed76f00031d7a657aa159c3/USER
 Signal_ScenarioB2_Mpi-5_MA-2p60_ctau-100mm_2022postEE,/scenarioB2_mpi_5_mA_2p60_ctau_100/Run3Scouting-private-Skim_2022postEE-v2-7302dba74ed76f00031d7a657aa159c3/USER
 Signal_ScenarioB2_Mpi-5_MA-2p60_ctau-1p0mm_2022postEE,/scenarioB2_mpi_5_mA_2p60_ctau_1p0/Run3Scouting-private-Skim_2022postEE-v2-7302dba74ed76f00031d7a657aa159c3/USER
+#############################################
+#############################################
+#### B0ToJPsiK0S test 
+#############################################
+B0ToJPsiK0S-JPsiTo2Mu-K0STo2Pi_2022,/ceph/cms/store/user/ppradeep/Run3Scouting/RAWScouting_6_syst_test/

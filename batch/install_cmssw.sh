@@ -8,6 +8,10 @@ then
     then
 	release=CMSSW_12_4_16
     fi
+    if [ ${1} == "2022summer" ]
+    then
+	release=CMSSW_12_4_23
+    fi
     if [ ${1} == "2023" ]
     then
 	release=CMSSW_13_0_10
