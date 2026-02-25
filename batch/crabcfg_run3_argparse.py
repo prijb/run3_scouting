@@ -92,12 +92,10 @@ if (data and year==2023):
 if (data and year==2022):
    config.Data.lumiMask = "data/Cert_Collisions2022_355100_362760_Golden.json"
 
-# Debugging for just a single file
+# Changing to filebased
 if args.filebased:
     config.Data.splitting = 'FileBased'
     config.Data.unitsPerJob = int(1)
-    NJOBS = 1
-    config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 
 
 #edit the area and user name

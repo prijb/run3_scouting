@@ -55,6 +55,46 @@ python3 crabcfg_run3.py 2023C PFMonitor
 python3 crabcfg_run3.py 2023D PFMonitor
 ```
 
+### crab commands (using argparse and systematics)
+
+Same step as above but with an argparse wrapper script to avoid confusion
+
+CMSSW version should be updated to Summer2X compatibility
+```bash
+. install_cmssw.sh 2022summer
+```
+
+```bash
+#For data/PFMonitor/public mc
+python3 crabcfg_run3.py 2022B
+
+# Data
+python3 crabcfg_run3_argparse.py --era 2022B --data 
+python3 crabcfg_run3_argparse.py --era 2022C --data 
+python3 crabcfg_run3_argparse.py --era 2022D --data 
+python3 crabcfg_run3_argparse.py --era 2022E --data 
+python3 crabcfg_run3_argparse.py --era 2022F --data
+python3 crabcfg_run3_argparse.py --era 2022G --data  
+python3 crabcfg_run3_argparse.py --era 2023B --data 
+python3 crabcfg_run3_argparse.py --era 2023C --data --triggerV10
+python3 crabcfg_run3_argparse.py --era 2023C --data
+python3 crabcfg_run3_argparse.py --era 2023D --data
+# Data PF Monitor
+python3 crabcfg_run3_argparse.py --era 2022B --data --PFMonitor 
+python3 crabcfg_run3_argparse.py --era 2022C --data --PFMonitor 
+python3 crabcfg_run3_argparse.py --era 2022D --data --PFMonitor 
+python3 crabcfg_run3_argparse.py --era 2022E --data --PFMonitor 
+python3 crabcfg_run3_argparse.py --era 2022F --data --PFMonitor
+python3 crabcfg_run3_argparse.py --era 2022G --data --PFMonitor  
+python3 crabcfg_run3_argparse.py --era 2023B --data --PFMonitor 
+python3 crabcfg_run3_argparse.py --era 2023C --data --PFMonitor --triggerV10
+python3 crabcfg_run3_argparse.py --era 2023C --data --PFMonitor
+python3 crabcfg_run3_argparse.py --era 2023D --data --PFMonitor
+
+# MC systematics (--syst eliminates skimming and adds orthogonal trigger bits)
+python3 crabcfg_run3_argparse.py --era 2022X --dataset /B0ToJPsiK0S-JPsiTo2Mu-K0STo2Pi_SVS_JPsiFilter-K0SFilter_TuneCP5_13p6TeV_pythia8-evtgen/Run3Summer22DRPremix-124X_mcRun3_2022_realistic_v12-v2/AODSIM --syst --filebased
+```
+
 ### Run on central signal MC:
 
 Should setup the corresponding CMSSW version for each campaign e.g.
