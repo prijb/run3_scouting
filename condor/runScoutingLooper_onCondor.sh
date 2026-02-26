@@ -18,7 +18,7 @@ if [ -z $1 ]; then usage; fi
 
 notar=0
 year23=0
-indir=""
+indir="$1"
 
 if [ $# -gt 1 ]
 then
@@ -55,17 +55,17 @@ then
    if [ ${year23} -gt 0 ]
    then
       #condor_submit condor/runScoutingLooper_onCondor2023.sub
-      condor_submit condor/runScoutingLooper_DQCD_onCondor2023.sub
+      condor_submit condor/runScoutingLooper_onCondor_syst2023.sub
    else
-      condor_submit condor/runScoutingLooper_signalOnly_onCondor.sub
+      condor_submit condor/runScoutingLooper_onCondor_syst2022.sub
    fi
 else
    sh condor/create_package.sh
    if [ ${year23} -gt 0 ]
    then
       #condor_submit condor/runScoutingLooper_onCondor2023.sub
-      condor_submit condor/runScoutingLooper_DQCD_onCondor2023.sub
+      condor_submit condor/runScoutingLooper_onCondor_syst2023.sub
    else
-      condor_submit condor/runScoutingLooper_signalOnly_onCondor.sub
+      condor_submit condor/runScoutingLooper_onCondor_syst2022.sub
    fi
 fi
