@@ -55,7 +55,7 @@ python3 crabcfg_run3.py 2023C PFMonitor
 python3 crabcfg_run3.py 2023D PFMonitor
 ```
 
-### crab commands (using argparse and systematics)
+#### crab commands (using argparse and systematics)
 
 Same step as above but with an argparse wrapper script to avoid confusion
 
@@ -65,9 +65,6 @@ CMSSW version should be updated to Summer2X compatibility
 ```
 
 ```bash
-#For data/PFMonitor/public mc
-python3 crabcfg_run3.py 2022B
-
 # Data
 python3 crabcfg_run3_argparse.py --era 2022B --data 
 python3 crabcfg_run3_argparse.py --era 2022C --data 

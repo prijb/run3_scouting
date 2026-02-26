@@ -53,7 +53,9 @@ if args.triggerV10:
 # Manually override dataset
 if args.dataset is not None:
     config.Data.inputDataset = args.dataset
-    requestName += "_{}".format(args.dataset.split("/")[1])
+    #requestName += "_{}".format(args.dataset.split("/")[1])
+    # BToJPsi dataset name's too long for the CRAB 100 char limit for request name :p
+    requestName += "_{}".format(args.dataset.split("/")[1].split("_pythia8")[0]) 
 
 # Add systematics option
 if args.syst:
